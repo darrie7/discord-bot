@@ -129,7 +129,7 @@ class MyCommandsCog(commands.Cog):
             await oldmess.delete()
             await ctx.message.delete()
             self.bot._db.update({"participants": line["participants"], "time": int(time.time()), "embed_id": new_embed.id, "channel_id": new_embed.channel.id}, self.bot._query.identifier == line["identifier"])
-            break
+            return
             
 
     @commands.command(name='join', aliases=['j'])
@@ -154,7 +154,7 @@ class MyCommandsCog(commands.Cog):
             new_embed = await everything(self, line, oldmess.embeds[0], ctx)
             await oldmess.delete()
             self.bot._db.update({"participants": line["participants"], "time": int(time.time()), "embed_id": new_embed.id, "channel_id": new_embed.channel.id}, self.bot._query.identifier == line["identifier"])
-            break
+            return
             
             
     @commands.command(name='kick', aliases=['k'])
@@ -182,7 +182,7 @@ class MyCommandsCog(commands.Cog):
             new_embed = await everything(self, line, oldmess.embeds[0], ctx)
             await oldmess.delete()
             self.bot._db.update({"participants": line["participants"], "time": int(time.time()), "embed_id": new_embed.id, "channel_id": new_embed.channel.id}, self.bot._query.identifier == line["identifier"])
-            break
+            return
             
             
     @commands.command(name='cancel', aliases=[])
@@ -201,7 +201,7 @@ class MyCommandsCog(commands.Cog):
             await oldmess.delete()
             await ctx.send(f"""RIP team | {line["name"]}""")
             self.bot._db.remove(self.bot._query.identifier == line["identifier"])
-            break
+            return
 
                
     @commands.command(name='teams', aliases=[])
