@@ -9,14 +9,13 @@ from datetime import datetime
 
 def check(sqname):
     if "trio" in sqname.lower():
-        max_players = 3
-    elif "duo" in sqname.lower():
-        max_players = 2
-    elif any(x in sqname.lower() for x in ["in-house", "in house", "inhouse"]):
-        max_players = 10
+        return 3
+    if "duo" in sqname.lower():
+        return 2
+    if any(x in sqname.lower() for x in ["in-house", "in house", "inhouse"]):
+        return 10
     else:   
-        max_players = 5
-    return max_players
+        return 5
     
     
 async def everything(self, line, embed, ctx,):
@@ -113,22 +112,24 @@ class MyCommandsCog(commands.Cog):
             await ctx.message.delete()
             return
         for line in self.bot._db:
-            if ctx.message.author.id in line["participants"]:
-                line["participants"].remove(ctx.message.author.id)
-                if len(line["participants"]) < 1:
-                    oldmess = await ctx.fetch_message(line["embed_id"])
-                    await oldmess.delete()
-                    await ctx.message.delete()
-                    await ctx.send(f"""RIP team | {line["name"]}""")
-                    self.bot._db.remove(self.bot._query.identifier == line["identifier"])
-                    return
+            if not ctx.message.author.id in line["participants"]:
+                continue
+            line["participants"].remove(ctx.message.author.id)
+            if len(line["participants"]) < 1:
                 oldmess = await ctx.fetch_message(line["embed_id"])
-                msg_con = f"""{ctx.message.author.display_name} has left {line["name"]}"""
-                await ctx.send(msg_con)
-                new_embed = await everything(self, line, oldmess.embeds[0], ctx)
                 await oldmess.delete()
                 await ctx.message.delete()
-                self.bot._db.update({"participants": line["participants"], "time": int(time.time()), "embed_id": new_embed.id, "channel_id": new_embed.channel.id}, self.bot._query.identifier == line["identifier"])
+                await ctx.send(f"""RIP team | {line["name"]}""")
+                self.bot._db.remove(self.bot._query.identifier == line["identifier"])
+                return
+            oldmess = await ctx.fetch_message(line["embed_id"])
+            msg_con = f"""{ctx.message.author.display_name} has left {line["name"]}"""
+            await ctx.send(msg_con)
+            new_embed = await everything(self, line, oldmess.embeds[0], ctx)
+            await oldmess.delete()
+            await ctx.message.delete()
+            self.bot._db.update({"participants": line["participants"], "time": int(time.time()), "embed_id": new_embed.id, "channel_id": new_embed.channel.id}, self.bot._query.identifier == line["identifier"])
+            break
             
 
     @commands.command(name='join', aliases=['j'])
@@ -140,18 +141,20 @@ class MyCommandsCog(commands.Cog):
             await ctx.send(f'{user.display_name} is not in a team')
             return
         for line in self.bot._db:
-            if user.id in line["participants"]:
-                max_players = check(line["name"])
-                if len(line["participants"]) == max_players:
-                    await ctx.send(f'This team is full')
-                    return
-                line["participants"].append(ctx.message.author.id)
-                oldmess = await ctx.fetch_message(line["embed_id"])
-                msg_con = f"""{ctx.message.author.display_name} has joined {line["name"]}"""
-                await ctx.send(msg_con)
-                new_embed = await everything(self, line, oldmess.embeds[0], ctx)
-                await oldmess.delete()
-                self.bot._db.update({"participants": line["participants"], "time": int(time.time()), "embed_id": new_embed.id, "channel_id": new_embed.channel.id}, self.bot._query.identifier == line["identifier"])
+            if not user.id in line["participants"]:
+                continue
+            max_players = check(line["name"])
+            if len(line["participants"]) == max_players:
+                await ctx.send(f'This team is full')
+                return
+            line["participants"].append(ctx.message.author.id)
+            oldmess = await ctx.fetch_message(line["embed_id"])
+            msg_con = f"""{ctx.message.author.display_name} has joined {line["name"]}"""
+            await ctx.send(msg_con)
+            new_embed = await everything(self, line, oldmess.embeds[0], ctx)
+            await oldmess.delete()
+            self.bot._db.update({"participants": line["participants"], "time": int(time.time()), "embed_id": new_embed.id, "channel_id": new_embed.channel.id}, self.bot._query.identifier == line["identifier"])
+            break
             
             
     @commands.command(name='kick', aliases=['k'])
@@ -167,18 +170,20 @@ class MyCommandsCog(commands.Cog):
             await ctx.send(f'You are not in a team')
             return
         for line in self.bot._db:
-            if all(x in line["participants"] for x in [ctx.message.author.id, user.id]):
-                if ctx.message.author.id != line["participants"][0]:
-                    await ctx.send(f'You are not the team host')
-                    return
-                oldmess = await ctx.fetch_message(line["embed_id"])
-                line["participants"].remove(user.id)
-                msg_con = f"""{ctx.message.author.display_name} has been kicked from {line["name"]}"""
-                await ctx.send(msg_con)
-                new_embed = await everything(self, line, oldmess.embeds[0], ctx)
-                await oldmess.delete()
-                self.bot._db.update({"participants": line["participants"], "time": int(time.time()), "embed_id": new_embed.id, "channel_id": new_embed.channel.id}, self.bot._query.identifier == line["identifier"])
-                    
+            if not all(x in line["participants"] for x in [ctx.message.author.id, user.id]):
+                continue
+            if ctx.message.author.id != line["participants"][0]:
+                await ctx.send(f'You are not the team host')
+                return
+            oldmess = await ctx.fetch_message(line["embed_id"])
+            line["participants"].remove(user.id)
+            msg_con = f"""{ctx.message.author.display_name} has been kicked from {line["name"]}"""
+            await ctx.send(msg_con)
+            new_embed = await everything(self, line, oldmess.embeds[0], ctx)
+            await oldmess.delete()
+            self.bot._db.update({"participants": line["participants"], "time": int(time.time()), "embed_id": new_embed.id, "channel_id": new_embed.channel.id}, self.bot._query.identifier == line["identifier"])
+            break
+            
             
     @commands.command(name='cancel', aliases=[])
     async def cancel_lobby(self, ctx):
@@ -187,14 +192,16 @@ class MyCommandsCog(commands.Cog):
             await ctx.message.delete()
             return
         for line in self.bot._db:
-            if ctx.message.author.id in line["participants"]:
-                if ctx.message.author.id != line["participants"][0]:
-                    await ctx.send(f'You are not the team host')
-                    return
-                oldmess = await ctx.fetch_message(line["embed_id"])
-                await oldmess.delete()
-                await ctx.send(f"""RIP team | {line["name"]}""")
-                self.bot._db.remove(self.bot._query.identifier == line["identifier"])
+            if not ctx.message.author.id in line["participants"]:
+                continue
+            if ctx.message.author.id != line["participants"][0]:
+                await ctx.send(f'You are not the team host')
+                return
+            oldmess = await ctx.fetch_message(line["embed_id"])
+            await oldmess.delete()
+            await ctx.send(f"""RIP team | {line["name"]}""")
+            self.bot._db.remove(self.bot._query.identifier == line["identifier"])
+            break
 
                
     @commands.command(name='teams', aliases=[])
@@ -227,6 +234,7 @@ class MyCommandsCog(commands.Cog):
                 await oldmess.delete()
                 new_msg = await ctx.send(embed=embed)
                 self.bot._db.update({"embed_id": new_msg.id, "channel_id": new_msg.channel.id}, self.bot._query.identifier == line["identifier"])
+                break
             
                 
     @create_lobby.error
