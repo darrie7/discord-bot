@@ -307,7 +307,6 @@ class MyCommandsCog(commands.Cog):
                 await sleep(2)
                 if n == 3:
                     return
-        await self.bot.get_channel(793878235066400809).send(str(anilist)[0:1000])
         anilist = anilist["data"]["MediaListCollection"]["lists"][0]["entries"]
         now = datetime.now()
         for x in anilist:
