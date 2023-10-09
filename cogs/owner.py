@@ -77,6 +77,7 @@ class OwnerCog(commands.Cog):
         Parameters
         ----------
         """
+        await inter.response.send_message("Updating cogs", ephemeral=True)
         n = 0
         while n <= 3:
             if n == 3:
