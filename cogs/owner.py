@@ -70,7 +70,7 @@ class OwnerCog(commands.Cog):
 
     @commands.slash_command(description="unload cog", guild_ids=[631502700244107315])
     @commands.is_owner()
-    async def refresh_cogs(self):
+    async def refresh_cogs(self, inter):
         """
         Updates the cogs
 
