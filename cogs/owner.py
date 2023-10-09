@@ -86,10 +86,11 @@ class OwnerCog(commands.Cog):
                 continue
             my_cogs = my_cogs.json()
             for cog in my_cogs:
-                with open(f"/home/dietpi/cogs/copy/{cog.get('name')}", 'w') as cog_file:
+                with open(f"/root/cogs/{cog.get('name')}", 'wb') as cog_file:
                     cog_content = await to_thread(requests.get, url=cog.get('download_url'))
                     if cog_content.status_code == 200:
                         cog_file.write(cog_content.content)
+            break
 
     # Hidden means it won't show up on the default help.
   #################################################OWNER COMMANDS######################################          
