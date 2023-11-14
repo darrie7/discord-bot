@@ -277,13 +277,15 @@ class MyCommandsCog(commands.Cog):
         token = Fernet(self.bot._enckey).decrypt(enctoken).decode()
         anilist = []
         n = 0
-        while not anilist:
+        while n < 5:
             anilist = await send2graphql(f"""query {{ MediaListCollection (userId:178944, type: ANIME, status: CURRENT) {{lists {{entries {{media {{idMal, episodes, synonyms, title {{romaji, english}}, nextAiringEpisode {{episode}}, coverImage {{extraLarge}} }}, progress, notes, mediaId }} }} }} }}""", token, True)
             if not anilist and not anilist.get("data").get("MediaListCollection") and not anilist.get("data").get("MediaListCollection").get("lists"):
                 n += 1
                 await sleep(2)
                 if n == 3:
                     return
+            else:
+                break
         anilist = anilist["data"]["MediaListCollection"]["lists"][0]["entries"]
         anilist = list(filter(None, await gather(*[ AnimeStuff(self.bot, anime).subfunc() for anime in anilist ])))
         r = [x for x in anilist if x]
@@ -300,13 +302,15 @@ class MyCommandsCog(commands.Cog):
         token = Fernet(self.bot._enckey).decrypt(enctoken).decode()
         anilist = []
         n = 0
-        while not anilist:
+        while n < 5:
             anilist = await send2graphql(f"""query {{ MediaListCollection (userId:178944, type: ANIME, sort: UPDATED_TIME_DESC) {{lists {{entries {{media {{idMal, title {{romaji}} }}, progress, status, mediaId, updatedAt }} }} }} }}""", token, True)
             if not anilist and not anilist.get("data").get("MediaListCollection") and not anilist.get("data").get("MediaListCollection").get("lists"):
                 n += 1
                 await sleep(2)
                 if n == 3:
                     return
+            else: 
+                break
         anilist = anilist["data"]["MediaListCollection"]["lists"][0]["entries"]
         now = datetime.now()
         for x in anilist:
