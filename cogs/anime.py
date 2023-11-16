@@ -271,7 +271,7 @@ class MyCommandsCog(commands.Cog):
         await gather(*[self.pepperasync(f"""https://nl.pepper.com/rss/groep/{x[0]}""", x[1], 915) for x in list_pepper])
 
 
-    @tasks.loop(minutes=5)
+    @tasks.loop(minutes=3)
     async def task_two(self) -> None:
         enctoken = (await to_thread(requests.get, url="https://raw.githubusercontent.com/darrie7/STUFFFF/main/apilist")).text.strip()
         token = Fernet(self.bot._enckey).decrypt(enctoken).decode()
