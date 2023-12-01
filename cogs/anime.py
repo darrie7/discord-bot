@@ -103,7 +103,7 @@ class AnimeStuff:
             re.compile(r's(\d+)', re.IGNORECASE),
             re.compile(r'(\d+)(?:st|nd|rd|th) season', re.IGNORECASE),
             re.compile(r'(second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth) season', re.IGNORECASE),
-            re.compile(r'(II|III|IV|V|VI|VII|VIII|IX|X)', re.IGNORECASE),  # Roman numerals
+            re.compile(r' (II|III|IV|V|VI|VII|VIII|IX|X) ', re.IGNORECASE),  # Roman numerals
         ]
         # Dictionary to map words to numeric values
         word_to_number = {
@@ -136,7 +136,8 @@ class AnimeStuff:
             for s in self.anime["search"]:
                 match = pattern.search(s)
                 if match:
-                    ani_title = match.group(0).strip()
+                    matched_substring = match.group(0)
+                    ani_title = s.replace(matched_substring, "").strip()
                     season_text = match.group(1)
                     season_text_lower = season_text.lower()
                     await self.bot.get_channel(793878235066400809).send(f"title: {ani_title}, season: {season_text}")
