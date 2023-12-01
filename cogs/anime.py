@@ -119,11 +119,11 @@ class AnimeStuff:
             'tenth': 10
         }
         roman_to_number = {
-            'II': 2,
-            'III': 3,
-            'VII': 7,
-            'VIII': 8,
-            'IX': 9,
+            'ii': 2,
+            'iii': 3,
+            'vii': 7,
+            'viii': 8,
+            'ix': 9,
         }
         # Iterate through patterns and check for matches
         season_number = 1
