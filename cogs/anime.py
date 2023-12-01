@@ -103,10 +103,10 @@ class AnimeStuff:
             re.compile(r's(\d+)', re.IGNORECASE),
             re.compile(r'(\d+)(?:st|nd|rd|th) season', re.IGNORECASE),
             re.compile(r'(second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth) season', re.IGNORECASE),
-            re.compile(r' (II|III|IV|V|VI|VII|VIII|IX|X) ', re.IGNORECASE),  # Roman numerals
+            re.compile(r' (II|III|IV|V|VI|VII|VIII|IX|X)$', re.IGNORECASE),  # Roman numerals
         ]
         # Dictionary to map words to numeric values
-        word_to_number = {
+        word_roman_to_number = {
             'first': 1,
             'second': 2,
             'third': 3,
@@ -116,9 +116,7 @@ class AnimeStuff:
             'seventh': 7,
             'eighth': 8,
             'ninth': 9,
-            'tenth': 10
-        }
-        roman_to_number = {
+            'tenth': 10,
             'ii': 2,
             'iii': 3,
             'iv': 4,
@@ -141,26 +139,14 @@ class AnimeStuff:
                     season_text = match.group(1)
                     season_text_lower = season_text.lower()
                     await self.bot.get_channel(793878235066400809).send(f"title: {ani_title}, season: {season_text}")
-                    if season_text_lower in word_to_number:
-                        season_number = word_to_number[season_text_lower]
+                    if season_text_lower in word_roman_to_number:
+                        season_number = word_roman_to_number[season_text_lower]
                         add_search.append(f"{ani_title} season {season_number}")
                         add_search.append(f"{ani_title} s{season_number}")
                         if season_text_lower in "2":
                              add_search.append(f"{ani_title} {season_number}nd season")
                              add_search.append(f"{ani_title} second season")
-                        if season_text_lower in "3":
-                             add_search.append(f"{ani_title} {season_number}rd season")
-                             add_search.append(f"{ani_title} third season")
-                        else:
-                             add_search.append(f"{ani_title} {season_number}th season")
-                    if season_text_lower in roman_to_number:
-                        season_number = roman_to_number[season_text_lower]
-                        add_search.append(f"{ani_title} season {season_number}")
-                        add_search.append(f"{ani_title} s{season_number}")
-                        if season_text_lower in "2":
-                             add_search.append(f"{ani_title} {season_number}nd season")
-                             add_search.append(f"{ani_title} second season")
-                        if season_text_lower in "3":
+                        elif season_text_lower in "3":
                              add_search.append(f"{ani_title} {season_number}rd season")
                              add_search.append(f"{ani_title} third season")
                         else:
