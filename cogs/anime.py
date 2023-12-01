@@ -103,7 +103,7 @@ class AnimeStuff:
             re.compile(r's(\d+)', re.IGNORECASE),
             re.compile(r'(\d+)(?:st|nd|rd|th) season', re.IGNORECASE),
             re.compile(r'(second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth) season', re.IGNORECASE),
-            re.compile(r'(II|III|VII|VIII|IX)', re.IGNORECASE),  # Roman numerals
+            re.compile(r'(II|III|IV|V|VI|VII|VIII|IX|X)', re.IGNORECASE),  # Roman numerals
         ]
         # Dictionary to map words to numeric values
         word_to_number = {
@@ -121,9 +121,13 @@ class AnimeStuff:
         roman_to_number = {
             'ii': 2,
             'iii': 3,
+            'iv': 4,
+            'v': 5,
+            'vi': 6,
             'vii': 7,
             'viii': 8,
             'ix': 9,
+            'x': 10
         }
         # Iterate through patterns and check for matches
         season_number = 1
