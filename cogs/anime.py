@@ -132,10 +132,10 @@ class AnimeStuff:
             for s in self.anime["search"]:
                 match = pattern.search(s)
                 if match:
-                    await self.bot.get_channel(793878235066400809).send(f"title: {ani_title}, season: {season_text}")
                     ani_title = match.group(0).strip()
                     season_text = match.group(1)
                     season_text_lower = season_text.lower()
+                    await self.bot.get_channel(793878235066400809).send(f"title: {ani_title}, season: {season_text}")
                     if season_text_lower in word_to_number:
                         season_number = word_to_number[season_text_lower]
                         add_search.append(f"{ani_title} season {season_number}")
