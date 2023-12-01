@@ -149,7 +149,6 @@ class AnimeStuff:
                 ani_title = s.replace(matched_substring, "").strip()
                 season_text = match.group(1)
                 season_text_lower = season_text.lower()
-                await self.bot.get_channel(793878235066400809).send(f"title: {ani_title}, season: {season_text}")
                 if season_text_lower in word_roman_to_number:
                     season_number = word_roman_to_number[season_text_lower]
                     add_search.append(f"{ani_title} season {season_number}")
