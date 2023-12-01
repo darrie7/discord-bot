@@ -16,6 +16,7 @@ from dotenv import load_dotenv
 from typing import Optional
 import requests
 from cryptography.fernet import Fernet
+import re
 
 
 class Dropdown(disnake.ui.Select):
@@ -91,15 +92,90 @@ class AnimeStuff:
             search.extend(self.anime["notes"]["syn"])
         search.extend(self.anime["media"]["synonyms"])
         search = [ s for s in search if s and s.isascii() ]
-        for z in [("season ", "s"), (": ", " - "), (": ", " "), ("-"," ")]:
+        '''for z in [("season ", "s"), (": ", " - "), (": ", " "), ("-"," ")]:'''
+        for z in [(": ", " - "), (": ", " "), ("-"," ")]:
             search.extend([" - ".join([a.lower().replace(z[0], z[1]) for a in title.split(" - ")]) for title in search if z[0] in title.lower()])
         self.anime["search"] = list(dict.fromkeys(search))
         '''episode search'''
+        # Regular expression patterns to match season indicators
+        season_patterns = [
+            re.compile(r'season (\d+)', re.IGNORECASE),
+            re.compile(r's(\d+)', re.IGNORECASE),
+            re.compile(r'(\d+)(?:st|nd|rd|th) season', re.IGNORECASE),
+            re.compile(r'(second|third|fourth|fifth|sixth) season', re.IGNORECASE),
+            re.compile(r'(II|III|IV|V|VI|VII|VIII|IX|X)', re.IGNORECASE),  # Roman numerals
+        ]
+        # Dictionary to map words to numeric values
+        word_to_number = {
+            'first': 1,
+            'second': 2,
+            'third': 3,
+            'fourth': 4,
+            'fifth': 5,
+            'sixth': 6,
+            'seventh': 7,
+            'eighth': 8,
+            'ninth': 9,
+            'tenth': 10
+        }
+        roman_to_number = {
+            'II': 2,
+            'III': 3,
+            'IV': 4,
+            'V': 5,
+            'VI': 6,
+            'VII': 7,
+            'VIII': 8,
+            'IX': 9,
+            'X': 10
+        }
+        # Iterate through patterns and check for matches
+        season_number = 1
+        add_search = []
+        for s in self.anime["search"]:
+            for pattern in season_patterns:
+                match = pattern.search(s)
+                if match:
+                    ani_title = match.group(0).strip()
+                    season_text = match.group(1)
+                    season_text_lower = season_text.lower()
+                    if season_text_lower in word_to_number:
+                        season_number = word_to_number[season_text_lower]
+                        add_search.append(f"ani_title season {season_number}")
+                        add_search.append(f"ani_title s{season_number}")
+                        if season_text_lower in "2":
+                             add_search.append(f"ani_title {season_number}nd season")
+                             add_search.append(f"ani_title second season")
+                        if season_text_lower in "3":
+                             add_search.append(f"ani_title {season_number}rd season")
+                             add_search.append(f"ani_title third season")
+                        else:
+                             add_search.append(f"ani_title {season_number}th season")
+                    if season_text_lower in roman_to_number:
+                        season_number = roman_to_number[season_text_lower]
+                        add_search.append(f"ani_title season {season_number}")
+                        add_search.append(f"ani_title s{season_number}")
+                        if season_text_lower in "2":
+                             add_search.append(f"ani_title {season_number}nd season")
+                             add_search.append(f"ani_title second season")
+                        if season_text_lower in "3":
+                             add_search.append(f"ani_title {season_number}rd season")
+                             add_search.append(f"ani_title third season")
+                        else:
+                             add_search.append(f"ani_title {season_number}th season")
+
+        self.anime["search"].extend(add_search)
+        self.anime["search"] = list(dict.fromkeys(self.anime["search"]))
+        season_number = int(season_number)
+        '''
         if any((y:=x) in s.lower() for x in [f"""season {x}""" for x in range(1,20)] for s in self.anime["search"]):
             ani_season = int(y.split()[1])
         else:
             ani_season = 1
+        
         self.anime["episodesearch"] = [f"""- {self.anime["progress"]+1:02} """, f"""- {self.anime["progress"]+1:02}v""", f"""S{ani_season:02}E{self.anime["progress"]+1:02}"""]
+        '''
+        self.anime["episodesearch"] = [f"""- {self.anime["progress"]+1:02} """, f"""- {self.anime["progress"]+1:02}v""", f"""S{season_number:02}E{self.anime["progress"]+1:02}"""]
         return self.anime
 
     async def fetch(self, url: str, searchlist: list[str], episodesearch: list[str]) -> str:
