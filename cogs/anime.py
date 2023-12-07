@@ -90,9 +90,8 @@ class AnimeStuff:
                         node = related.get("node", {})
                         if related.get("relationType") == "ADAPTATION" and node.get("format") == "TV" and node.get("seasonInt") < self.anime.get('media').get('seasonInt'):
                             episodes += related.get("node").get("episodes")
-                    self.anime["notes"] = f"""{{'lastdl': {self.anime["progress"]}, 'syn': [], 'epoffset': {episodes}, 'synoffset': [{title}] }}"""
+                    self.anime["notes"] = f"""{{'lastdl': {self.anime["progress"]}, 'syn': [], 'epoffset': {episodes}, 'synoffset': ['{title}'] }}"""
                     break
-        await self.bot.get_channel(793878235066400809).send(self.anime["notes"])
         if ("ignore" in self.anime["notes"].lower()) or (json.loads(self.anime["notes"].replace("\'", "\""))["lastdl"] > self.anime["progress"]):
             return None
         if self.anime["media"]["nextAiringEpisode"] is None:
