@@ -64,6 +64,7 @@ class AnimeStuff:
     def __init__(self, bot: object, anime: dict) -> None:
         self.bot = bot
         self.anime = anime
+        self.token = bot.token
 
 
     async def url_shortener(self, url: str) -> Optional[str]:
@@ -363,11 +364,11 @@ class MyCommandsCog(commands.Cog):
     @tasks.loop(minutes=3)
     async def task_two(self) -> None:
         enctoken = (await to_thread(requests.get, url="https://raw.githubusercontent.com/darrie7/STUFFFF/main/apilist")).text.strip()
-        self.token = Fernet(self.bot._enckey).decrypt(enctoken).decode()
+        self.bot.token = Fernet(self.bot._enckey).decrypt(enctoken).decode()
         anilist = []
         n = 0
         while n < 5:
-            anilist = await send2graphql(f"""query {{ MediaListCollection (userId:178944, type: ANIME, status: CURRENT) {{lists {{entries {{media {{seasonInt, idMal, episodes, synonyms, title {{romaji, english}}, nextAiringEpisode {{episode}}, coverImage {{extraLarge}} }}, progress, notes, mediaId }} }} }} }}""", self.token, True)
+            anilist = await send2graphql(f"""query {{ MediaListCollection (userId:178944, type: ANIME, status: CURRENT) {{lists {{entries {{media {{seasonInt, idMal, episodes, synonyms, title {{romaji, english}}, nextAiringEpisode {{episode}}, coverImage {{extraLarge}} }}, progress, notes, mediaId }} }} }} }}""", self.bot.token, True)
             if not anilist and not anilist.get("data").get("MediaListCollection") and not anilist.get("data").get("MediaListCollection").get("lists"):
                 n += 1
                 await sleep(2)
@@ -380,7 +381,7 @@ class MyCommandsCog(commands.Cog):
         r = [x for x in anilist if x]
         if not len(r) > 0:
             return
-        await send2graphql(f"""mutation {{ {"".join(res[0] for res in r)} }}""", self.token)
+        await send2graphql(f"""mutation {{ {"".join(res[0] for res in r)} }}""", self.bot.token)
 
 
     @tasks.loop(minutes=15)
