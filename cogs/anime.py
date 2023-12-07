@@ -92,6 +92,7 @@ class AnimeStuff:
                             episodes += related.get("node").get("episodes")
                     self.anime["notes"] = f"""{{'lastdl': {self.anime["progress"]}, 'syn': [], 'epoffset': {episodes}, 'synoffset': [{title}] }}"""
                     break
+        await self.bot.get_channel(793878235066400809).send(self.anime["notes"])
         if ("ignore" in self.anime["notes"].lower()) or (json.loads(self.anime["notes"].replace("\'", "\""))["lastdl"] > self.anime["progress"]):
             return None
         if self.anime["media"]["nextAiringEpisode"] is None:
