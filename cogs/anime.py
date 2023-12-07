@@ -76,7 +76,7 @@ class AnimeStuff:
     async def filterlist(self) -> Optional[dict]:
         if self.anime["notes"] is None:
             self.anime["notes"] = f"""{{'lastdl': {self.anime["progress"]}, 'syn': [], 'epoffset': 0, 'synoffset': [] }}"""
-            query = f"""query {{ Media (id:{self.anime.get('media').get('id')}, type: ANIME) {{mediaListEntry {{notes}}, relations {{edges {{relationType, node {{title {{romaji}}, relations {{edges {{relationType, node {{id, format, episodes, status }} }} }} }} }} }} }} }}"""
+            query = f"""query {{ Media (id:{self.anime.get('media').get('id')}, type: ANIME) {{mediaListEntry {{notes}}, relations {{edges {{relationType, node {{title {{romaji}}, relations {{edges {{relationType, node {{seasonInt, format, episodes }} }} }} }} }} }} }} }}"""
             spanime = await send2graphql(query, self.token, True)
             data = spanime.get("data", {}).get("Media", {}).get("relations", {}).get("edges", [])
             for relation in data:
@@ -86,7 +86,7 @@ class AnimeStuff:
                     episodes = 0
                     for related in related_data:
                         node = related.get("node", {})
-                        if related.get("relationType") == "ADAPTATION" and node.get("format") == "TV" and node.get("status") == "FINISHED" and node.get("id") != self.anime.get('media').get('id'):
+                        if related.get("relationType") == "ADAPTATION" and node.get("format") == "TV" and node.get("seasonInt") < self.anime.get('media').get('seasonInt'):
                             episodes += related.get("node").get("episodes")
                     self.anime["notes"] = f"""{{'lastdl': {self.anime["progress"]}, 'syn': [], 'epoffset': {episodes}, 'synoffset': [{title}] }}"""
                     break
@@ -367,7 +367,7 @@ class MyCommandsCog(commands.Cog):
         anilist = []
         n = 0
         while n < 5:
-            anilist = await send2graphql(f"""query {{ MediaListCollection (userId:178944, type: ANIME, status: CURRENT) {{lists {{entries {{media {{id, idMal, episodes, synonyms, title {{romaji, english}}, nextAiringEpisode {{episode}}, coverImage {{extraLarge}} }}, progress, notes, mediaId }} }} }} }}""", self.token, True)
+            anilist = await send2graphql(f"""query {{ MediaListCollection (userId:178944, type: ANIME, status: CURRENT) {{lists {{entries {{media {{seasonInt, idMal, episodes, synonyms, title {{romaji, english}}, nextAiringEpisode {{episode}}, coverImage {{extraLarge}} }}, progress, notes, mediaId }} }} }} }}""", self.token, True)
             if not anilist and not anilist.get("data").get("MediaListCollection") and not anilist.get("data").get("MediaListCollection").get("lists"):
                 n += 1
                 await sleep(2)
