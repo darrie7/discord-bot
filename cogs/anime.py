@@ -79,7 +79,7 @@ class AnimeStuff:
             self.anime["notes"] = f"""{{'lastdl': {self.anime["progress"]}, 'syn': [], 'epoffset': 0, 'synoffset': [] }}"""
             query = f"""query {{ Media (id:{self.anime.get('media').get('id')}, type: ANIME) {{mediaListEntry {{notes}}, relations {{edges {{relationType, node {{title {{romaji}}, relations {{edges {{relationType, node {{seasonInt, format, episodes }} }} }} }} }} }} }} }}"""
             spanime = await send2graphql(query, self.token, True)
-            await self.bot.get_channel(793878235066400809).send(spanime)
+            #await self.bot.get_channel(793878235066400809).send(spanime[:3500])
             data = spanime.get("data", {}).get("Media", {}).get("relations", {}).get("edges", [])
             for relation in data:
                 if relation.get("relationType") == "ADAPTATION":
