@@ -76,6 +76,20 @@ class AnimeStuff:
     async def filterlist(self) -> Optional[dict]:
         if self.anime["notes"] is None:
             self.anime["notes"] = f"""{{'lastdl': {self.anime["progress"]}, 'syn': [], 'epoffset': 0, 'synoffset': [] }}"""
+            query = f"""query {{ Media (id:{self.anime.get('media').get('id')}, type: ANIME) {{mediaListEntry {{notes}}, relations {{edges {{relationType, node {{title {{romaji}}, relations {{edges {{relationType, node {{format, episodes, status }} }} }} }} }} }} }} }}"""
+            spanime = await send2graphql(query, self.token, True)
+            data = spanime.get("data", {}).get("Media", {}).get("relations", {}).get("edges", [])
+            for relation in data:
+                if relation.get("relationType") == "ADAPTATION":
+                    title = relation.get("node").get("title").get("romaji")
+                    related_data = relation.get("node", {}).get("relations", {}).get("edges", [])
+                    episodes = 0
+                    for related in related_data:
+                        node = related.get("node", {})
+                        if related.get("relationType") == "ADAPTATION" and node.get("format") == "TV" and node.get("status") == "FINISHED":
+                            episodes += related.get("node").get("episodes")
+                    self.anime["notes"] = f"""{{'lastdl': {self.anime["progress"]}, 'syn': [], 'epoffset': {episodes}, 'synoffset': [{title}] }}"""
+                    break
         if ("ignore" in self.anime["notes"].lower()) or (json.loads(self.anime["notes"].replace("\'", "\""))["lastdl"] > self.anime["progress"]):
             return None
         if self.anime["media"]["nextAiringEpisode"] is None:
@@ -349,11 +363,11 @@ class MyCommandsCog(commands.Cog):
     @tasks.loop(minutes=3)
     async def task_two(self) -> None:
         enctoken = (await to_thread(requests.get, url="https://raw.githubusercontent.com/darrie7/STUFFFF/main/apilist")).text.strip()
-        token = Fernet(self.bot._enckey).decrypt(enctoken).decode()
+        self.token = Fernet(self.bot._enckey).decrypt(enctoken).decode()
         anilist = []
         n = 0
         while n < 5:
-            anilist = await send2graphql(f"""query {{ MediaListCollection (userId:178944, type: ANIME, status: CURRENT) {{lists {{entries {{media {{idMal, episodes, synonyms, title {{romaji, english}}, nextAiringEpisode {{episode}}, coverImage {{extraLarge}} }}, progress, notes, mediaId }} }} }} }}""", token, True)
+            anilist = await send2graphql(f"""query {{ MediaListCollection (userId:178944, type: ANIME, status: CURRENT) {{lists {{entries {{media {{id, idMal, episodes, synonyms, title {{romaji, english}}, nextAiringEpisode {{episode}}, coverImage {{extraLarge}} }}, progress, notes, mediaId }} }} }} }}""", token, True)
             if not anilist and not anilist.get("data").get("MediaListCollection") and not anilist.get("data").get("MediaListCollection").get("lists"):
                 n += 1
                 await sleep(2)
@@ -366,7 +380,7 @@ class MyCommandsCog(commands.Cog):
         r = [x for x in anilist if x]
         if not len(r) > 0:
             return
-        await send2graphql(f"""mutation {{ {"".join(res[0] for res in r)} }}""", token)
+        await send2graphql(f"""mutation {{ {"".join(res[0] for res in r)} }}""", self.token)
 
 
     @tasks.loop(minutes=15)
@@ -374,11 +388,11 @@ class MyCommandsCog(commands.Cog):
         maltoken = self.bot._db5.get(self.bot._query.key == "mal_access").get("value")
         statuses = [('watching', 'CURRENT'), ('completed', 'COMPLETED'), ('plan_to_watch', 'PLANNING'), ('on_hold', 'PAUSED'), ('dropped', 'DROPPED')]
         enctoken = (await to_thread(requests.get, url="https://raw.githubusercontent.com/darrie7/STUFFFF/main/apilist")).text.strip()
-        token = Fernet(self.bot._enckey).decrypt(enctoken).decode()
+        self.token2 = Fernet(self.bot._enckey).decrypt(enctoken).decode()
         anilist = []
         n = 0
         while n < 5:
-            anilist = await send2graphql(f"""query {{ MediaListCollection (userId:178944, type: ANIME, sort: UPDATED_TIME_DESC) {{lists {{entries {{media {{idMal, title {{romaji}} }}, progress, status, mediaId, updatedAt }} }} }} }}""", token, True)
+            anilist = await send2graphql(f"""query {{ MediaListCollection (userId:178944, type: ANIME, sort: UPDATED_TIME_DESC) {{lists {{entries {{media {{idMal, title {{romaji}} }}, progress, status, mediaId, updatedAt }} }} }} }}""", self.token2, True)
             if not anilist and not anilist.get("data").get("MediaListCollection") and not anilist.get("data").get("MediaListCollection").get("lists"):
                 n += 1
                 await sleep(2)
