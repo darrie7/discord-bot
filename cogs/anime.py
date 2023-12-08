@@ -75,11 +75,10 @@ class AnimeStuff:
         return Exception
 
     async def filterlist(self) -> Optional[dict]:
-        if self.anime["notes"] is None:
-            self.anime["notes"] = f"""{{'lastdl': {self.anime["progress"]}, 'syn': [], 'epoffset': 0, 'synoffset': [] }}"""
+        if self.anime.get("notes") is None:
+            self.anime.get("notes") = f"""{{'lastdl': {self.anime["progress"]}, 'syn': [], 'epoffset': 0, 'synoffset': [] }}"""
             query = f"""query {{ Media (id:{self.anime.get('media').get('id')}, type: ANIME) {{mediaListEntry {{notes}}, relations {{edges {{relationType, node {{title {{romaji}}, relations {{edges {{relationType, node {{seasonInt, format, episodes }} }} }} }} }} }} }} }}"""
             spanime = await send2graphql(query, self.token, True)
-            #await self.bot.get_channel(793878235066400809).send(spanime[:3500])
             data = spanime.get("data", {}).get("Media", {}).get("relations", {}).get("edges", [])
             for relation in data:
                 if relation.get("relationType") == "ADAPTATION":
@@ -89,10 +88,10 @@ class AnimeStuff:
                     for related in related_data:
                         node = related.get("node", {})
                         if related.get("relationType") == "ADAPTATION" and node.get("format") == "TV" and node.get("seasonInt") < self.anime.get('media').get('seasonInt'):
-                            episodes += related.get("node").get("episodes")
-                    self.anime["notes"] = f"""{{'lastdl': {self.anime["progress"]}, 'syn': [], 'epoffset': {episodes}, 'synoffset': ['{title}'] }}"""
+                            episodes += related.get("node", {}).get("episodes")
+                    self.anime.get("notes") = f"""{{'lastdl': {self.anime.get("progress")}, 'syn': [], 'epoffset': {episodes}, 'synoffset': ['{title}'] }}"""
                     break
-        if ("ignore" in self.anime["notes"].lower()) or (json.loads(self.anime["notes"].replace("\'", "\""))["lastdl"] > self.anime["progress"]):
+        if ("ignore" in self.anime.get("notes").lower()) or (json.loads(self.anime.get("notes").replace("\'", "\""))["lastdl"] > self.anime["progress"]):
             return None
         if self.anime["media"]["nextAiringEpisode"] is None:
             return self.anime
@@ -101,11 +100,11 @@ class AnimeStuff:
         return self.anime
 
     async def search_gen(self) -> dict:
-        self.anime["notes"] = json.loads(self.anime["notes"].replace("\'", "\""))
+        self.anime.get("notes") = json.loads(self.anime.get("notes").replace("\'", "\""))
         '''title search'''
         search = [self.anime["media"]["title"]["romaji"], self.anime["media"]["title"]["english"]]
-        if self.anime["notes"]["syn"]:
-            search.extend(self.anime["notes"]["syn"])
+        if self.anime.get("notes")["syn"]:
+            search.extend(self.anime.get("notes")["syn"])
         search.extend(self.anime["media"]["synonyms"])
         search = [ s for s in search if s and s.isascii() ]
         '''for z in [("season ", "s"), (": ", " - "), (": ", " "), ("-"," ")]:'''
@@ -206,14 +205,14 @@ class AnimeStuff:
                                                                                                 disnake.ui.Button(label="Nyaa", url=await self.url_shortener(url.replace(" ","+").replace("page=rss&",""))),  
                                                                                                 disnake.ui.Button(label="MyAnimeList", url=f"""https://myanimelist.net/anime/{self.anime["media"]["idMal"]}"""),
                                                                                                 disnake.ui.Button(label="More Torrents", custom_id=await self.url_shortener(url.replace(" ","+")), style=disnake.ButtonStyle.blurple) ])
-                self.anime["notes"]["lastdl"] = self.anime["progress"]+1
+                self.anime.get("notes")["lastdl"] = self.anime["progress"]+1
                 return f"""ani{self.anime["mediaId"]}: SaveMediaListEntry (mediaId: {self.anime["mediaId"]}, notes: \"{self.anime["notes"]}\") {{id}}\n"""
 
     async def torrentsearch(self) -> list[str]:
         base_url = "https://nyaa.si/?page=rss&s=seeders&o=desc&c=1_2&f=0&q=-Raze+-60fps+-120fps+-144fps+-480p+-720p+-540p+"
-        if self.anime["notes"]["epoffset"] > 0 and self.anime["notes"]["synoffset"]:
+        if self.anime.get("notes")["epoffset"] > 0 and self.anime.get("notes")["synoffset"]:
             responses = await gather(*[ self.fetch(f"""{base_url}({"|".join(f'"{word}"' for word in self.anime["episodesearch"])})+{"|".join(f'"{word.replace("&", "%26")}"' for word in self.anime["search"])}""", self.anime["search"], self.anime["episodesearch"]),
-                                        self.fetch(f"""{base_url}(- {self.anime["progress"]+self.anime["notes"]["epoffset"]+1:02})+{"|".join(f'"{word.replace("&", "%26")}"' for word in self.anime["notes"]["synoffset"])}""" , self.anime["notes"]["synoffset"], [f"""- {self.anime["progress"]+self.anime["notes"]["epoffset"]+1:02}"""])
+                                        self.fetch(f"""{base_url}(- {self.anime["progress"]+self.anime.get("notes")["epoffset"]+1:02})+{"|".join(f'"{word.replace("&", "%26")}"' for word in self.anime.get("notes")["synoffset"])}""" , self.anime.get("notes")["synoffset"], [f"""- {self.anime["progress"]+self.anime.get("notes")["epoffset"]+1:02}"""])
             ] )
         else:
             responses = await gather(*[ self.fetch(f"""{base_url}({"|".join(f'"{word}"' for word in self.anime["episodesearch"])})+{"|".join(f'"{word.replace("&", "%26")}"' for word in self.anime["search"])}""", self.anime["search"], self.anime["episodesearch"])])
