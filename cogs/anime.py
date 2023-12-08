@@ -76,7 +76,7 @@ class AnimeStuff:
 
     async def filterlist(self) -> Optional[dict]:
         if self.anime.get("notes") is None:
-            self.anime.get("notes") = f"""{{'lastdl': {self.anime["progress"]}, 'syn': [], 'epoffset': 0, 'synoffset': [] }}"""
+            self.anime.get("notes") = f"""{{'lastdl': {self.anime.get("progress")}, 'syn': [], 'epoffset': 0, 'synoffset': [] }}"""
             query = f"""query {{ Media (id:{self.anime.get('media').get('id')}, type: ANIME) {{mediaListEntry {{notes}}, relations {{edges {{relationType, node {{title {{romaji}}, relations {{edges {{relationType, node {{seasonInt, format, episodes }} }} }} }} }} }} }} }}"""
             spanime = await send2graphql(query, self.token, True)
             data = spanime.get("data", {}).get("Media", {}).get("relations", {}).get("edges", [])
@@ -91,21 +91,21 @@ class AnimeStuff:
                             episodes += related.get("node", {}).get("episodes")
                     self.anime.get("notes") = f"""{{'lastdl': {self.anime.get("progress")}, 'syn': [], 'epoffset': {episodes}, 'synoffset': ['{title}'] }}"""
                     break
-        if ("ignore" in self.anime.get("notes").lower()) or (json.loads(self.anime.get("notes").replace("\'", "\""))["lastdl"] > self.anime["progress"]):
+        if ( "ignore" in self.anime.get("notes").lower()) or (json.loads(self.anime.get("notes").replace("\'", "\"")).get("lastdl") > self.anime.get("progress") ):
             return None
-        if self.anime["media"]["nextAiringEpisode"] is None:
+        if self.anime.get("media").get("nextAiringEpisode") is None:
             return self.anime
-        if (self.anime["media"]["nextAiringEpisode"]["episode"] - self.anime["progress"]) < 2:
+        if ( self.anime.get("media").get("nextAiringEpisode").get("episode") - self.anime.get("progress") ) < 2:
             return None
         return self.anime
 
     async def search_gen(self) -> dict:
         self.anime.get("notes") = json.loads(self.anime.get("notes").replace("\'", "\""))
         '''title search'''
-        search = [self.anime["media"]["title"]["romaji"], self.anime["media"]["title"]["english"]]
-        if self.anime.get("notes")["syn"]:
-            search.extend(self.anime.get("notes")["syn"])
-        search.extend(self.anime["media"]["synonyms"])
+        search = [ self.anime.get("media").get("title").get("romaji"), self.anime.get("media").get("title").get("english") ]
+        if self.anime.get("notes").get("syn"):
+            search.extend(self.anime.get("notes").get("syn"))
+        search.extend(self.anime.get("media").get("synonyms"))
         search = [ s for s in search if s and s.isascii() ]
         '''for z in [("season ", "s"), (": ", " - "), (": ", " "), ("-"," ")]:'''
         for z in [(": ", " - "), (": ", " "), ("-"," ")]:
@@ -156,7 +156,7 @@ class AnimeStuff:
         season_number = 1
         add_search = []
         for pattern in season_patterns:
-            for s in self.anime["search"]:
+            for s in self.anime.get("search"):
                 match = pattern.search(s)
                 if not match:
                     continue
@@ -178,44 +178,36 @@ class AnimeStuff:
                          add_search.append(f"{ani_title} {season_number}th season")
                          add_search.append(f"{ani_title} {season_text_lower} season")
 
-        self.anime["search"].extend(add_search)
-        self.anime["search"] = list(dict.fromkeys(self.anime["search"]))
+        self.anime.get("search").extend(add_search)
+        self.anime.get("search"). = list(dict.fromkeys(self.anime.get("search").))
         season_number = int(season_number)
-        '''
-        if any((y:=x) in s.lower() for x in [f"""season {x}""" for x in range(1,20)] for s in self.anime["search"]):
-            ani_season = int(y.split()[1])
-        else:
-            ani_season = 1
-        
-        self.anime["episodesearch"] = [f"""- {self.anime["progress"]+1:02} """, f"""- {self.anime["progress"]+1:02}v""", f"""S{ani_season:02}E{self.anime["progress"]+1:02}"""]
-        '''
-        self.anime["episodesearch"] = [f"""- {self.anime["progress"]+1:02} """, f"""- {self.anime["progress"]+1:02}v""", f"""S{season_number:02}E{self.anime["progress"]+1:02}"""]
+        self.anime["episodesearch"] = [f"""- {self.anime.get("progress")+1:02} """, f"""- {self.anime.get("progress")+1:02}v""", f"""S{season_number:02}E{self.anime.get("progress")+1:02}"""]
         return self.anime
 
     async def fetch(self, url: str, searchlist: list[str], episodesearch: list[str]) -> str:
         r = await to_thread(requests.get, url=url)
-        for x in sorted(parse(r.text)["entries"], key = lambda v: int(v["nyaa_seeders"]), reverse=True):
+        for x in sorted(parse(r.text).get("entries"), key = lambda v: int(v.get("nyaa_seeders")), reverse=True):
             x = dict(x)
-            if any(title.lower() in x["title"].lower() for title in searchlist) and any(ep.lower() in x["title"].lower() for ep in episodesearch):
-                embed = disnake.Embed(title = x["title"])
-                embed.set_thumbnail(url=self.anime["media"]["coverImage"]["extraLarge"])
+            if any(title.lower() in x.get("title").lower() for title in searchlist) and any(ep.lower() in x.get("title").lower() for ep in episodesearch):
+                embed = disnake.Embed(title = x.get("title"))
+                embed.set_thumbnail(url=self.anime.get("media").get("coverImage").get("extraLarge"))
                 await self.bot.get_channel(679029957728665628).send(await self.url_shortener(f"magnet:?xt=urn:btih:{x['nyaa_infohash']}"))
-                await self.bot.get_channel(679029957728665628).send(embed=embed, components = [ disnake.ui.Button(label="Magnet", url=await self.url_shortener(f"magnet:?xt=urn:btih:{x['nyaa_infohash']}")),
-                                                                                                disnake.ui.Button(label="Torrent", url=x["link"]), 
+                await self.bot.get_channel(679029957728665628).send(embed=embed, components = [ disnake.ui.Button(label="Magnet", url=await self.url_shortener(f"magnet:?xt=urn:btih:{x.get('nyaa_infohash')}")),
+                                                                                                disnake.ui.Button(label="Torrent", url=x.get("link")), 
                                                                                                 disnake.ui.Button(label="Nyaa", url=await self.url_shortener(url.replace(" ","+").replace("page=rss&",""))),  
-                                                                                                disnake.ui.Button(label="MyAnimeList", url=f"""https://myanimelist.net/anime/{self.anime["media"]["idMal"]}"""),
+                                                                                                disnake.ui.Button(label="MyAnimeList", url=f"""https://myanimelist.net/anime/{self.anime.get("media").get("idMal")}"""),
                                                                                                 disnake.ui.Button(label="More Torrents", custom_id=await self.url_shortener(url.replace(" ","+")), style=disnake.ButtonStyle.blurple) ])
-                self.anime.get("notes")["lastdl"] = self.anime["progress"]+1
-                return f"""ani{self.anime["mediaId"]}: SaveMediaListEntry (mediaId: {self.anime["mediaId"]}, notes: \"{self.anime["notes"]}\") {{id}}\n"""
+                self.anime.get("notes").get("lastdl") = self.anime.get("progress")+1
+                return f"""ani{self.anime.get("mediaId")}: SaveMediaListEntry (mediaId: {self.anime.get("mediaId")}, notes: \"{self.anime.get("notes")}\") {{id}}\n"""
 
     async def torrentsearch(self) -> list[str]:
         base_url = "https://nyaa.si/?page=rss&s=seeders&o=desc&c=1_2&f=0&q=-Raze+-60fps+-120fps+-144fps+-480p+-720p+-540p+"
-        if self.anime.get("notes")["epoffset"] > 0 and self.anime.get("notes")["synoffset"]:
-            responses = await gather(*[ self.fetch(f"""{base_url}({"|".join(f'"{word}"' for word in self.anime["episodesearch"])})+{"|".join(f'"{word.replace("&", "%26")}"' for word in self.anime["search"])}""", self.anime["search"], self.anime["episodesearch"]),
-                                        self.fetch(f"""{base_url}(- {self.anime["progress"]+self.anime.get("notes")["epoffset"]+1:02})+{"|".join(f'"{word.replace("&", "%26")}"' for word in self.anime.get("notes")["synoffset"])}""" , self.anime.get("notes")["synoffset"], [f"""- {self.anime["progress"]+self.anime.get("notes")["epoffset"]+1:02}"""])
+        if self.anime.get("notes").get("epoffset") > 0 and self.anime.get("notes").get("synoffset"):
+            responses = await gather(*[ self.fetch(f"""{base_url}({"|".join(f'"{word}"' for word in self.anime.get("episodesearch"))})+{"|".join(f'"{word.replace("&", "%26")}"' for word in self.anime.get("search"))}""", self.anime.get("search"), self.anime.get("episodesearch")),
+                                        self.fetch(f"""{base_url}(- {self.anime.get("progress")+self.anime.get("notes").get("epoffset")+1:02})+{"|".join(f'"{word.replace("&", "%26")}"' for word in self.anime.get("notes").get("synoffset"))}""" , self.anime.get("notes").get("synoffset"), [f"""- {self.anime.get("progress")+self.anime.get("notes").get("epoffset")+1:02}"""])
             ] )
         else:
-            responses = await gather(*[ self.fetch(f"""{base_url}({"|".join(f'"{word}"' for word in self.anime["episodesearch"])})+{"|".join(f'"{word.replace("&", "%26")}"' for word in self.anime["search"])}""", self.anime["search"], self.anime["episodesearch"])])
+            responses = await gather(*[ self.fetch(f"""{base_url}({"|".join(f'"{word}"' for word in self.anime.get("episodesearch"))})+{"|".join(f'"{word.replace("&", "%26")}"' for word in self.anime.get("search"))}""", self.anime.get("search"), self.anime.get("episodesearch"))])
         return [ resp for resp in responses if resp ]
 
     async def subfunc(self) -> Optional[list[str]]:
@@ -341,17 +333,17 @@ class MyCommandsCog(commands.Cog):
     
     async def pepperasync(self, url: str, pricelimit: int, timedelt: int) -> None:
         r = await to_thread(requests.get, url = url)
-        for f in parse(r.text)["entries"]:
-            if not (datetime.strptime(f["published"], "%a, %d %b %Y %H:%M:%S %z") > (datetime.utcnow().replace(tzinfo=pytz.utc).astimezone(pytz.timezone("Europe/Amsterdam")) - timedelta(seconds = timedelt))):
+        for f in parse(r.text).get("entries"):
+            if not (datetime.strptime(f.get("published"), "%a, %d %b %Y %H:%M:%S %z") > (datetime.utcnow().replace(tzinfo=pytz.utc).astimezone(pytz.timezone("Europe/Amsterdam")) - timedelta(seconds = timedelt))):
                 break
-            if "pepper_merchant" in f and "price" in f["pepper_merchant"]:
-                if (float(f["pepper_merchant"]["price"].replace("€", "").replace(".","").replace(",", ".")) < float(pricelimit)):
-                    title_pep = f"""{f["title"]}, PRICE: {f["pepper_merchant"]["price"]}"""
+            if "pepper_merchant" in f and "price" in f.get("pepper_merchant"):
+                if (float(f.get("pepper_merchant").get("price").replace("€", "").replace(".","").replace(",", ".")) < float(pricelimit)):
+                    title_pep = f"""{f.get("title")}, PRICE: {f.get("pepper_merchant").get("price")}"""
                 else:
                     continue
             else:
-                title_pep = f["title"]
-            await self.bot.get_channel(679029900299993113).send(embed=disnake.Embed(title = title_pep, description = f"""{BeautifulSoup(f["description"], features="html.parser").get_text()[:1500]}...""", url = f["link"]))
+                title_pep = f.get("title")
+            await self.bot.get_channel(679029900299993113).send(embed=disnake.Embed(title = title_pep, description = f"""{BeautifulSoup(f.get("description"), features="html.parser").get_text()[:1500]}...""", url = f.get("link")))
    
         
     @tasks.loop(minutes=15.0)
@@ -376,7 +368,7 @@ class MyCommandsCog(commands.Cog):
                     return
             else:
                 break
-        anilist = anilist["data"]["MediaListCollection"]["lists"][0]["entries"]
+        anilist = anilist.get("data").get("MediaListCollection").get("lists")[0].get("entries")
         anilist = list(filter(None, await gather(*[ AnimeStuff(self.bot, anime).subfunc() for anime in anilist ])))
         r = [x for x in anilist if x]
         if not len(r) > 0:
@@ -401,17 +393,17 @@ class MyCommandsCog(commands.Cog):
                     return
             else: 
                 break
-        anilist = anilist["data"]["MediaListCollection"]["lists"][0]["entries"]
+        anilist = anilist.get("data").get("MediaListCollection").get("lists")[0].get("entries")
         now = datetime.now()
         for x in anilist:
-            if ((now - timedelta(minutes=15)) < datetime.fromtimestamp(x["updatedAt"])):
-                if any(x["status"] in (stat:=s) for s in statuses):
+            if ((now - timedelta(minutes=15)) < datetime.fromtimestamp(x.get("updatedAt"))):
+                if any(x.get("status") in (stat:=s) for s in statuses):
                     data = {
         'status': {stat[0]},
-        'num_watched_episodes': {x["progress"]} }
+        'num_watched_episodes': {x.get("progress")} }
                 print(data)
                 header = {'Authorization': f'Bearer {maltoken}'}
-                req = await to_thread(requests.put, url=f"""https://api.myanimelist.net/v2/anime/{x["media"]["idMal"]}/my_list_status""", headers = header, data = data)
+                req = await to_thread(requests.put, url=f"""https://api.myanimelist.net/v2/anime/{x.get("media").get("idMal")}/my_list_status""", headers = header, data = data)
                 await self.bot.get_channel(793878235066400809).send(f"task 3: {req.json()}")
 
     
@@ -467,13 +459,10 @@ class MyCommandsCog(commands.Cog):
         r = await to_thread(requests.get, url = inter.component.custom_id)
         embed = disnake.Embed()
         comps = list()
-        # options = list()
-        for idx, x in enumerate(sorted(parse(r.text)["entries"], key = lambda v: int(v["nyaa_seeders"]), reverse=True)[:min(len(parse(r.text)["entries"]), 5)], start=1):
-            # options.append(disnake.SelectOption(label=f"""{x["title"]}"""[:99], description=f"""Seeders: {x["nyaa_seeders"]} - Size: {x["nyaa_size"]}"""[:99], value=x["link"]))
-            embed.add_field(name=f"""{idx}: {x["title"]}""", value=f"""Seeders: {x["nyaa_seeders"]} - Size: {x["nyaa_size"]}""", inline=False)
+        for idx, x in enumerate(sorted(parse(r.text).get("entries"), key = lambda v: int(v.get("nyaa_seeders")), reverse=True)[:min(len(parse(r.text).get("entries")), 5)], start=1):
+            embed.add_field(name=f"""{idx}: {x.get("title")}""", value=f"""Seeders: {x.get("nyaa_seeders")} - Size: {x.get("nyaa_size")}""", inline=False)
             comps.append(disnake.ui.Button(label=f"""{idx}""", url=await AnimeStuff(self.bot, {}).url_shortener(f"magnet:?xt=urn:btih:{x['nyaa_infohash']}")))
         await inter.send(components=comps, embed=embed)
-        # await inter.send(view = TheView([Dropdown(options, placehold="Deez Nuts")]), ephemeral=True)
         return
 
 
