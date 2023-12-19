@@ -76,7 +76,7 @@ class AnimeStuff:
 
     async def filterlist(self) -> Optional[dict]:
         if self.anime.get("notes") is None:
-            self.anime.get("notes") = f"""{{'lastdl': {self.anime.get("progress")}, 'syn': [], 'epoffset': 0, 'synoffset': [] }}"""
+            self.anime["notes"] = f"""{{'lastdl': {self.anime.get("progress")}, 'syn': [], 'epoffset': 0, 'synoffset': [] }}"""
             query = f"""query {{ Media (id:{self.anime.get('media').get('id')}, type: ANIME) {{mediaListEntry {{notes}}, relations {{edges {{relationType, node {{title {{romaji}}, relations {{edges {{relationType, node {{seasonInt, format, episodes }} }} }} }} }} }} }} }}"""
             i = 0
             while i < 5:
@@ -97,7 +97,7 @@ class AnimeStuff:
                                 node = related.get("node", {})
                                 if related.get("relationType") == "ADAPTATION" and node.get("format") == "TV" and node.get("seasonInt") < self.anime.get('media').get('seasonInt'):
                                     episodes += related.get("node", {}).get("episodes")
-                            self.anime.get("notes") = f"""{{'lastdl': {self.anime.get("progress")}, 'syn': [], 'epoffset': {episodes}, 'synoffset': ['{title}'] }}"""
+                            self.anime["notes"] = f"""{{'lastdl': {self.anime.get("progress")}, 'syn': [], 'epoffset': {episodes}, 'synoffset': ['{title}'] }}"""
                             break
         if ( "ignore" in self.anime.get("notes").lower()) or (json.loads(self.anime.get("notes").replace("\'", "\"")).get("lastdl") > self.anime.get("progress") ):
             return None
@@ -108,7 +108,7 @@ class AnimeStuff:
         return self.anime
 
     async def search_gen(self) -> dict:
-        self.anime.get("notes") = json.loads(self.anime.get("notes").replace("\'", "\""))
+        self.anime["notes"] = json.loads(self.anime.get("notes").replace("\'", "\""))
         '''title search'''
         search = [ self.anime.get("media").get("title").get("romaji"), self.anime.get("media").get("title").get("english") ]
         if self.anime.get("notes").get("syn"):
@@ -187,7 +187,7 @@ class AnimeStuff:
                          add_search.append(f"{ani_title} {season_text_lower} season")
 
         self.anime.get("search").extend(add_search)
-        self.anime.get("search"). = list(dict.fromkeys(self.anime.get("search").))
+        self.anime["search"] = list(dict.fromkeys(self.anime.get("search")))
         season_number = int(season_number)
         self.anime["episodesearch"] = [f"""- {self.anime.get("progress")+1:02} """, f"""- {self.anime.get("progress")+1:02}v""", f"""S{season_number:02}E{self.anime.get("progress")+1:02}"""]
         return self.anime
@@ -205,7 +205,7 @@ class AnimeStuff:
                                                                                                 disnake.ui.Button(label="Nyaa", url=await self.url_shortener(url.replace(" ","+").replace("page=rss&",""))),  
                                                                                                 disnake.ui.Button(label="MyAnimeList", url=f"""https://myanimelist.net/anime/{self.anime.get("media").get("idMal")}"""),
                                                                                                 disnake.ui.Button(label="More Torrents", custom_id=await self.url_shortener(url.replace(" ","+")), style=disnake.ButtonStyle.blurple) ])
-                self.anime.get("notes").get("lastdl") = self.anime.get("progress")+1
+                self.anime.get("notes")["lastdl"] = self.anime.get("progress")+1
                 return f"""ani{self.anime.get("mediaId")}: SaveMediaListEntry (mediaId: {self.anime.get("mediaId")}, notes: \"{self.anime.get("notes")}\") {{id}}\n"""
 
     async def torrentsearch(self) -> list[str]:
