@@ -78,19 +78,27 @@ class AnimeStuff:
         if self.anime.get("notes") is None:
             self.anime.get("notes") = f"""{{'lastdl': {self.anime.get("progress")}, 'syn': [], 'epoffset': 0, 'synoffset': [] }}"""
             query = f"""query {{ Media (id:{self.anime.get('media').get('id')}, type: ANIME) {{mediaListEntry {{notes}}, relations {{edges {{relationType, node {{title {{romaji}}, relations {{edges {{relationType, node {{seasonInt, format, episodes }} }} }} }} }} }} }} }}"""
-            spanime = await send2graphql(query, self.token, True)
-            data = spanime.get("data", {}).get("Media", {}).get("relations", {}).get("edges", [])
-            for relation in data:
-                if relation.get("relationType") == "ADAPTATION":
-                    title = relation.get("node").get("title").get("romaji")
-                    related_data = relation.get("node", {}).get("relations", {}).get("edges", [])
-                    episodes = 0
-                    for related in related_data:
-                        node = related.get("node", {})
-                        if related.get("relationType") == "ADAPTATION" and node.get("format") == "TV" and node.get("seasonInt") < self.anime.get('media').get('seasonInt'):
-                            episodes += related.get("node", {}).get("episodes")
-                    self.anime.get("notes") = f"""{{'lastdl': {self.anime.get("progress")}, 'syn': [], 'epoffset': {episodes}, 'synoffset': ['{title}'] }}"""
-                    break
+            i = 0
+            while i < 5:
+                spanime = await send2graphql(query, self.token, True)
+                if not spanime and not spanime.get("data", {}) and not spanime.get("data", {}).get("Media", {}) and not spanime.get("data", {}).get("Media", {}).get("relations", {}) and not spanime.get("data", {}).get("Media", {}).get("relations", {}).get("edges", []):
+                    i += 1
+                    await sleep(2)
+                    if i == 3:
+                        break
+                else:                
+                    data = spanime.get("data", {}).get("Media", {}).get("relations", {}).get("edges", [])
+                    for relation in data:
+                        if relation.get("relationType") == "ADAPTATION":
+                            title = relation.get("node").get("title").get("romaji")
+                            related_data = relation.get("node", {}).get("relations", {}).get("edges", [])
+                            episodes = 0
+                            for related in related_data:
+                                node = related.get("node", {})
+                                if related.get("relationType") == "ADAPTATION" and node.get("format") == "TV" and node.get("seasonInt") < self.anime.get('media').get('seasonInt'):
+                                    episodes += related.get("node", {}).get("episodes")
+                            self.anime.get("notes") = f"""{{'lastdl': {self.anime.get("progress")}, 'syn': [], 'epoffset': {episodes}, 'synoffset': ['{title}'] }}"""
+                            break
         if ( "ignore" in self.anime.get("notes").lower()) or (json.loads(self.anime.get("notes").replace("\'", "\"")).get("lastdl") > self.anime.get("progress") ):
             return None
         if self.anime.get("media").get("nextAiringEpisode") is None:
