@@ -86,7 +86,7 @@ class AnimeStuff:
                     await sleep(2)
                     if i == 3:
                         break
-                else:                
+                else:     
                     data = spanime.get("data", {}).get("Media", {}).get("relations", {}).get("edges", [])
                     for relation in data:
                         if relation.get("relationType") == "ADAPTATION":
@@ -99,6 +99,7 @@ class AnimeStuff:
                                     episodes += related.get("node", {}).get("episodes")
                             self.anime["notes"] = f"""{{'lastdl': {self.anime.get("progress")}, 'syn': [], 'epoffset': {episodes}, 'synoffset': ['{title}'] }}"""
                             break
+                    break
         if ( "ignore" in self.anime.get("notes").lower()) or (json.loads(self.anime.get("notes").replace("\'", "\"")).get("lastdl") > self.anime.get("progress") ):
             return None
         if self.anime.get("media").get("nextAiringEpisode") is None:
