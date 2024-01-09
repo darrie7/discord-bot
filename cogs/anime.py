@@ -90,7 +90,7 @@ class AnimeStuff:
                     data = spanime.get("data", {}).get("Media", {}).get("relations", {}).get("edges", [])
                     for relation in data:
                         if relation.get("relationType") == "ADAPTATION":
-                            title = relation.get("node").get("title").get("romaji").replace("\'", "").replace("\"", "")
+                            title = relation.get("node").get("title").get("romaji").replace("\'", "").replace("\"", "").replace(",", "")
                             related_data = relation.get("node", {}).get("relations", {}).get("edges", [])
                             episodes = 0
                             for related in related_data:
@@ -111,7 +111,7 @@ class AnimeStuff:
     async def search_gen(self) -> dict:
         self.anime["notes"] = json.loads(self.anime.get("notes").replace("\'", "\""))
         '''title search'''
-        search = [ self.anime.get("media").get("title").get("romaji").replace("\'", "").replace("\"", ""), self.anime.get("media").get("title").get("english").replace("\'", "").replace("\"", "") ]
+        search = [ self.anime.get("media").get("title").get("romaji").replace("\'", "").replace("\"", "").replace(",", ""), self.anime.get("media").get("title").get("english").replace("\'", "").replace("\"", "").replace(",", "") ]
         if self.anime.get("notes").get("syn"):
             search.extend(self.anime.get("notes").get("syn"))
         search.extend(self.anime.get("media").get("synonyms"))
@@ -197,7 +197,7 @@ class AnimeStuff:
         r = await to_thread(requests.get, url=url)
         for x in sorted(parse(r.text).get("entries"), key = lambda v: int(v.get("nyaa_seeders")), reverse=True):
             x = dict(x)
-            if any(title.lower() in x.get("title").lower().replace("\'", "").replace("\"", "") for title in searchlist) and any(ep.lower() in x.get("title").lower().replace("\'", "").replace("\"", "") for ep in episodesearch):
+            if any(title.lower() in x.get("title").lower().replace("\'", "").replace("\"", "").replace(",", "") for title in searchlist) and any(ep.lower() in x.get("title").lower().replace("\'", "").replace("\"", "").replace(",", "") for ep in episodesearch):
                 embed = disnake.Embed(title = x.get("title"))
                 embed.set_thumbnail(url=self.anime.get("media").get("coverImage").get("extraLarge"))
                 await self.bot.get_channel(679029957728665628).send(await self.url_shortener(f"magnet:?xt=urn:btih:{x['nyaa_infohash']}"))
