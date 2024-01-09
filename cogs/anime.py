@@ -197,7 +197,7 @@ class AnimeStuff:
         r = await to_thread(requests.get, url=url)
         for x in sorted(parse(r.text).get("entries"), key = lambda v: int(v.get("nyaa_seeders")), reverse=True):
             x = dict(x)
-            if any(title.lower() in x.get("title").lower() for title in searchlist) and any(ep.lower() in x.get("title").lower() for ep in episodesearch):
+            if any(title.lower() in x.get("title").lower().replace("\'", "").replace("\"", "") for title in searchlist) and any(ep.lower() in x.get("title").lower().replace("\'", "").replace("\"", "") for ep in episodesearch):
                 embed = disnake.Embed(title = x.get("title"))
                 embed.set_thumbnail(url=self.anime.get("media").get("coverImage").get("extraLarge"))
                 await self.bot.get_channel(679029957728665628).send(await self.url_shortener(f"magnet:?xt=urn:btih:{x['nyaa_infohash']}"))
