@@ -90,14 +90,14 @@ class AnimeStuff:
                     data = spanime.get("data", {}).get("Media", {}).get("relations", {}).get("edges", [])
                     for relation in data:
                         if relation.get("relationType") == "ADAPTATION":
-                            title = relation.get("node").get("title").get("romaji")
+                            title = relation.get("node").get("title").get("romaji").replace("\'", "").replace("\"", "")
                             related_data = relation.get("node", {}).get("relations", {}).get("edges", [])
                             episodes = 0
                             for related in related_data:
                                 node = related.get("node", {})
                                 if related.get("relationType") == "ADAPTATION" and node.get("format") == "TV" and node.get("seasonInt") < self.anime.get('media').get('seasonInt'):
                                     episodes += related.get("node", {}).get("episodes")
-                            self.anime["notes"] = f"""{{'lastdl': {self.anime.get("progress")}, 'syn': [], 'epoffset': {episodes}, 'synoffset': ['{re.sub(r"[^a-zA-Z0-9-_ ]", "", title)}'] }}"""
+                            self.anime["notes"] = f"""{{'lastdl': {self.anime.get("progress")}, 'syn': [], 'epoffset': {episodes}, 'synoffset': ['{title}'] }}"""
                             break
                     break
         if ( "ignore" in self.anime.get("notes").lower()) or (json.loads(self.anime.get("notes").replace("\'", "\"")).get("lastdl") > self.anime.get("progress") ):
@@ -111,7 +111,7 @@ class AnimeStuff:
     async def search_gen(self) -> dict:
         self.anime["notes"] = json.loads(self.anime.get("notes").replace("\'", "\""))
         '''title search'''
-        search = [ self.anime.get("media").get("title").get("romaji"), self.anime.get("media").get("title").get("english") ]
+        search = [ self.anime.get("media").get("title").get("romaji").replace("\'", "").replace("\"", ""), self.anime.get("media").get("title").get("english").replace("\'", "").replace("\"", "") ]
         if self.anime.get("notes").get("syn"):
             search.extend(self.anime.get("notes").get("syn"))
         search.extend(self.anime.get("media").get("synonyms"))
