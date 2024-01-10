@@ -198,6 +198,13 @@ class justwatchCog(commands.Cog):
             })
         data = response.json()
         await gather(*[ Torrent(self, x).update_show() for x in data if x.get('ismovie') is False ])
+
+    
+    @update_newestmedia.error
+    @searchmedia.error
+    async def cog_error_handler(self, error) -> None:
+        await self.bot.get_channel(793878235066400809).send(f"""```{"".join(traceback.format_exception(type(error), error, error.__traceback__))}```""")
+        pass
     
 def setup(bot):
     bot.add_cog(justwatchCog(bot))
