@@ -370,7 +370,7 @@ class MyCommandsCog(commands.Cog):
         n = 0
         while n < 5:
             anilist = await send2graphql(f"""query {{ MediaListCollection (userId:178944, type: ANIME, status: CURRENT) {{lists {{entries {{media {{id, seasonInt, idMal, episodes, synonyms, title {{romaji, english}}, nextAiringEpisode {{episode}}, coverImage {{extraLarge}} }}, progress, notes, mediaId }} }} }} }}""", self.bot.token, True)
-            if not anilist and not anilist.get("data").get("MediaListCollection") and not anilist.get("data").get("MediaListCollection").get("lists") and not anilist.get("data").get("MediaListCollection").get("lists")[0]:
+            if not anilist and not anilist.get("data").get("MediaListCollection") and not anilist.get("data").get("MediaListCollection").get("lists") and not anilist.get("data").get("MediaListCollection").get("lists")[0] and not anilist.get("data").get("MediaListCollection").get("lists")[0].get("entries"):
                 n += 1
                 await sleep(2)
                 if n == 3:
