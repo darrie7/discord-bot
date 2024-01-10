@@ -31,7 +31,7 @@ class Torrent:
         self.bot = me.bot
         self.s = me.s
         self.db_entry = database_entry
-        self.nterm = me.noddeven
+        self.nterm = me.noddeven  % len(me.urls)
         self.urlsT = me.urls
         self.apikeysT = me.apikeys
 
@@ -61,7 +61,9 @@ class Torrent:
                 n += 1
                 continue
             dom = etree.HTML(r.text)
-            title_magnet = [[title, magnet.get("href")] for title, magnet,seed in zip(dom.xpath('//h5[@class="title w-100 truncate"]/a/text()'), dom.xpath('//a[@class="dl-magnet"]'), dom.xpath('//div[@class="stats"]/div[3]/font')) if (title.lower().startswith(self.search_term.lower().split(' ')[0].replace('"', '')) and convert_to_int(seed.text) > 5 )]
+            title_magnet = [{'title': title, 'magnet': magnet.get("href")} for title, magnet,seed in zip(dom.xpath('//h5[@class="title w-100 truncate"]/a/text()'), dom.xpath('//a[@class="dl-magnet"]'), dom.xpath('//div[@class="stats"]/div[3]/font')) if (title.lower().startswith(self.search_term.lower().split(' ')[0].replace('"', '')) and convert_to_int(seed.text) >= 2 )]
+            # title_magnet2 = [[self.search_term, title, magnet.get("href")[100:102]] for title, magnet,seed in zip(dom.xpath('//h5[@class="title w-100 truncate"]/a/text()'), dom.xpath('//a[@class="dl-magnet"]'), dom.xpath('//div[@class="stats"]/div[3]/font')) ][:2]
+            # await self.bot.get_channel(793878235066400809).send(title_magnet2[:3500])
             return title_magnet if title_magnet else []
 
 
@@ -90,10 +92,10 @@ class Torrent:
             t_info = await self.piracybay()
             if t_info == []:
                 return
-            self.magnet = t_info[0][1]
+            self.magnet = t_info[0].get('magnet')
             for el in t_info:
-                if ("x265" or "h265") in el[0]:
-                    self.magnet = el[1]
+                if ("x265" or "h265") in el.get('title'):
+                    self.magnet = el.get('magnet')
                     break
             self.s.sendline(f"/usr/bin/deluge-console 'add -p /mnt/9C33-6BBD/Media/Movies/ {self.magnet}; exit'")
             ## update
@@ -112,10 +114,10 @@ class Torrent:
                 t_info = await self.piracybay()
                 if t_info == []:
                     return
-                self.magnet = t_info[0][1]
+                self.magnet = t_info[0].get('magnet')
                 for el in t_info:
-                    if ("x265" or "h265") in el[0]:
-                        self.magnet = el[1]
+                    if ("x265" or "h265") in el.get('title'):
+                        self.magnet = el.get('magnet')
                         break
                 self.s.sendline(f"/usr/bin/deluge-console 'add -p /mnt/9C33-6BBD/Media/Shows/{self.db_entry.get('title').replace(' ', '_')}/ {self.magnet}; exit'")
                 ## update
@@ -123,32 +125,32 @@ class Torrent:
                 await self.update_db()
                 return
             if (newest_season > progress_season): # and (progress_episode > 1):
-                self.search_term = f"{self.db_entry.get('title')} S{progress_season:02}E{progress_episode+1:02}|S{progress_season+1:02}E01" # |S{progress_season+1:02}
+                self.search_term = f"\"{self.db_entry.get('title')} S{progress_season:02}E{progress_episode+1:02}\"|\"{self.db_entry.get('title')} S{progress_season+1:02}E01\"" # |S{progress_season+1:02}
                 t_info = await self.piracybay()
                 if t_info == []:
                     return
-                dl_list = [item for item in t_info if (f"S{progress_season+1:02}" in item[0])]
-                if dl_list == []:
-                    self.magnet = t_info[0][1]
-                    for el in t_info:
-                        if ("x265" or "h265") in el[0]:
-                            self.magnet = el[1]
+                if (dl_list := [item for item in t_info if (f"s{progress_season:02}e{progress_episode+1:02}" in item.get('title').lower())]):
+                    self.magnet = dl_list[0].get('magnet')
+                    for el in dl_list:
+                        if ("x265" or "h265") in el.get('title'):
+                            self.magnet = el.get('magnet')
                             break
                     self.s.sendline(f"/usr/bin/deluge-console 'add -p /mnt/9C33-6BBD/Media/Shows/{self.db_entry.get('title').replace(' ', '_')}/ {self.magnet}; exit'")
                     ## update
                     self.payload = {"progress_episode": f"E{progress_episode+1}"}
                     await self.update_db()
                     return
-                self.magnet = dl_list[0][1]
-                for el in dl_list:
-                    if ("x265" or "h265") in el[0]:
-                        self.magnet = el[1]
-                        break
-                self.s.sendline(f"/usr/bin/deluge-console 'add -p /mnt/9C33-6BBD/Media/Shows/{self.db_entry.get('title').replace(' ', '_')}/ {self.magnet}; exit'")
-                ## update
-                self.payload = {"progress_season": f"S{progress_season+1}","progress_episode": "E1"}
-                await self.update_db()
-                return
+                if (dl_list := [item for item in t_info if (f"s{progress_season+1:02}e01" in item.get('title').lower())]):
+                    self.magnet = dl_list[0].get('magnet')
+                    for el in dl_list:
+                        if ("x265" or "h265") in el.get('title'):
+                            self.magnet = el.get('magnet')
+                            break
+                    self.s.sendline(f"/usr/bin/deluge-console 'add -p /mnt/9C33-6BBD/Media/Shows/{self.db_entry.get('title').replace(' ', '_')}/ {self.magnet}; exit'")
+                    ## update
+                    self.payload = {"progress_season": f"S{progress_season+1}","progress_episode": "E1"}
+                    await self.update_db()
+                    return
             return
     
 class justwatchCog(commands.Cog):
@@ -158,12 +160,34 @@ class justwatchCog(commands.Cog):
         self.update_newestmedia.start()
         self.urls = ["https://mymovies-41c3.restdb.io/rest/movies", "https://mymedia-b0a2.restdb.io/rest/movies", "https://mydb3-0e29.restdb.io/rest/movies"]
         self.apikeys = [Fernet(self.bot._enckey).decrypt(b'gAAAAABlIxJoppaR4gM008w5-s-mzxwgBIKhOR1-tVV4BoLq93w7jgCvP-TBNvUd-Pmojh1eSYYDIhukFVx0YkbGD4HXRkz-h0_C0aMl4t2MfxDP2RoKvMk=').decode(), Fernet(self.bot._enckey).decrypt(b'gAAAAABlIxKBUo3ZYJyj4QU74MaZpqVvNMais-hYC8vLFpM3KphVLS7HzVkaJ8nIj_DHUQHUdqOr8tYVXn9vWh6bvKUt2uQciWT7BsJOvgacIgJZoaW4SDs=').decode(), Fernet(self.bot._enckey).decrypt(b'gAAAAABlIxKn-i_ojFtQHUUmn996vBBf5jw6xuWuc_uxXibsHmcfuvFLiwJafX1I643y2qMX0Ulv3t-DrzA30EBKo56kd4kED4Q19VcoKMraUqTYXgQrPu8=').decode()]
-        self.noddeven = 1
+        self.noddeven = 0
         
 
     def cog_unload(self) -> None:
         self.searchmedia.cancel()
         self.update_newestmedia.cancel()
+
+    
+    @commands.slash_command(guild_ids=[631502700244107315])
+    async def delete_restdb(self,
+                        inter: disnake.ApplicationCommandInteraction,
+                        title: str) -> None:
+        """
+        Add key and value to database
+
+        Parameters
+        ----------
+        title: title of media
+        """
+        await inter.response.defer(with_message=True, ephemeral=False)
+        for x in range(len(self.urls)):
+            r = await to_thread(requests.get, url=self.urls[x], headers={'content-type': "application/json",'x-apikey': self.apikeys[x],'cache-control': "no-cache"})
+            main = r.json()
+            main_entry = [item for item in main if title.lower() in item["title"].lower()][0]
+            await self.bot.get_channel(793878235066400809).send(f"""```{main_entry}```""")
+            await to_thread(requests.delete, f"{self.urls[x]}/{main_entry.get('_id')}", headers={'content-type': "application/json",'x-apikey': self.apikeys[x],'cache-control': "no-cache"})
+        return await inter.send(f"{title} removed from databases")
+
     
     @tasks.loop(minutes=1.2)
     async def searchmedia(self) -> None:
@@ -175,32 +199,29 @@ class justwatchCog(commands.Cog):
             return
         headers = {
                 'content-type': "application/json",
-                'x-apikey': self.apikeys[self.noddeven],
+                'x-apikey': self.apikeys[self.noddeven % len(self.urls)],
                 'cache-control': "no-cache"
         }
-        response = await to_thread(requests.get, f"{self.urls[self.noddeven]}?metafields=_changed", headers=headers)
+        response = await to_thread(requests.get, f"{self.urls[self.noddeven % len(self.urls)]}?metafields=_changed", headers=headers)
         data = response.json()
         await gather(*[ Torrent(self, x).download_torrent() for x in data if (x.get('found') is False and ((datetime.datetime.utcnow() - datetime.timedelta(minutes=15)) > datetime.datetime.strptime(x.get('_changed').split('.')[0], '%Y-%m-%dT%H:%M:%S') or x.get('_changed') == x.get('_created')))])
         await gather(*[ Torrent(self, x).delete_entry() for x in data if (x.get('found') is True)])
-        if self.noddeven == len(self.urls) - 1:
-            self.noddeven = 0
-        else:
-            self.noddeven += 1
+        self.noddeven += 1
         self.s.logout()
         return
 
 
     @tasks.loop(time=datetime.time(hour=7, minute=30, tzinfo=datetime.timezone.utc))
     async def update_newestmedia(self) -> None:
-        response = await to_thread(requests.get, self.urls[self.noddeven], headers = {
+        response = await to_thread(requests.get, self.urls[self.noddeven % len(self.urls)], headers = {
                 'content-type': "application/json",
-                'x-apikey': self.apikeys[self.noddeven],
+                'x-apikey': self.apikeys[self.noddeven % len(self.urls)],
                 'cache-control': "no-cache"
             })
         data = response.json()
         await gather(*[ Torrent(self, x).update_show() for x in data if x.get('ismovie') is False ])
 
-    
+    @delete_restdb.error
     @update_newestmedia.error
     @searchmedia.error
     async def cog_error_handler(self, error) -> None:
