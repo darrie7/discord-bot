@@ -11,6 +11,7 @@ import datetime
 from pexpect import pxssh
 from cryptography.fernet import Fernet
 import traceback
+from random import randrange
 
 def convert_to_int(string):
     if string[-1] == 'K':
@@ -61,7 +62,7 @@ class Torrent:
                 n += 1
                 continue
             dom = etree.HTML(r.text)
-            title_magnet = [{'title': title, 'magnet': magnet.get("href")} for title, magnet,seed in zip(dom.xpath('//h5[@class="title w-100 truncate"]/a/text()'), dom.xpath('//a[@class="dl-magnet"]'), dom.xpath('//div[@class="stats"]/div[3]/font')) if (title.lower().startswith(self.search_term.lower().split(' ')[0].replace('"', '')) and convert_to_int(seed.text) >= 2 )]
+            title_magnet = [{'title': title, 'magnet': magnet.get("href")} for title, magnet, seed in zip(dom.xpath('//h5[@class="title w-100 truncate"]/a/text()'), dom.xpath('//a[@class="dl-magnet"]'), dom.xpath('//div[@class="stats"]/div[3]/font')) if (title.lower().startswith(self.search_term.lower().split(' ')[0].replace('"', '')) and convert_to_int(seed.text) >= 2 )]
             # title_magnet2 = [[self.search_term, title, magnet.get("href")[100:102]] for title, magnet,seed in zip(dom.xpath('//h5[@class="title w-100 truncate"]/a/text()'), dom.xpath('//a[@class="dl-magnet"]'), dom.xpath('//div[@class="stats"]/div[3]/font')) ][:2]
             # await self.bot.get_channel(793878235066400809).send(title_magnet2[:3500])
             return title_magnet if title_magnet else []
@@ -86,8 +87,12 @@ class Torrent:
 
 
     async def download_torrent(self) -> None:
+        trackers = await to_thread(requests.get, url="https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all.txt")
+        content_list = trackers.text.splitlines()
+        trackers_list = [content for content in content_list if content]
+        tracker_string = "&tr=".join(trackers_list)
         if self.db_entry.get('ismovie'):
-            self.code = 207
+            # self.code = 207
             self.search_term = f'''"{self.db_entry.get('title')} {self.db_entry.get('year')}"'''
             t_info = await self.piracybay()
             if t_info == []:
@@ -97,14 +102,14 @@ class Torrent:
                 if ("x265" or "h265") in el.get('title'):
                     self.magnet = el.get('magnet')
                     break
-            self.s.sendline(f"/usr/bin/deluge-console 'add -p /mnt/9C33-6BBD/Media/Movies/ {self.magnet}; exit'")
+            self.s.sendline(f"/usr/bin/deluge-console 'add -p /mnt/9C33-6BBD/Media/Movies/ {'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={tracker_string}; exit'")
             ## update
             self.payload = {"found": True}
             await self.update_db()
             return
         
         if not self.db_entry.get('ismovie'):
-            self.code = 208
+            # self.code = 208
             newest_season = int(self.db_entry.get('newest_season').replace('S', ''))
             newest_episode = int(self.db_entry.get('newest_episode').replace('E', ''))
             progress_season = int(self.db_entry.get('progress_season').replace('S', ''))
@@ -119,7 +124,7 @@ class Torrent:
                     if ("x265" or "h265") in el.get('title'):
                         self.magnet = el.get('magnet')
                         break
-                self.s.sendline(f"/usr/bin/deluge-console 'add -p /mnt/9C33-6BBD/Media/Shows/{self.db_entry.get('title').replace(' ', '_')}/ {self.magnet}; exit'")
+                self.s.sendline(f"/usr/bin/deluge-console 'add -p /mnt/9C33-6BBD/Media/Shows/{self.db_entry.get('title').replace(' ', '_')}/ {'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={tracker_string}; exit'")
                 ## update
                 self.payload = {"progress_episode": f"E{progress_episode+1}"}
                 await self.update_db()
@@ -135,7 +140,7 @@ class Torrent:
                         if ("x265" or "h265") in el.get('title'):
                             self.magnet = el.get('magnet')
                             break
-                    self.s.sendline(f"/usr/bin/deluge-console 'add -p /mnt/9C33-6BBD/Media/Shows/{self.db_entry.get('title').replace(' ', '_')}/ {self.magnet}; exit'")
+                    self.s.sendline(f"/usr/bin/deluge-console 'add -p /mnt/9C33-6BBD/Media/Shows/{self.db_entry.get('title').replace(' ', '_')}/ {'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={tracker_string}; exit'")
                     ## update
                     self.payload = {"progress_episode": f"E{progress_episode+1}"}
                     await self.update_db()
@@ -146,7 +151,7 @@ class Torrent:
                         if ("x265" or "h265") in el.get('title'):
                             self.magnet = el.get('magnet')
                             break
-                    self.s.sendline(f"/usr/bin/deluge-console 'add -p /mnt/9C33-6BBD/Media/Shows/{self.db_entry.get('title').replace(' ', '_')}/ {self.magnet}; exit'")
+                    self.s.sendline(f"/usr/bin/deluge-console 'add -p /mnt/9C33-6BBD/Media/Shows/{self.db_entry.get('title').replace(' ', '_')}/ {'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={tracker_string}; exit'")
                     ## update
                     self.payload = {"progress_season": f"S{progress_season+1}","progress_episode": "E1"}
                     await self.update_db()
@@ -160,7 +165,7 @@ class justwatchCog(commands.Cog):
         self.update_newestmedia.start()
         self.urls = ["https://mymovies-41c3.restdb.io/rest/movies", "https://mymedia-b0a2.restdb.io/rest/movies", "https://mydb3-0e29.restdb.io/rest/movies"]
         self.apikeys = [Fernet(self.bot._enckey).decrypt(b'gAAAAABlIxJoppaR4gM008w5-s-mzxwgBIKhOR1-tVV4BoLq93w7jgCvP-TBNvUd-Pmojh1eSYYDIhukFVx0YkbGD4HXRkz-h0_C0aMl4t2MfxDP2RoKvMk=').decode(), Fernet(self.bot._enckey).decrypt(b'gAAAAABlIxKBUo3ZYJyj4QU74MaZpqVvNMais-hYC8vLFpM3KphVLS7HzVkaJ8nIj_DHUQHUdqOr8tYVXn9vWh6bvKUt2uQciWT7BsJOvgacIgJZoaW4SDs=').decode(), Fernet(self.bot._enckey).decrypt(b'gAAAAABlIxKn-i_ojFtQHUUmn996vBBf5jw6xuWuc_uxXibsHmcfuvFLiwJafX1I643y2qMX0Ulv3t-DrzA30EBKo56kd4kED4Q19VcoKMraUqTYXgQrPu8=').decode()]
-        self.noddeven = 0
+        self.noddeven = randrange(len(self.urls))
         
 
     def cog_unload(self) -> None:
@@ -189,7 +194,7 @@ class justwatchCog(commands.Cog):
         return await inter.send(f"{title} removed from databases")
 
     
-    @tasks.loop(minutes=1.2)
+    @tasks.loop(minutes=1.75)
     async def searchmedia(self) -> None:
         try:
             self.s = pxssh.pxssh()
