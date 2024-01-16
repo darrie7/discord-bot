@@ -12,7 +12,7 @@ from pexpect import pxssh
 from cryptography.fernet import Fernet
 import traceback
 from random import randrange
-from re import compile
+import re
 
 def convert_to_int(string):
     if string[-1] == 'K':
@@ -135,8 +135,9 @@ class Torrent:
                 await self.bot.get_channel(793878235066400809).send(f"""```{[t.get('title') for t in t_info]}```""")
                 ## Look up WHOLE SEASON
                 if progress_episode == 0:
-                    pattern = compile(fr's{progress_season}(?!e)')
+                    pattern = re.compile(fr's{progress_season}(?!e)')
                     if (dl_list := [item for item in t_info if pattern.search(item.get('title').lower())]):
+                        await self.bot.get_channel(793878235066400809).send(f"""```{[t.get('title') for t in dl_list]}```""")
                         self.magnet = dl_list[0].get('magnet')
                         for el in dl_list:
                             if ("x265" or "h265") in el.get('title'):
