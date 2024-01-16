@@ -35,6 +35,7 @@ class Torrent:
         self.nterm = me.noddeven  % len(me.urls)
         self.urlsT = me.urls
         self.apikeysT = me.apikeys
+        self.enckey = me.bot._enckey
 
 
     async def update_show(self) -> None:
@@ -47,14 +48,14 @@ class Torrent:
             await self.update_db()
 
 
-    async def piracybay(self): #, qual
+    async def media_scraper(self): #, qual
         n: int = 0
         while n <= 3:
             if n == 3:
                 return []
             r = await to_thread(requests.get,
-                url = f"""https://solidtorrents.to/search?sort=seeders&order=desc&q={self.search_term}+1080p+-hdrip+-camrip+-hdcam+-hdts""",
-                # url = f"""https://thepiratebay10.org/search/{self.search_term}%20-hdts%20-hdcam%20-camrip%201080p%20{qual}/1/7/{self.code}""",
+                url = f"""{Fernet(self.enckey).decrypt(b'gAAAAABlpcTP6rJE8wPzlmrGLBC5gR3oCVMQjBEeo5BHs7WmyGi_a3lmrne_TJyN7dHeSRih2XqaKD5Nocd5P72hwS_Cn3bG3nh1xigrfHKsi78t2t-0LCLyglnuSAxvCueweJMYBOm1Iijq9ou060kEiam9snqYjg==').decode()
+}{self.search_term}+1080p+-hdrip+-camrip+-hdcam+-hdts""",
                 headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'}
             )
             if r.status_code != 200:
@@ -63,8 +64,6 @@ class Torrent:
                 continue
             dom = etree.HTML(r.text)
             title_magnet = [{'title': title, 'magnet': magnet.get("href")} for title, magnet, seed in zip(dom.xpath('//h5[@class="title w-100 truncate"]/a/text()'), dom.xpath('//a[@class="dl-magnet"]'), dom.xpath('//div[@class="stats"]/div[3]/font')) if (title.lower().startswith(self.search_term.lower().split(' ')[0].replace('"', '')) and convert_to_int(seed.text) >= 2 )]
-            # title_magnet2 = [[self.search_term, title, magnet.get("href")[100:102]] for title, magnet,seed in zip(dom.xpath('//h5[@class="title w-100 truncate"]/a/text()'), dom.xpath('//a[@class="dl-magnet"]'), dom.xpath('//div[@class="stats"]/div[3]/font')) ][:2]
-            # await self.bot.get_channel(793878235066400809).send(title_magnet2[:3500])
             return title_magnet if title_magnet else []
 
 
@@ -92,9 +91,8 @@ class Torrent:
         trackers_list = [content for content in content_list if content]
         tracker_string = "&tr=".join(trackers_list)
         if self.db_entry.get('ismovie'):
-            # self.code = 207
             self.search_term = f'''"{self.db_entry.get('title')} {self.db_entry.get('year')}"'''
-            t_info = await self.piracybay()
+            t_info = await self.media_scraper()
             if t_info == []:
                 return
             self.magnet = t_info[0].get('magnet')
@@ -109,14 +107,13 @@ class Torrent:
             return
         
         if not self.db_entry.get('ismovie'):
-            # self.code = 208
             newest_season = int(self.db_entry.get('newest_season').replace('S', ''))
             newest_episode = int(self.db_entry.get('newest_episode').replace('E', ''))
             progress_season = int(self.db_entry.get('progress_season').replace('S', ''))
             progress_episode = int(self.db_entry.get('progress_episode').replace('E', ''))
-            if (newest_season == progress_season) and (newest_episode > progress_episode): #and (progress_episode > 1)
+            if (newest_season == progress_season) and (newest_episode > progress_episode):
                 self.search_term = f"{self.db_entry.get('title')} S{progress_season:02}E{progress_episode+1:02}"
-                t_info = await self.piracybay()
+                t_info = await self.media_scraper()
                 if t_info == []:
                     return
                 self.magnet = t_info[0].get('magnet')
@@ -129,11 +126,25 @@ class Torrent:
                 self.payload = {"progress_episode": f"E{progress_episode+1}"}
                 await self.update_db()
                 return
-            if (newest_season > progress_season): # and (progress_episode > 1):
-                self.search_term = f"\"{self.db_entry.get('title')} S{progress_season:02}E{progress_episode+1:02}\"|\"{self.db_entry.get('title')} S{progress_season+1:02}E01\"" # |S{progress_season+1:02}
-                t_info = await self.piracybay()
+            if (newest_season > progress_season):
+                self.search_term = f"\"{self.db_entry.get('title')} S{progress_season:02}E{progress_episode+1:02}\"|\"{self.db_entry.get('title')} S{progress_season+1:02}E01\"|\"{self.db_entry.get('title')} S{progress_season:02}\""
+                t_info = await self.media_scraper()
                 if t_info == []:
                     return
+                ## Look up WHOLE SEASON
+                if progress_episode == 0:
+                    pattern = re.compile(fr's{progress_season}(?!e)')
+                    if (dl_list := [item for item in t_info if pattern.search(item.get('title').lower())]):
+                        self.magnet = dl_list[0].get('magnet')
+                        for el in dl_list:
+                            if ("x265" or "h265") in el.get('title'):
+                                self.magnet = el.get('magnet')
+                                break
+                        self.s.sendline(f"/usr/bin/deluge-console 'add -p /mnt/9C33-6BBD/Media/Shows/{self.db_entry.get('title').replace(' ', '_')}/ {'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={tracker_string}; exit'")
+                        ## update
+                        self.payload = {"progress_season": f"s{progress_season+1}"}
+                        await self.update_db()
+                        return
                 if (dl_list := [item for item in t_info if (f"s{progress_season:02}e{progress_episode+1:02}" in item.get('title').lower())]):
                     self.magnet = dl_list[0].get('magnet')
                     for el in dl_list:
