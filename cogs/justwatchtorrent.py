@@ -12,6 +12,7 @@ from pexpect import pxssh
 from cryptography.fernet import Fernet
 import traceback
 from random import randrange
+from re import compile
 
 def convert_to_int(string):
     if string[-1] == 'K':
@@ -133,7 +134,7 @@ class Torrent:
                     return
                 ## Look up WHOLE SEASON
                 if progress_episode == 0:
-                    pattern = re.compile(fr's{progress_season}(?!e)')
+                    pattern = compile(fr's{progress_season}(?!e)')
                     if (dl_list := [item for item in t_info if pattern.search(item.get('title').lower())]):
                         self.magnet = dl_list[0].get('magnet')
                         for el in dl_list:
