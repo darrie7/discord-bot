@@ -143,7 +143,7 @@ class Torrent:
                                 break
                         self.s.sendline(f"/usr/bin/deluge-console 'add -p /mnt/9C33-6BBD/Media/Shows/{self.db_entry.get('title').replace(' ', '_')}/ {'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={tracker_string}; exit'")
                         ## update
-                        self.payload = {"progress_season": f"s{progress_season+1}"}
+                        self.payload = {"progress_season": f"S{progress_season+1}"}
                         await self.update_db()
                         return
                 if (dl_list := [item for item in t_info if (f"s{progress_season:02}e{progress_episode+1:02}" in item.get('title').lower())]):
