@@ -132,6 +132,7 @@ class Torrent:
                 t_info = await self.media_scraper()
                 if t_info == []:
                     return
+                await self.bot.get_channel(793878235066400809).send(f"""```{[t.get('title') for t in t_info]}```""")
                 ## Look up WHOLE SEASON
                 if progress_episode == 0:
                     pattern = compile(fr's{progress_season}(?!e)')
