@@ -81,7 +81,6 @@ class Torrent:
             else:
                 r = await to_thread(requests.get, url=self.urlsT[x], headers={'content-type': "application/json",'x-apikey': self.apikeysT[x],'cache-control': "no-cache"})
                 response = r.json()
-                await self.bot.get_channel(793878235066400809).send(f"""```{response}```""")
                 entry = [ item for item in response if item["title"] in self.db_entry.get('title') ][0]
                 await to_thread(requests.put, f"{self.urlsT[x]}/{entry.get('_id')}", json=payload, headers={'content-type': "application/json",'x-apikey': self.apikeysT[x],'cache-control': "no-cache"})
         return
