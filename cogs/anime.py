@@ -97,6 +97,9 @@ class AnimeStuff:
                                 node = related.get("node", {})
                                 if related.get("relationType") == "ADAPTATION" and node.get("format") == "TV" and node.get("seasonInt") < self.anime.get('media').get('seasonInt'):
                                     episodes += related.get("node", {}).get("episodes")
+                            syn = []
+                            if episodes == 0:
+                                syn.append(re.sub(r'[^a-zA-Z0-9-_ ]', '', self.anime.get("title").get("romaji").replace("\'", "").replace("\"", "").replace(",", "")))
                             self.anime["notes"] = f"""{{'lastdl': {self.anime.get("progress")}, 'syn': [], 'epoffset': {episodes}, 'synoffset': ['{title}'] }}"""
                             break
                     break
