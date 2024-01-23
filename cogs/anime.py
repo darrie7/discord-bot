@@ -99,8 +99,8 @@ class AnimeStuff:
                                     episodes += related.get("node", {}).get("episodes")
                             syn = []
                             if episodes == 0:
-                                syn.append(re.sub(r'[^a-zA-Z0-9-_ ]', '', self.anime.get("title").get("romaji").replace("\'", "").replace("\"", "").replace(",", "")))
-                            self.anime["notes"] = f"""{{'lastdl': {self.anime.get("progress")}, 'syn': [], 'epoffset': {episodes}, 'synoffset': ['{title}'] }}"""
+                                syn.append(re.sub(r'[^a-zA-Z0-9-_ ]', '', self.anime.get("media").get("title").get("romaji").replace("\'", "").replace("\"", "").replace(",", "")))
+                            self.anime["notes"] = f"""{{'lastdl': {self.anime.get("progress")}, 'syn': [], 'epoffset': {episodes}, 'synoffset': ['{re.sub(r'[^a-zA-Z0-9-_ ]', '', title)}'] }}"""
                             break
                     break
         if ( "ignore" in self.anime.get("notes").lower()) or (json.loads(self.anime.get("notes").replace("\'", "\"")).get("lastdl") > self.anime.get("progress") ):
