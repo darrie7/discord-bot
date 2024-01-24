@@ -35,6 +35,7 @@ class Torrent:
         self.bot = me.bot
         self.s = me.s
         self.db_entry = database_entry
+        self.global_var = GlobalVars(self.bot)
 
 
     async def update_show(self) -> None:
@@ -53,7 +54,7 @@ class Torrent:
             if n == 3:
                 return []
             r = await to_thread(requests.get,
-                url = f"""{GlobalVars(self.bot).decoder.decrypt(b'gAAAAABlpcTP6rJE8wPzlmrGLBC5gR3oCVMQjBEeo5BHs7WmyGi_a3lmrne_TJyN7dHeSRih2XqaKD5Nocd5P72hwS_Cn3bG3nh1xigrfHKsi78t2t-0LCLyglnuSAxvCueweJMYBOm1Iijq9ou060kEiam9snqYjg==').decode()
+                url = f"""{self.global_var.decoder.decrypt(b'gAAAAABlpcTP6rJE8wPzlmrGLBC5gR3oCVMQjBEeo5BHs7WmyGi_a3lmrne_TJyN7dHeSRih2XqaKD5Nocd5P72hwS_Cn3bG3nh1xigrfHKsi78t2t-0LCLyglnuSAxvCueweJMYBOm1Iijq9ou060kEiam9snqYjg==').decode()
 }{self.search_term}+1080p+-hdrip+-camrip+-hdcam+-hdts""",
                 headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'}
             )
@@ -67,7 +68,7 @@ class Torrent:
 
 
     async def delete_entry(self) -> None:
-        await to_thread(requests.delete, f"{GlobalVars(self.bot).url}/{self.db_entry.get('_id')}", headers={'content-type': "application/json",'x-apikey': GlobalVars(self.bot).api_key,'cache-control': "no-cache"})
+        await to_thread(requests.delete, f"{self.global_var.url}/{self.db_entry.get('_id')}", headers={'content-type': "application/json",'x-apikey': self.global_var.api_key,'cache-control': "no-cache"})
         self.bot._db3.remove(self.bot._query._id == self.db_entry.get('_id'))
         return
 
@@ -75,7 +76,7 @@ class Torrent:
     async def update_db(self) -> None:
         payload = self.payload
         self.bot._db3.update(payload, self.bot._query._id == self.db_entry.get('_id'))
-        await to_thread(requests.put, f"{GlobalVars(self.bot).url}/{self.db_entry.get('_id')}", json=payload, headers={'content-type': "application/json",'x-apikey': GlobalVars(self.bot).api_key,'cache-control': "no-cache"})
+        await to_thread(requests.put, f"{self.global_var.url}/{self.db_entry.get('_id')}", json=payload, headers={'content-type': "application/json",'x-apikey': self.global_var.api_key,'cache-control': "no-cache"})
         return
 
 
@@ -168,6 +169,7 @@ class justwatchCog(commands.Cog):
         self.bot = bot
         self.searchmedia.start()
         self.update_newestmedia.start()
+        self.global_var = GlobalVars(self.bot)
         
 
     def cog_unload(self) -> None:
@@ -187,20 +189,20 @@ class justwatchCog(commands.Cog):
         title: title of media
         """
         await inter.response.defer(with_message=True, ephemeral=False)
-        r = await to_thread(requests.get, url=GlobalVars(self.bot).url, headers={'content-type': "application/json",'x-apikey': GlobalVars(self.bot).api_key,'cache-control': "no-cache"})
+        r = await to_thread(requests.get, url=self.global_var.url, headers={'content-type': "application/json",'x-apikey': self.global_var.api_key,'cache-control': "no-cache"})
         main = r.json()
         main_entry = [item for item in main if title.lower() in item["title"].lower()][0]
         await self.bot.get_channel(793878235066400809).send(f"""```{main_entry}```""")
-        await to_thread(requests.delete, f"{GlobalVars(self.bot).url}/{main_entry.get('_id')}", headers={'content-type': "application/json",'x-apikey': GlobalVars(self.bot).api_key,'cache-control': "no-cache"})
+        await to_thread(requests.delete, f"{self.global_var.url}/{main_entry.get('_id')}", headers={'content-type': "application/json",'x-apikey': self.global_var.api_key,'cache-control': "no-cache"})
         self.bot._db3.remove(self.bot._query.title.lower() == title.lower())
         return await inter.send(f"{title} removed from databases")
 
     
-    @tasks.loop(minutes=1)
+    @tasks.loop(seconds=30)
     async def searchmedia(self) -> None:
         try:
             self.s = pxssh.pxssh()
-            if not self.s.login(GlobalVars(self.bot).decoder.decrypt(b'gAAAAABlpWObOSHPZsnwbjQWP9MwULDlDRuxFXKPYBFAZS_s6X_Lr620EKMtklKbFRvK1uFNdX6YYUWvrO2gXKLHEDkvERVE3w==').decode(), GlobalVars(self.bot).decoder.decrypt(b'gAAAAABlIxN9JUKSkB2Ncjq1Na0huIM53UJGIGEb621_We33mUKHkN4uaifSZYp_pfexSEpq6NKI4Iy97KFjthaVbeUm5gPSkA==').decode(), GlobalVars(self.bot).decoder.decrypt(b'gAAAAABlIxOc7ZikmiK3gtZK5hvEDFZHAEp3dQurdZl4YoMzfHBZ3eveES_0WY-cqF10fIwPuIDVbawOiCsKFVHaiPs6GQ6s8g==').decode()):
+            if not self.s.login(self.global_var.decoder.decrypt(b'gAAAAABlpWObOSHPZsnwbjQWP9MwULDlDRuxFXKPYBFAZS_s6X_Lr620EKMtklKbFRvK1uFNdX6YYUWvrO2gXKLHEDkvERVE3w==').decode(), self.global_var.decoder.decrypt(b'gAAAAABlIxN9JUKSkB2Ncjq1Na0huIM53UJGIGEb621_We33mUKHkN4uaifSZYp_pfexSEpq6NKI4Iy97KFjthaVbeUm5gPSkA==').decode(), self.global_var.decoder.decrypt(b'gAAAAABlIxOc7ZikmiK3gtZK5hvEDFZHAEp3dQurdZl4YoMzfHBZ3eveES_0WY-cqF10fIwPuIDVbawOiCsKFVHaiPs6GQ6s8g==').decode()):
                 return
         except Exception as e:
             return
@@ -208,17 +210,17 @@ class justwatchCog(commands.Cog):
             "Content-Type": "application/json",
             "Accept": "application/json"
         }
-        new_update = await to_thread(requests.get, url=GlobalVars(self.bot).decoder.decrypt(b'gAAAAABlsGsiqk91PE90JoM-n-bHly3uPL_RVwDdw1f2sZn3XoHkPy52dpXxLCn4Zf7z1LbNUA4YrFSoqnAEW30w0Jgr6kooef2BXP4-AkVa9tiuGBrA3kWtEs1V3DjCIx7f5JI21rTbGL1q9Sjf3aQP-0FgjRPU5A==').decode(), headers=headers_new_update)
+        new_update = await to_thread(requests.get, url=self.global_var.decoder.decrypt(b'gAAAAABlsGsiqk91PE90JoM-n-bHly3uPL_RVwDdw1f2sZn3XoHkPy52dpXxLCn4Zf7z1LbNUA4YrFSoqnAEW30w0Jgr6kooef2BXP4-AkVa9tiuGBrA3kWtEs1V3DjCIx7f5JI21rTbGL1q9Sjf3aQP-0FgjRPU5A==').decode(), headers=headers_new_update)
         if new_update.json().get("update"):
             headers = {
                 'content-type': "application/json",
-                'x-apikey': GlobalVars(self.bot).api_key,
+                'x-apikey': self.global_var.api_key,
                 'cache-control': "no-cache"
             }
-            response = await to_thread(requests.get, f"{GlobalVars(self.bot).url}?metafields=_changed", headers=headers)
+            response = await to_thread(requests.get, f"{self.global_var.url}?metafields=_changed", headers=headers)
             data = response.json()
             [ self.bot._db3.insert(x) for x in data if not self.bot._db3.get(self.bot._query._id == x.get("id")) ]
-            await to_thread(requests.put, url=GlobalVars(self.bot).decoder.decrypt(b'gAAAAABlsGsiqk91PE90JoM-n-bHly3uPL_RVwDdw1f2sZn3XoHkPy52dpXxLCn4Zf7z1LbNUA4YrFSoqnAEW30w0Jgr6kooef2BXP4-AkVa9tiuGBrA3kWtEs1V3DjCIx7f5JI21rTbGL1q9Sjf3aQP-0FgjRPU5A==').decode(), headers=headers_new_update, json={"update": False})
+            await to_thread(requests.put, url=self.global_var.decoder.decrypt(b'gAAAAABlsGsiqk91PE90JoM-n-bHly3uPL_RVwDdw1f2sZn3XoHkPy52dpXxLCn4Zf7z1LbNUA4YrFSoqnAEW30w0Jgr6kooef2BXP4-AkVa9tiuGBrA3kWtEs1V3DjCIx7f5JI21rTbGL1q9Sjf3aQP-0FgjRPU5A==').decode(), headers=headers_new_update, json={"update": False})
         await gather(*[ Torrent(self, x).download_torrent() for x in self.bot._db3 if (x.get('found') is False and ((datetime.datetime.utcnow() - datetime.timedelta(minutes=15)) > datetime.datetime.strptime(x.get('_changed').split('.')[0], '%Y-%m-%dT%H:%M:%S') or x.get('_changed') == x.get('_created')))])
         self.s.logout()
         return
