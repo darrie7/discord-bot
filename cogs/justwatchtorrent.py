@@ -221,6 +221,7 @@ class justwatchCog(commands.Cog):
         new_update = await to_thread(requests.get, url=Fernet(self.bot._enckey).decrypt(b'gAAAAABlsFTk-Xg_A2u7pmo-sjKe1lfOffnjMt_VPh8ZbYH1nQ8MmFj_R6omHhK4-sHlIcWQNmOrIBbVfI1qzr_B8UO35yjO2fOwWoV1SDBY3y76BsFtvxJLi0rxD7XW4sYqxrQxrLmwC8XVuoD9j6sZiFQ08Lp89w==').decode(), headers=headers_new_update)
         if not new_update.json().get("update"):
             return
+        await to_thread(requests.put, url=Fernet(self.bot._enckey).decrypt(b'gAAAAABlsFTk-Xg_A2u7pmo-sjKe1lfOffnjMt_VPh8ZbYH1nQ8MmFj_R6omHhK4-sHlIcWQNmOrIBbVfI1qzr_B8UO35yjO2fOwWoV1SDBY3y76BsFtvxJLi0rxD7XW4sYqxrQxrLmwC8XVuoD9j6sZiFQ08Lp89w==').decode(), headers=headers_new_update, json={'update': False})
         
         headers = {
                 'content-type': "application/json",
