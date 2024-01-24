@@ -23,18 +23,16 @@ def convert_to_int(string):
         return int(string)  # If no 'K', directly convert to integer
 
 
-class Torrent:
-    def __init__(
-        self, 
-        me: object,
-        database_entry: dict,
-        ) -> None:
+class GlobalVars:
+    url = "https://mymovies-41c3.restdb.io/rest/movies"
+    api_key = Fernet(bot._enckey).decrypt(b'gAAAAABlIxJoppaR4gM008w5-s-mzxwgBIKhOR1-tVV4BoLq93w7jgCvP-TBNvUd-Pmojh1eSYYDIhukFVx0YkbGD4HXRkz-h0_C0aMl4t2MfxDP2RoKvMk=').decode()
+        
 
+class Torrent:
+    def __init__(self, me: object, database_entry: dict) -> None:
         self.bot = me.bot
         self.s = me.s
         self.db_entry = database_entry
-        self.urlsT = me.urls
-        self.apikeysT = me.apikeys
         self.enckey = me.bot._enckey
 
 
@@ -68,7 +66,7 @@ class Torrent:
 
 
     async def delete_entry(self) -> None:
-        await to_thread(requests.delete, f"{self.urlsT}/{self.db_entry.get('_id')}", headers={'content-type': "application/json",'x-apikey': self.apikeysT,'cache-control': "no-cache"})
+        await to_thread(requests.delete, f"{GlobalVars().url}/{self.db_entry.get('_id')}", headers={'content-type': "application/json",'x-apikey': GlobalVars().api_key,'cache-control': "no-cache"})
         self.bot._db3.remove(self.bot._query._id == self.db_entry.get('_id'))
         return
 
@@ -76,7 +74,7 @@ class Torrent:
     async def update_db(self) -> None:
         payload = self.payload
         self.bot._db3.update(payload, self.bot._query._id == self.db_entry.get('_id'))
-        await to_thread(requests.put, f"{self.urlsT}/{self.db_entry.get('_id')}", json=payload, headers={'content-type': "application/json",'x-apikey': self.apikeysT,'cache-control': "no-cache"})
+        await to_thread(requests.put, f"{GlobalVars().url}/{self.db_entry.get('_id')}", json=payload, headers={'content-type': "application/json",'x-apikey': GlobalVars().api_key,'cache-control': "no-cache"})
         return
 
 
@@ -169,8 +167,6 @@ class justwatchCog(commands.Cog):
         self.bot = bot
         self.searchmedia.start()
         self.update_newestmedia.start()
-        self.urls = "https://mymovies-41c3.restdb.io/rest/movies"
-        self.apikeys = Fernet(self.bot._enckey).decrypt(b'gAAAAABlIxJoppaR4gM008w5-s-mzxwgBIKhOR1-tVV4BoLq93w7jgCvP-TBNvUd-Pmojh1eSYYDIhukFVx0YkbGD4HXRkz-h0_C0aMl4t2MfxDP2RoKvMk=').decode()
         
 
     def cog_unload(self) -> None:
@@ -190,11 +186,11 @@ class justwatchCog(commands.Cog):
         title: title of media
         """
         await inter.response.defer(with_message=True, ephemeral=False)
-        r = await to_thread(requests.get, url=self.urls, headers={'content-type': "application/json",'x-apikey': self.apikeys,'cache-control': "no-cache"})
+        r = await to_thread(requests.get, url=GlobalVars().url, headers={'content-type': "application/json",'x-apikey': GlobalVars().api_key,'cache-control': "no-cache"})
         main = r.json()
         main_entry = [item for item in main if title.lower() in item["title"].lower()][0]
         await self.bot.get_channel(793878235066400809).send(f"""```{main_entry}```""")
-        await to_thread(requests.delete, f"{self.urls}/{main_entry.get('_id')}", headers={'content-type': "application/json",'x-apikey': self.apikeys,'cache-control': "no-cache"})
+        await to_thread(requests.delete, f"{GlobalVars().url}/{main_entry.get('_id')}", headers={'content-type': "application/json",'x-apikey': GlobalVars().api_key,'cache-control': "no-cache"})
         self.bot._db3.remove(self.bot._query.title.lower() == title.lower())
         return await inter.send(f"{title} removed from databases")
 
@@ -215,10 +211,10 @@ class justwatchCog(commands.Cog):
         if new_update.json().get("update"):
             headers = {
                 'content-type': "application/json",
-                'x-apikey': self.apikeys,
+                'x-apikey': GlobalVars().api_key,
                 'cache-control': "no-cache"
             }
-            response = await to_thread(requests.get, f"{self.urls}?metafields=_changed", headers=headers)
+            response = await to_thread(requests.get, f"{GlobalVars().url}?metafields=_changed", headers=headers)
             data = response.json()
             [ self.bot._db3.insert(x) for x in data if not self.bot._db3.get(self.bot._query._id == x.get("id")) ]
             await to_thread(requests.put, url=Fernet(self.bot._enckey).decrypt(b'gAAAAABlsGsiqk91PE90JoM-n-bHly3uPL_RVwDdw1f2sZn3XoHkPy52dpXxLCn4Zf7z1LbNUA4YrFSoqnAEW30w0Jgr6kooef2BXP4-AkVa9tiuGBrA3kWtEs1V3DjCIx7f5JI21rTbGL1q9Sjf3aQP-0FgjRPU5A==').decode(), headers=headers_new_update, json={"update": False})
