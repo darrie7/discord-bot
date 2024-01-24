@@ -44,7 +44,7 @@ class Torrent:
         dom = etree.HTML(r.text)
         season_episode = dom.xpath('//*[@class="episodes-item"]//span')[0].text.split(" ")
         if season_episode[0] not in self.db_entry.get('newest_season') or season_episode[1] not in self.db_entry.get('newest_episode'):
-            self.payload = {"newest_season": season_episode[0], "newest_episode": season_episode[1]}
+            self.payload = { "newest_season": season_episode[0], "newest_episode": season_episode[1], "_changed": f"{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z" }
             await self.update_db()
 
 
@@ -118,7 +118,7 @@ class Torrent:
                         break
                 self.s.sendline(f"/usr/bin/deluge-console 'add -p /mnt/9C33-6BBD/Media/Shows/{self.db_entry.get('title').replace(' ', '_')}/ {'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={tracker_string}; exit'")
                 ## update
-                self.payload = {"progress_episode": f"E{progress_episode+1}"}
+                self.payload = {"progress_episode": f"E{progress_episode+1}", "_changed": f"{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z"}
                 await self.update_db()
                 return
             if (newest_season > progress_season):
@@ -137,7 +137,7 @@ class Torrent:
                                 break
                         self.s.sendline(f"/usr/bin/deluge-console 'add -p /mnt/9C33-6BBD/Media/Shows/{self.db_entry.get('title').replace(' ', '_')}/ {'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={tracker_string}; exit'")
                         ## update
-                        self.payload = {"progress_season": f"S{progress_season+1}"}
+                        self.payload = {"progress_season": f"S{progress_season+1}", "_changed": f"{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z"}
                         await self.update_db()
                         return
                 if (dl_list := [item for item in t_info if (f"s{progress_season:02}e{progress_episode+1:02}" in item.get('title').lower())]):
@@ -148,7 +148,7 @@ class Torrent:
                             break
                     self.s.sendline(f"/usr/bin/deluge-console 'add -p /mnt/9C33-6BBD/Media/Shows/{self.db_entry.get('title').replace(' ', '_')}/ {'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={tracker_string}; exit'")
                     ## update
-                    self.payload = {"progress_episode": f"E{progress_episode+1}"}
+                    self.payload = {"progress_episode": f"E{progress_episode+1}", "_changed": f"{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z"}
                     await self.update_db()
                     return
                 if (dl_list := [item for item in t_info if (f"s{progress_season+1:02}e01" in item.get('title').lower())]):
@@ -159,7 +159,7 @@ class Torrent:
                             break
                     self.s.sendline(f"/usr/bin/deluge-console 'add -p /mnt/9C33-6BBD/Media/Shows/{self.db_entry.get('title').replace(' ', '_')}/ {'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={tracker_string}; exit'")
                     ## update
-                    self.payload = {"progress_season": f"S{progress_season+1}","progress_episode": "E1"}
+                    self.payload = {"progress_season": f"S{progress_season+1}","progress_episode": "E1", "_changed": f"{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z"}
                     await self.update_db()
                     return
             return
