@@ -214,6 +214,14 @@ class justwatchCog(commands.Cog):
                 return
         except Exception as e:
             return
+        headers_new_update = {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+        }
+        new_update = await to_thread(requests.get, url=Fernet(self.bot._enckey).decrypt(b'gAAAAABlsFTk-Xg_A2u7pmo-sjKe1lfOffnjMt_VPh8ZbYH1nQ8MmFj_R6omHhK4-sHlIcWQNmOrIBbVfI1qzr_B8UO35yjO2fOwWoV1SDBY3y76BsFtvxJLi0rxD7XW4sYqxrQxrLmwC8XVuoD9j6sZiFQ08Lp89w==').decode(), headers=headers_new_update)
+        if not new_update.json().get("update"):
+            return
+        
         headers = {
                 'content-type': "application/json",
                 'x-apikey': self.apikeys[self.noddeven % len(self.urls)],
