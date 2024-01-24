@@ -70,11 +70,13 @@ class Torrent:
 
     async def delete_entry(self) -> None:
         await to_thread(requests.delete, f"{self.urlsT[self.nterm]}/{self.db_entry.get('_id')}", headers={'content-type': "application/json",'x-apikey': self.apikeysT[self.nterm],'cache-control': "no-cache"})
+        self.bot._db3.remove(self.bot._query._id == self.db_entry.get('_id'))
         return
 
 
     async def update_db(self) -> None:
         payload = self.payload
+        self.bot._db3.update(payload, self.bot._query._id == self.db_entry.get('_id'))
         for x in range(len(self.urlsT)):
             if self.nterm == x:
                 await to_thread(requests.put, f"{self.urlsT[x]}/{self.db_entry.get('_id')}", json=payload, headers={'content-type': "application/json",'x-apikey': self.apikeysT[x],'cache-control': "no-cache"})
@@ -229,8 +231,8 @@ class justwatchCog(commands.Cog):
             data = response.json()
             [ self.bot._db3.insert(x) for x in data if not self.bot._db3.get(self.bot._query._id == x.get("id")) ]
             await to_thread(requests.put, url=Fernet(self.bot._enckey).decrypt(b'gAAAAABlsGsiqk91PE90JoM-n-bHly3uPL_RVwDdw1f2sZn3XoHkPy52dpXxLCn4Zf7z1LbNUA4YrFSoqnAEW30w0Jgr6kooef2BXP4-AkVa9tiuGBrA3kWtEs1V3DjCIx7f5JI21rTbGL1q9Sjf3aQP-0FgjRPU5A==').decode(), headers=headers_new_update, json={"update": False})
-        # await gather(*[ Torrent(self, x).download_torrent() for x in data if (x.get('found') is False and ((datetime.datetime.utcnow() - datetime.timedelta(minutes=15)) > datetime.datetime.strptime(x.get('_changed').split('.')[0], '%Y-%m-%dT%H:%M:%S') or x.get('_changed') == x.get('_created')))])
-        # await gather(*[ Torrent(self, x).delete_entry() for x in data if (x.get('found') is True)])
+        await gather(*[ Torrent(self, x).download_torrent() for x in self.bot._db3 if (x.get('found') is False and ((datetime.datetime.utcnow() - datetime.timedelta(minutes=15)) > datetime.datetime.strptime(x.get('_changed').split('.')[0], '%Y-%m-%dT%H:%M:%S') or x.get('_changed') == x.get('_created')))])
+        await gather(*[ Torrent(self, x).delete_entry() for x in self.bot._db3 if (x.get('found') is True)])
         self.noddeven += 1
         self.s.logout()
         return
