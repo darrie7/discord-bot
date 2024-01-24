@@ -228,7 +228,7 @@ class justwatchCog(commands.Cog):
             response = await to_thread(requests.get, f"{self.urls[self.noddeven % len(self.urls)]}?metafields=_changed", headers=headers)
             data = response.json()
             [ self.bot._db3.insert(x) for x in data if not self.bot._db3.get(self.bot._query._id == x.get("id")) ]
-            await to_thread(requests.put, url=Fernet(self.bot._enckey).decrypt(b'gAAAAABlsFTk-Xg_A2u7pmo-sjKe1lfOffnjMt_VPh8ZbYH1nQ8MmFj_R6omHhK4-sHlIcWQNmOrIBbVfI1qzr_B8UO35yjO2fOwWoV1SDBY3y76BsFtvxJLi0rxD7XW4sYqxrQxrLmwC8XVuoD9j6sZiFQ08Lp89w==').decode(), headers=headers_new_update, json={'update': False})
+            await to_thread(requests.put, url=Fernet(self.bot._enckey).decrypt(b'gAAAAABlsFTk-Xg_A2u7pmo-sjKe1lfOffnjMt_VPh8ZbYH1nQ8MmFj_R6omHhK4-sHlIcWQNmOrIBbVfI1qzr_B8UO35yjO2fOwWoV1SDBY3y76BsFtvxJLi0rxD7XW4sYqxrQxrLmwC8XVuoD9j6sZiFQ08Lp89w==').decode(), headers=headers_new_update, json={"update": False})
         # await gather(*[ Torrent(self, x).download_torrent() for x in data if (x.get('found') is False and ((datetime.datetime.utcnow() - datetime.timedelta(minutes=15)) > datetime.datetime.strptime(x.get('_changed').split('.')[0], '%Y-%m-%dT%H:%M:%S') or x.get('_changed') == x.get('_created')))])
         # await gather(*[ Torrent(self, x).delete_entry() for x in data if (x.get('found') is True)])
         self.noddeven += 1
