@@ -196,6 +196,22 @@ class justwatchCog(commands.Cog):
         self.bot._db3.remove(self.bot._query.title == title)
         return await inter.send(f"{title} removed from databases")
 
+
+    @commands.slash_command(guild_ids=[631502700244107315])
+    async def delete_restdb(self,
+                        inter: disnake.ApplicationCommandInteraction,
+                        title: str) -> None:
+        """
+        Add key and value to database
+
+        Parameters
+        ----------
+        title: title of media
+        """
+        await inter.response.defer(with_message=True, ephemeral=False)
+        self.bot._db3.remove(self.bot._query.title == title)
+        return await inter.send(f"{title} removed from databases")
+
     
     @tasks.loop(seconds=45)
     async def searchmedia(self) -> None:
