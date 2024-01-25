@@ -26,10 +26,28 @@ class PeppernewsCog(commands.Cog):
 
 
     @commands.slash_command(guild_ids=[631502700244107315])
+    async def db3_remove_entry(self, inter: disnake.ApplicationCommandInteraction, title: str) -> None:
+        """
+        Add category to database
+
+        Parameters
+        ----------
+        title: title of media to delete
+        """
+        if  not self.bot._db3.get(self.bot._query.title.lower() == title.lower()):
+            await inter.response.send_message("This title is not in the database", ephemeral=True)
+            return
+        media = self.bot._db3.get(self.bot._query.title.lower() == title.lower())
+        self.bot._db3.remove(doc_ids=[media.doc_id])
+        return
+        
+
+
+    @commands.slash_command(guild_ids=[631502700244107315])
     async def pepper(self, inter: disnake.ApplicationCommandInteraction) -> None:
         pass
 
-
+    
     @pepper.sub_command()
     async def add(self,
                     inter: disnake.ApplicationCommandInteraction,
