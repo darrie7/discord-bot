@@ -95,7 +95,7 @@ class Torrent:
                 if ("x265" or "h265") in el.get('title'):
                     self.magnet = el.get('magnet')
                     break
-            self.s.sendline(f"/usr/bin/deluge-console 'add -p /mnt/9C33-6BBD/Media/Movies/ {'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={tracker_string}; exit'")
+            self.s.sendline(fr"/usr/bin/deluge-console 'add -p /mnt/9C33-6BBD/Media/Movies/ {'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={tracker_string}; exit'")
             ## update
             self.payload = {"found": True}
             await self.delete_entry()
@@ -116,7 +116,7 @@ class Torrent:
                     if ("x265" or "h265") in el.get('title'):
                         self.magnet = el.get('magnet')
                         break
-                self.s.sendline(f"/usr/bin/deluge-console 'add -p /mnt/9C33-6BBD/Media/Shows/{self.db_entry.get('title').replace(' ', '_')}/ {'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={tracker_string}; exit'")
+                self.s.sendline(fr"/usr/bin/deluge-console 'add -p /mnt/9C33-6BBD/Media/Shows/{self.db_entry.get('title').replace(' ', '_')}/ {'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={tracker_string}; exit'")
                 ## update
                 self.payload = {"progress_episode": f"E{progress_episode+1}", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z'}
                 await self.update_db()
@@ -135,7 +135,7 @@ class Torrent:
                             if ("x265" or "h265") in el.get('title'):
                                 self.magnet = el.get('magnet')
                                 break
-                        self.s.sendline(f"/usr/bin/deluge-console 'add -p /mnt/9C33-6BBD/Media/Shows/{self.db_entry.get('title').replace(' ', '_')}/ {'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={tracker_string}; exit'")
+                        self.s.sendline(fr"/usr/bin/deluge-console 'add -p /mnt/9C33-6BBD/Media/Shows/{self.db_entry.get('title').replace(' ', '_')}/ {'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={tracker_string}; exit'")
                         ## update
                         self.payload = {"progress_season": f"S{progress_season+1}", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z'}
                         await self.update_db()
@@ -146,7 +146,7 @@ class Torrent:
                         if ("x265" or "h265") in el.get('title'):
                             self.magnet = el.get('magnet')
                             break
-                    self.s.sendline(f"/usr/bin/deluge-console 'add -p /mnt/9C33-6BBD/Media/Shows/{self.db_entry.get('title').replace(' ', '_')}/ {'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={tracker_string}; exit'")
+                    self.s.sendline(fr"/usr/bin/deluge-console 'add -p /mnt/9C33-6BBD/Media/Shows/{self.db_entry.get('title').replace(' ', '_')}/ {'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={tracker_string}; exit'")
                     ## update
                     self.payload = {"progress_episode": f"E{progress_episode+1}", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z'}
                     await self.update_db()
@@ -157,7 +157,7 @@ class Torrent:
                         if ("x265" or "h265") in el.get('title'):
                             self.magnet = el.get('magnet')
                             break
-                    self.s.sendline(f"/usr/bin/deluge-console 'add -p /mnt/9C33-6BBD/Media/Shows/{self.db_entry.get('title').replace(' ', '_')}/ {'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={tracker_string}; exit'")
+                    self.s.sendline(fr"/usr/bin/deluge-console 'add -p /mnt/9C33-6BBD/Media/Shows/{self.db_entry.get('title').replace(' ', '_')}/ {'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={tracker_string}; exit'")
                     ## update
                     self.payload = {"progress_season": f"S{progress_season+1}","progress_episode": "E1", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z'}
                     await self.update_db()
