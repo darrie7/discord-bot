@@ -198,7 +198,7 @@ class justwatchCog(commands.Cog):
 
 
     @commands.slash_command(guild_ids=[631502700244107315])
-    async def delete_restdb(self,
+    async def delete_localdb(self,
                         inter: disnake.ApplicationCommandInteraction,
                         title: str) -> None:
         """
