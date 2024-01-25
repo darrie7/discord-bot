@@ -216,7 +216,7 @@ class justwatchCog(commands.Cog):
             [ self.bot._db3.insert(x) for x in data if not self.bot._db3.get(self.bot._query._id == x.get("_id")) ]
             await to_thread(requests.put, url=self.global_var.decoder.decrypt(b'gAAAAABlsGsiqk91PE90JoM-n-bHly3uPL_RVwDdw1f2sZn3XoHkPy52dpXxLCn4Zf7z1LbNUA4YrFSoqnAEW30w0Jgr6kooef2BXP4-AkVa9tiuGBrA3kWtEs1V3DjCIx7f5JI21rTbGL1q9Sjf3aQP-0FgjRPU5A==').decode(), headers=headers_new_update, json={"update": False})
         try:
-            self.s = pxssh.pxssh(timeout=120, maxread=5000, echo=False)
+            self.s = pxssh.pxssh(timeout=None, maxread=5000, echo=False)
             if not self.s.login(self.global_var.decoder.decrypt(b'gAAAAABlpWObOSHPZsnwbjQWP9MwULDlDRuxFXKPYBFAZS_s6X_Lr620EKMtklKbFRvK1uFNdX6YYUWvrO2gXKLHEDkvERVE3w==').decode(), self.global_var.decoder.decrypt(b'gAAAAABlIxN9JUKSkB2Ncjq1Na0huIM53UJGIGEb621_We33mUKHkN4uaifSZYp_pfexSEpq6NKI4Iy97KFjthaVbeUm5gPSkA==').decode(), self.global_var.decoder.decrypt(b'gAAAAABlIxOc7ZikmiK3gtZK5hvEDFZHAEp3dQurdZl4YoMzfHBZ3eveES_0WY-cqF10fIwPuIDVbawOiCsKFVHaiPs6GQ6s8g==').decode()):
                 return
         except Exception as e:
