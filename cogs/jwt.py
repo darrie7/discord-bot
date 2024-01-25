@@ -33,7 +33,7 @@ class GlobalVars(commands.Cog):
 class Torrent:
     def __init__(self, me: object, database_entry: dict) -> None:
         self.bot = me.bot
-        self.s = me.s
+        self.s = me.s if me.s else None
         self.db_entry = database_entry
         self.global_var = GlobalVars(self.bot)
 
