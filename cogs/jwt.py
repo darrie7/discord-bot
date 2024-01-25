@@ -201,7 +201,7 @@ class justwatchCog(commands.Cog):
     @tasks.loop(seconds=45)
     async def searchmedia(self) -> None:
         try:
-            self.s = pxssh.pxssh(timeout=60, maxread=5000)
+            self.s = pxssh.pxssh(timeout=60, maxread=5000, echo=False)
             if not self.s.login(self.global_var.decoder.decrypt(b'gAAAAABlpWObOSHPZsnwbjQWP9MwULDlDRuxFXKPYBFAZS_s6X_Lr620EKMtklKbFRvK1uFNdX6YYUWvrO2gXKLHEDkvERVE3w==').decode(), self.global_var.decoder.decrypt(b'gAAAAABlIxN9JUKSkB2Ncjq1Na0huIM53UJGIGEb621_We33mUKHkN4uaifSZYp_pfexSEpq6NKI4Iy97KFjthaVbeUm5gPSkA==').decode(), self.global_var.decoder.decrypt(b'gAAAAABlIxOc7ZikmiK3gtZK5hvEDFZHAEp3dQurdZl4YoMzfHBZ3eveES_0WY-cqF10fIwPuIDVbawOiCsKFVHaiPs6GQ6s8g==').decode()):
                 return
         except Exception as e:
