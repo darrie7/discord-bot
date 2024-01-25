@@ -193,7 +193,7 @@ class justwatchCog(commands.Cog):
         main_entry = [item for item in main if title.lower() in item["title"].lower()][0]
         await self.bot.get_channel(793878235066400809).send(f"""```{main_entry}```""")
         await to_thread(requests.delete, f"{self.global_var.url}/{main_entry.get('_id')}", headers={'content-type': "application/json",'x-apikey': self.global_var.api_key,'cache-control': "no-cache"})
-        self.bot._db3.remove(self.bot._query.title.lower() == title.lower())
+        self.bot._db3.remove(self.bot._query.title == title)
         return await inter.send(f"{title} removed from databases")
 
     
