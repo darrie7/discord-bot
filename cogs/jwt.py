@@ -23,9 +23,9 @@ class GlobalVars(commands.Cog):
         self.url = "https://mymovies-41c3.restdb.io/rest/movies"
         self.decoder = Fernet(bot._enckey)
         self.api_key = self.decoder.decrypt(b'gAAAAABlIxJoppaR4gM008w5-s-mzxwgBIKhOR1-tVV4BoLq93w7jgCvP-TBNvUd-Pmojh1eSYYDIhukFVx0YkbGD4HXRkz-h0_C0aMl4t2MfxDP2RoKvMk=').decode()
-        self.host = self.global_var.decoder.decrypt(b'gAAAAABlpWObOSHPZsnwbjQWP9MwULDlDRuxFXKPYBFAZS_s6X_Lr620EKMtklKbFRvK1uFNdX6YYUWvrO2gXKLHEDkvERVE3w==').decode()
-        self.deluge_user =  self.global_var.decoder.decrypt(b'gAAAAABlIxN9JUKSkB2Ncjq1Na0huIM53UJGIGEb621_We33mUKHkN4uaifSZYp_pfexSEpq6NKI4Iy97KFjthaVbeUm5gPSkA==').decode()
-        self.deluge_passwd = self.global_var.decoder.decrypt(b'gAAAAABlIxOc7ZikmiK3gtZK5hvEDFZHAEp3dQurdZl4YoMzfHBZ3eveES_0WY-cqF10fIwPuIDVbawOiCsKFVHaiPs6GQ6s8g==').decode()
+        self.host = self.decoder.decrypt(b'gAAAAABlpWObOSHPZsnwbjQWP9MwULDlDRuxFXKPYBFAZS_s6X_Lr620EKMtklKbFRvK1uFNdX6YYUWvrO2gXKLHEDkvERVE3w==').decode()
+        self.deluge_user =  self.decoder.decrypt(b'gAAAAABlIxN9JUKSkB2Ncjq1Na0huIM53UJGIGEb621_We33mUKHkN4uaifSZYp_pfexSEpq6NKI4Iy97KFjthaVbeUm5gPSkA==').decode()
+        self.deluge_passwd = self.decoder.decrypt(b'gAAAAABlIxOc7ZikmiK3gtZK5hvEDFZHAEp3dQurdZl4YoMzfHBZ3eveES_0WY-cqF10fIwPuIDVbawOiCsKFVHaiPs6GQ6s8g==').decode()
         
 
 class Torrent:
@@ -174,6 +174,7 @@ class justwatchCog(commands.Cog):
         self.searchmedia.start()
         self.update_newestmedia.start()
         self.bot.global_var = GlobalVars(self.bot)
+        self.update_check_url = self.bot.global_var.decoder.decrypt(b'gAAAAABlsGsiqk91PE90JoM-n-bHly3uPL_RVwDdw1f2sZn3XoHkPy52dpXxLCn4Zf7z1LbNUA4YrFSoqnAEW30w0Jgr6kooef2BXP4-AkVa9tiuGBrA3kWtEs1V3DjCIx7f5JI21rTbGL1q9Sjf3aQP-0FgjRPU5A==').decode()
         
 
     def cog_unload(self) -> None:
@@ -193,11 +194,11 @@ class justwatchCog(commands.Cog):
         title: title of media
         """
         await inter.response.defer(with_message=True, ephemeral=False)
-        r = await to_thread(requests.get, url=self.global_var.url, headers={'content-type': "application/json",'x-apikey': self.global_var.api_key,'cache-control': "no-cache"})
+        r = await to_thread(requests.get, url=self.bot.global_var.url, headers={'content-type': "application/json",'x-apikey': self.bot.global_var.api_key,'cache-control': "no-cache"})
         main = r.json()
         main_entry = next(item for item in main if title.lower() in item["title"].lower())
         await self.bot.get_channel(793878235066400809).send(f"""```{main_entry}```""")
-        await to_thread(requests.delete, f"{self.global_var.url}/{main_entry.get('_id')}", headers={'content-type': "application/json",'x-apikey': self.global_var.api_key,'cache-control': "no-cache"})
+        await to_thread(requests.delete, f"{self.bot.global_var.url}/{main_entry.get('_id')}", headers={'content-type': "application/json",'x-apikey': self.bot.global_var.api_key,'cache-control': "no-cache"})
         self.bot._db3.remove(self.bot._query.title.lower() == title.lower())
         return await inter.send(f"{title} removed from databases")
 
@@ -208,15 +209,15 @@ class justwatchCog(commands.Cog):
             "Content-Type": "application/json",
             "Accept": "application/json"
         }
-        update_check_url = self.global_var.decoder.decrypt(b'gAAAAABlsGsiqk91PE90JoM-n-bHly3uPL_RVwDdw1f2sZn3XoHkPy52dpXxLCn4Zf7z1LbNUA4YrFSoqnAEW30w0Jgr6kooef2BXP4-AkVa9tiuGBrA3kWtEs1V3DjCIx7f5JI21rTbGL1q9Sjf3aQP-0FgjRPU5A==').decode()
+        update_check_url = self.update_check_url
         new_update = await to_thread(requests.get, url=update_check_url, headers=headers_new_update)
         if new_update.json().get("update"):
             headers = {
                 'content-type': "application/json",
-                'x-apikey': self.global_var.api_key,
+                'x-apikey': self.bot.global_var.api_key,
                 'cache-control': "no-cache"
             }
-            response = await to_thread(requests.get, f"{self.global_var.url}?metafields=_changed", headers=headers)
+            response = await to_thread(requests.get, f"{self.bot.global_var.url}?metafields=_changed", headers=headers)
             data = response.json()
             [ self.bot._db3.insert(x) for x in data if not self.bot._db3.get(self.bot._query._id == x.get("_id")) ]
             await to_thread(requests.put, url=update_check_url, headers=headers_new_update, json={"update": False})
