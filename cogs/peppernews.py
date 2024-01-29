@@ -23,7 +23,7 @@ class PeppernewsCog(commands.Cog):
         self.task_two.cancel()
 
 
-    @commands.slash_command(guild_ids=[bot._guildid])
+    @commands.slash_command()
     async def db3_remove_entry(self, inter: disnake.ApplicationCommandInteraction, title: str) -> None:
         """
         Add category to database
@@ -41,7 +41,7 @@ class PeppernewsCog(commands.Cog):
         
 
 
-    @commands.slash_command(guild_ids=[self.bot._guildid])
+    @commands.slash_command()
     async def pepper(self, inter: disnake.ApplicationCommandInteraction) -> None:
         pass
 

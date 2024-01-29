@@ -26,7 +26,7 @@ class GlobalVars(commands.Cog):
         self.host = self.decoder.decrypt(b'gAAAAABlpWObOSHPZsnwbjQWP9MwULDlDRuxFXKPYBFAZS_s6X_Lr620EKMtklKbFRvK1uFNdX6YYUWvrO2gXKLHEDkvERVE3w==').decode()
         self.deluge_user =  self.decoder.decrypt(b'gAAAAABlIxN9JUKSkB2Ncjq1Na0huIM53UJGIGEb621_We33mUKHkN4uaifSZYp_pfexSEpq6NKI4Iy97KFjthaVbeUm5gPSkA==').decode()
         self.deluge_passwd = self.decoder.decrypt(b'gAAAAABlIxOc7ZikmiK3gtZK5hvEDFZHAEp3dQurdZl4YoMzfHBZ3eveES_0WY-cqF10fIwPuIDVbawOiCsKFVHaiPs6GQ6s8g==').decode()
-        
+
 
 class Torrent:
     def __init__(self, me: object, database_entry: dict) -> None:
@@ -76,7 +76,7 @@ class Torrent:
         return
 
 
-    async def get_trackers(self) -> str:
+    async def get_trackers(self):
         trackers = await to_thread(requests.get, url="https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all.txt")
         content_list = trackers.text.splitlines()
         trackers_list = [content for content in content_list if content]
@@ -95,12 +95,12 @@ class Torrent:
                     self.magnet = el.get('magnet')
                     break
             with DelugeRPCClient(self.global_var.host, 58846, self.global_var.deluge_user, self.global_var.deluge_passwd) as client:
-    	        client.core.add_torrent_magnet(f"{'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={self.get_trackers()}", options={"download_location": "/movies/"})
+    	        client.core.add_torrent_magnet(f"{'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={await self.get_trackers()}", options={"download_location": "/movies/"})
             ## update
             self.payload = {"found": True}
             await self.delete_entry()
             return
-        
+
         if not self.db_entry.get('ismovie'):
             newest_season = int(self.db_entry.get('newest_season').replace('S', ''))
             newest_episode = int(self.db_entry.get('newest_episode').replace('E', ''))
@@ -117,7 +117,7 @@ class Torrent:
                         self.magnet = el.get('magnet')
                         break
                 with DelugeRPCClient(self.global_var.host, 58846, self.global_var.deluge_user, self.global_var.deluge_passwd) as client:
-    	            client.core.add_torrent_magnet(f"{'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={self.get_trackers()}", options={"download_location": f"/shows/{self.db_entry.get('title').replace(' ', '_')}/"})
+    	            client.core.add_torrent_magnet(f"{'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={await self.get_trackers()}", options={"download_location": f"/tv/{self.db_entry.get('title').replace(' ', '_')}/"})
                 ## update
                 self.payload = {"progress_episode": f"E{progress_episode+1}", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z'}
                 await self.update_db()
@@ -137,7 +137,7 @@ class Torrent:
                                 self.magnet = el.get('magnet')
                                 break
                         with DelugeRPCClient(self.global_var.host, 58846, self.global_var.deluge_user, self.global_var.deluge_passwd) as client:
-    	                    client.core.add_torrent_magnet(f"{'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={self.get_trackers()}", options={"download_location": f"/shows/{self.db_entry.get('title').replace(' ', '_')}/"})
+    	                    client.core.add_torrent_magnet(f"{'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={await self.get_trackers()}", options={"download_location": f"/tv/{self.db_entry.get('title').replace(' ', '_')}/"})
                         ## update
                         self.payload = {"progress_season": f"S{progress_season+1}", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z'}
                         await self.update_db()
@@ -149,7 +149,7 @@ class Torrent:
                             self.magnet = el.get('magnet')
                             break
                     with DelugeRPCClient(self.global_var.host, 58846, self.global_var.deluge_user, self.global_var.deluge_passwd) as client:
-    	                client.core.add_torrent_magnet(f"{'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={self.get_trackers()}", options={"download_location": f"/shows/{self.db_entry.get('title').replace(' ', '_')}/"})
+    	                client.core.add_torrent_magnet(f"{'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={await self.get_trackers()}", options={"download_location": f"/tv/{self.db_entry.get('title').replace(' ', '_')}/"})
                     ## update
                     self.payload = {"progress_episode": f"E{progress_episode+1}", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z'}
                     await self.update_db()
@@ -161,13 +161,14 @@ class Torrent:
                             self.magnet = el.get('magnet')
                             break
                     with DelugeRPCClient(self.global_var.host, 58846, self.global_var.deluge_user, self.global_var.deluge_passwd) as client:
-    	                client.core.add_torrent_magnet(f"{'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={self.get_trackers()}", options={"download_location": f"/shows/{self.db_entry.get('title').replace(' ', '_')}/"})
+    	                client.core.add_torrent_magnet(f"{'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={await self.get_trackers()}", options={"download_location": f"/tv/{self.db_entry.get('title').replace(' ', '_')}/"})
                     ## update
                     self.payload = {"progress_season": f"S{progress_season+1}","progress_episode": "E1", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z'}
                     await self.update_db()
                     return
             return
-    
+
+
 class justwatchCog(commands.Cog):
     def __init__(self, bot) -> None:
         self.bot = bot
@@ -175,14 +176,25 @@ class justwatchCog(commands.Cog):
         self.update_newestmedia.start()
         self.bot.global_var = GlobalVars(self.bot)
         self.update_check_url = self.bot.global_var.decoder.decrypt(b'gAAAAABlsGsiqk91PE90JoM-n-bHly3uPL_RVwDdw1f2sZn3XoHkPy52dpXxLCn4Zf7z1LbNUA4YrFSoqnAEW30w0Jgr6kooef2BXP4-AkVa9tiuGBrA3kWtEs1V3DjCIx7f5JI21rTbGL1q9Sjf3aQP-0FgjRPU5A==').decode()
-        
+
 
     def cog_unload(self) -> None:
         self.searchmedia.cancel()
         self.update_newestmedia.cancel()
 
-    
-    @commands.slash_command(guild_ids=[bot._guildid])
+    @commands.slash_command()
+    async def delete_db3_entry(self, inter, title) -> None:
+        """
+        Remove entry from db
+
+        Parameters
+        ----------
+        title: title of media entry
+        """
+        self.bot._db3.remove(self.bot._query.title == title)
+
+
+    @commands.slash_command()
     async def delete_restdb(self,
                         inter: disnake.ApplicationCommandInteraction,
                         title: str) -> None:
@@ -199,10 +211,10 @@ class justwatchCog(commands.Cog):
         main_entry = next(item for item in main if title.lower() in item["title"].lower())
         await self.bot.get_channel(self.bot._test_channelid).send(f"""```{main_entry}```""")
         await to_thread(requests.delete, f"{self.bot.global_var.url}/{main_entry.get('_id')}", headers={'content-type': "application/json",'x-apikey': self.bot.global_var.api_key,'cache-control': "no-cache"})
-        self.bot._db3.remove(self.bot._query.title.lower() == title.lower())
+        self.bot._db3.remove(self.bot._query.title == title)
         return await inter.send(f"{title} removed from databases")
 
-    
+
     @tasks.loop(seconds=60)
     async def searchmedia(self) -> None:
         headers_new_update = {
@@ -221,7 +233,7 @@ class justwatchCog(commands.Cog):
             data = response.json()
             [ self.bot._db3.insert(x) for x in data if not self.bot._db3.get(self.bot._query._id == x.get("_id")) ]
             await to_thread(requests.put, url=update_check_url, headers=headers_new_update, json={"update": False})
-        await gather(*[ Torrent(self, x).download_torrent() for x in self.bot._db3 if ((x.get('newest_season') != x.get('progress_season') and x.get('newest_episode') != x.get('progress_episode')) and ((datetime.datetime.utcnow() - datetime.timedelta(minutes=15)) > datetime.datetime.strptime(x.get('_changed').split('.')[0], '%Y-%m-%dT%H:%M:%S') or x.get('_changed') == x.get('_created')))])
+        await gather(*[ Torrent(self, x).download_torrent() for x in self.bot._db3 if ((datetime.datetime.utcnow() - datetime.timedelta(minutes=15)) > datetime.datetime.strptime(x.get('_changed').split('.')[0], '%Y-%m-%dT%H:%M:%S') or x.get('_changed') == x.get('_created'))])
         return
 
 
@@ -233,7 +245,7 @@ class justwatchCog(commands.Cog):
     @update_newestmedia.error
     @searchmedia.error
     async def cog_error_handler(self, error) -> None:
-        await self.bot.get_channel(self.bot._test_channelid).send(f"""```{"".join(traceback.format_exception(type(error), error, error.__traceback__))}```""")
+        await self.bot.get_channel(793878235066400809).send(f"""```{"".join(traceback.format_exception(type(error), error, error.__traceback__))}```""")
         pass
     
 def setup(bot):

@@ -68,7 +68,8 @@ class OwnerCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.slash_command(guild_ids=[bot._guildid])
+
+    @commands.slash_command()
     @commands.is_owner()
     async def refresh_cogs(self, inter):
         """
@@ -96,7 +97,7 @@ class OwnerCog(commands.Cog):
 
     # Hidden means it won't show up on the default help.
   #################################################OWNER COMMANDS######################################          
-    @commands.slash_command(description="Reload cog", guild_ids=[self.bot._guildid])
+    @commands.slash_command()
     @commands.is_owner()
     async def reload(self, inter):
         """        
@@ -109,7 +110,7 @@ class OwnerCog(commands.Cog):
         await inter.response.send_message(view=TheView([Dropdown(options, my_custom_id="reload")]), ephemeral=True)
 
             
-    @commands.slash_command(description="load cog", guild_ids=[bot._guildid])
+    @commands.slash_command()
     @commands.is_owner()
     async def load(self, inter):
         """        
@@ -122,7 +123,7 @@ class OwnerCog(commands.Cog):
         await inter.response.send_message(view=TheView([Dropdown(options, my_custom_id="just_load")]), ephemeral=True)
             
             
-    @commands.slash_command(description="unload cog", guild_ids=[bot._guildid])
+    @commands.slash_command()
     @commands.is_owner()
     async def unload(self, inter):
         """        
