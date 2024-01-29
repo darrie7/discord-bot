@@ -271,7 +271,7 @@ class MyCommandsCog(commands.Cog):
         await inter.response.send_message(f"{key} has been added or updated", ephemeral=True)
 
 
-    @tasks.loop(minutes=3)
+    @tasks.loop(minutes=5)
     async def task_two(self) -> None:
         anilist = []
         n = 0
@@ -324,7 +324,7 @@ class MyCommandsCog(commands.Cog):
     @tasks.loop(hours=72)
     async def task_five(self) -> None:
         params = {"client_id": self.client_id,
-    "client_secret": self.clietn_secret,
+    "client_secret": self.client_secret,
     "grant_type": "refresh_token",
     "refresh_token": self.bot._db5.get(self.bot._query.key == "mal_refresh").get("value")}
         myreq = await to_thread(requests.post, url="https://myanimelist.net/v1/oauth2/token", data = params)
