@@ -1,18 +1,13 @@
-import os
 from lxml import etree
 import requests
 from disnake.ext import commands, tasks
 import disnake
-import os
-# from bs4 import BeautifulSoup
-# from typing import Optional
 from asyncio import gather, to_thread, sleep
 import datetime
-from pexpect import pxssh
 from cryptography.fernet import Fernet
 import traceback
-from random import randrange
 import re
+from deluge_client import DelugeRPCClient
 
 def convert_to_int(string):
     if string[-1] == 'K':
@@ -84,6 +79,9 @@ class Torrent:
         content_list = trackers.text.splitlines()
         trackers_list = [content for content in content_list if content]
         tracker_string = "&tr=".join(trackers_list)
+        host = self.global_var.decoder.decrypt(b'gAAAAABlpWObOSHPZsnwbjQWP9MwULDlDRuxFXKPYBFAZS_s6X_Lr620EKMtklKbFRvK1uFNdX6YYUWvrO2gXKLHEDkvERVE3w==').decode()
+        deluge_user =  self.global_var.decoder.decrypt(b'gAAAAABlIxN9JUKSkB2Ncjq1Na0huIM53UJGIGEb621_We33mUKHkN4uaifSZYp_pfexSEpq6NKI4Iy97KFjthaVbeUm5gPSkA==').decode()
+        deluge_passwd = self.global_var.decoder.decrypt(b'gAAAAABlIxOc7ZikmiK3gtZK5hvEDFZHAEp3dQurdZl4YoMzfHBZ3eveES_0WY-cqF10fIwPuIDVbawOiCsKFVHaiPs6GQ6s8g==').decode()
         if self.db_entry.get('ismovie'):
             self.search_term = f'''"{self.db_entry.get('title')} {self.db_entry.get('year')}"'''
             t_info = await self.media_scraper()
@@ -94,7 +92,8 @@ class Torrent:
                 if ("x265" or "h265") in el.get('title'):
                     self.magnet = el.get('magnet')
                     break
-            self.bot.s.sendline(fr"/usr/bin/deluge-console 'add -p /mnt/9C33-6BBD/Media/Movies/ {'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={tracker_string}; exit'")
+            with DelugeRPCClient(host, 58846, deluge_user, deluge_passwd) as client:
+    	        client.core.add_torrent_magnet(f"{'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={tracker_string}", options={"download_location": "/movies/"})
             ## update
             self.payload = {"found": True}
             await self.delete_entry()
@@ -115,7 +114,8 @@ class Torrent:
                     if ("x265" or "h265") in el.get('title'):
                         self.magnet = el.get('magnet')
                         break
-                self.bot.s.sendline(fr"/usr/bin/deluge-console 'add -p /mnt/9C33-6BBD/Media/Shows/{self.db_entry.get('title').replace(' ', '_')}/ {'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={tracker_string}; exit'")
+                with DelugeRPCClient(host, 58846, deluge_user, deluge_passwd) as client:
+    	            client.core.add_torrent_magnet(f"{'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={tracker_string}", options={"download_location": f"/shows/{self.db_entry.get('title').replace(' ', '_')}/"})
                 ## update
                 self.payload = {"progress_episode": f"E{progress_episode+1}", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z'}
                 await self.update_db()
@@ -134,7 +134,8 @@ class Torrent:
                             if ("x265" or "h265") in el.get('title'):
                                 self.magnet = el.get('magnet')
                                 break
-                        self.bot.s.sendline(fr"/usr/bin/deluge-console 'add -p /mnt/9C33-6BBD/Media/Shows/{self.db_entry.get('title').replace(' ', '_')}/ {'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={tracker_string}; exit'")
+                        with DelugeRPCClient(host, 58846, deluge_user, deluge_passwd) as client:
+    	                    client.core.add_torrent_magnet(f"{'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={tracker_string}", options={"download_location": f"/shows/{self.db_entry.get('title').replace(' ', '_')}/"})
                         ## update
                         self.payload = {"progress_season": f"S{progress_season+1}", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z'}
                         await self.update_db()
@@ -145,7 +146,8 @@ class Torrent:
                         if ("x265" or "h265") in el.get('title'):
                             self.magnet = el.get('magnet')
                             break
-                    self.bot.s.sendline(fr"/usr/bin/deluge-console 'add -p /mnt/9C33-6BBD/Media/Shows/{self.db_entry.get('title').replace(' ', '_')}/ {'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={tracker_string}; exit'")
+                    with DelugeRPCClient(host, 58846, deluge_user, deluge_passwd) as client:
+    	                client.core.add_torrent_magnet(f"{'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={tracker_string}", options={"download_location": f"/shows/{self.db_entry.get('title').replace(' ', '_')}/"})
                     ## update
                     self.payload = {"progress_episode": f"E{progress_episode+1}", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z'}
                     await self.update_db()
@@ -156,7 +158,8 @@ class Torrent:
                         if ("x265" or "h265") in el.get('title'):
                             self.magnet = el.get('magnet')
                             break
-                    self.bot.s.sendline(fr"/usr/bin/deluge-console 'add -p /mnt/9C33-6BBD/Media/Shows/{self.db_entry.get('title').replace(' ', '_')}/ {'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={tracker_string}; exit'")
+                    with DelugeRPCClient(host, 58846, deluge_user, deluge_passwd) as client:
+    	                client.core.add_torrent_magnet(f"{'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={tracker_string}", options={"download_location": f"/shows/{self.db_entry.get('title').replace(' ', '_')}/"})
                     ## update
                     self.payload = {"progress_season": f"S{progress_season+1}","progress_episode": "E1", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z'}
                     await self.update_db()
@@ -193,23 +196,7 @@ class justwatchCog(commands.Cog):
         main_entry = [item for item in main if title.lower() in item["title"].lower()][0]
         await self.bot.get_channel(793878235066400809).send(f"""```{main_entry}```""")
         await to_thread(requests.delete, f"{self.global_var.url}/{main_entry.get('_id')}", headers={'content-type': "application/json",'x-apikey': self.global_var.api_key,'cache-control': "no-cache"})
-        self.bot._db3.remove(self.bot._query.title == title)
-        return await inter.send(f"{title} removed from databases")
-
-
-    @commands.slash_command(guild_ids=[631502700244107315])
-    async def delete_localdb(self,
-                        inter: disnake.ApplicationCommandInteraction,
-                        title: str) -> None:
-        """
-        Add key and value to database
-
-        Parameters
-        ----------
-        title: title of media
-        """
-        await inter.response.defer(with_message=True, ephemeral=False)
-        self.bot._db3.remove(self.bot._query.title == title)
+        self.bot._db3.remove(self.bot._query.title.lower() == title.lower())
         return await inter.send(f"{title} removed from databases")
 
     
@@ -230,14 +217,7 @@ class justwatchCog(commands.Cog):
             data = response.json()
             [ self.bot._db3.insert(x) for x in data if not self.bot._db3.get(self.bot._query._id == x.get("_id")) ]
             await to_thread(requests.put, url=self.global_var.decoder.decrypt(b'gAAAAABlsGsiqk91PE90JoM-n-bHly3uPL_RVwDdw1f2sZn3XoHkPy52dpXxLCn4Zf7z1LbNUA4YrFSoqnAEW30w0Jgr6kooef2BXP4-AkVa9tiuGBrA3kWtEs1V3DjCIx7f5JI21rTbGL1q9Sjf3aQP-0FgjRPU5A==').decode(), headers=headers_new_update, json={"update": False})
-        try:
-            self.bot.s = pxssh.pxssh(timeout=None, maxread=5000, echo=False)
-            if not self.bot.s.login(self.global_var.decoder.decrypt(b'gAAAAABlpWObOSHPZsnwbjQWP9MwULDlDRuxFXKPYBFAZS_s6X_Lr620EKMtklKbFRvK1uFNdX6YYUWvrO2gXKLHEDkvERVE3w==').decode(), self.global_var.decoder.decrypt(b'gAAAAABlIxN9JUKSkB2Ncjq1Na0huIM53UJGIGEb621_We33mUKHkN4uaifSZYp_pfexSEpq6NKI4Iy97KFjthaVbeUm5gPSkA==').decode(), self.global_var.decoder.decrypt(b'gAAAAABlIxOc7ZikmiK3gtZK5hvEDFZHAEp3dQurdZl4YoMzfHBZ3eveES_0WY-cqF10fIwPuIDVbawOiCsKFVHaiPs6GQ6s8g==').decode()):
-                return
-        except Exception as e:
-            return
         await gather(*[ Torrent(self, x).download_torrent() for x in self.bot._db3 if (x.get('found') is False and ((datetime.datetime.utcnow() - datetime.timedelta(minutes=15)) > datetime.datetime.strptime(x.get('_changed').split('.')[0], '%Y-%m-%dT%H:%M:%S') or x.get('_changed') == x.get('_created')))])
-        self.bot.s.logout()
         return
 
 

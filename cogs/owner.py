@@ -68,16 +68,16 @@ class OwnerCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.slash_command(description="unload cog", guild_ids=[631502700244107315])
+    @commands.slash_command(guild_ids=[631502700244107315])
     @commands.is_owner()
     async def refresh_cogs(self, inter):
         """
-        Updates the cogs
+        Updates the cogs from Github
 
         Parameters
         ----------
         """
-        await inter.response.send_message("Updating cogs", ephemeral=True)
+        await inter.response.defer()
         n = 0
         while n <= 3:
             if n == 3:
@@ -87,11 +87,12 @@ class OwnerCog(commands.Cog):
                 continue
             my_cogs = my_cogs.json()
             for cog in my_cogs:
-                with open(f"/root/cogs/{cog.get('name')}", 'wb') as cog_file:
+                with open(f"/home/darrie7/Scripts/pythonvenvs/discordbot/cogs/{cog.get('name')}", 'wb') as cog_file:
                     cog_content = await to_thread(requests.get, url=cog.get('download_url'))
                     if cog_content.status_code == 200:
                         cog_file.write(cog_content.content)
             break
+        await inter.send("Cogs updated", ephemeral=True)
 
     # Hidden means it won't show up on the default help.
   #################################################OWNER COMMANDS######################################          
@@ -104,7 +105,7 @@ class OwnerCog(commands.Cog):
         Parameters
         ----------
         """
-        options = [ disnake.SelectOption(label=f"cogs.{f.replace('/root/cogs/', '').replace('.py', '')}") for f in glob.glob("/root/cogs/*.py") ]
+        options = [ disnake.SelectOption(label=f"cogs.{f.replace('/home/darrie7/Scripts/pythonvenvs/discordbot/discordbot_scripts/cogs/', '').replace('.py', '')}") for f in glob.glob("/home/darrie7/Scripts/pythonvenvs/discordbot/discordbot_scripts/cogs/*.py") ]
         await inter.response.send_message(view=TheView([Dropdown(options, my_custom_id="reload")]), ephemeral=True)
 
             
@@ -117,7 +118,7 @@ class OwnerCog(commands.Cog):
         Parameters
         ----------
         """
-        options = [ disnake.SelectOption(label=f"cogs.{f.replace('/root/cogs/', '').replace('.py', '')}") for f in glob.glob("/root/cogs/*.py") ]
+        options = [ disnake.SelectOption(label=f"cogs.{f.replace('/home/darrie7/Scripts/pythonvenvs/discordbot/discordbot_scripts/cogs/', '').replace('.py', '')}") for f in glob.glob("/home/darrie7/Scripts/pythonvenvs/discordbot/discordbot_scripts/cogs/*.py") ]
         await inter.response.send_message(view=TheView([Dropdown(options, my_custom_id="just_load")]), ephemeral=True)
             
             
@@ -130,7 +131,7 @@ class OwnerCog(commands.Cog):
         Parameters
         ----------
         """
-        options = [ disnake.SelectOption(label=f"cogs.{f.replace('/root/cogs/', '').replace('.py', '')}") for f in glob.glob("/root/cogs/*.py") ]
+        options = [ disnake.SelectOption(label=f"cogs.{f.replace('/home/darrie7/Scripts/pythonvenvs/discordbot/discordbot_scripts/cogs/', '').replace('.py', '')}") for f in glob.glob("/home/darrie7/Scripts/pythonvenvs/discordbot/discordbot_scripts/cogs/*.py") ]
         await inter.response.send_message(view=TheView([Dropdown(options, my_custom_id="unload")]), ephemeral=True)
 
 

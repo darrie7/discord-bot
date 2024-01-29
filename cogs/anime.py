@@ -1,18 +1,10 @@
-from lib2to3.pgen2.token import OP
-from nis import cat
 import disnake
 from disnake.ext import commands, tasks
 from asyncio import gather, to_thread, sleep
-from bs4 import BeautifulSoup
-import pytz
 from feedparser import parse
 import json
-from datetime import datetime, timedelta, time
-from table2ascii import table2ascii as t2a, PresetStyle
+from datetime import datetime, timedelta
 import traceback
-import os
-from os.path import join, dirname
-from dotenv import load_dotenv
 from typing import Optional
 import requests
 from cryptography.fernet import Fernet

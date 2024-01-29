@@ -1,16 +1,14 @@
 import disnake
 from disnake.ext import commands, tasks
-from asyncio import gather, to_thread, sleep
-from bs4 import BeautifulSoup
+from asyncio import gather, to_thread
 import pytz
 from feedparser import parse
 import json
 from datetime import datetime, timedelta, time
 from table2ascii import table2ascii as t2a, PresetStyle
 import traceback
-import os
-from os.path import join, dirname
 import requests
+from lxml import html
 
 
 class PeppernewsCog(commands.Cog):
@@ -24,6 +22,23 @@ class PeppernewsCog(commands.Cog):
         self.task_one.cancel()
         self.task_two.cancel()
 
+
+    @commands.slash_command(guild_ids=[631502700244107315])
+    async def db3_remove_entry(self, inter: disnake.ApplicationCommandInteraction, title: str) -> None:
+        """
+        Add category to database
+
+        Parameters
+        ----------
+        title: title of media to delete
+        """
+        if  not self.bot._db3.get(self.bot._query.title.lower() == title.lower()):
+            await inter.response.send_message("This title is not in the database", ephemeral=True)
+            return
+        media = self.bot._db3.get(self.bot._query.title.lower() == title.lower())
+        self.bot._db3.remove(doc_ids=[media.doc_id])
+        return
+        
 
 
     @commands.slash_command(guild_ids=[631502700244107315])
@@ -102,7 +117,7 @@ class PeppernewsCog(commands.Cog):
                     continue
             else:
                 title_pep = f.get("title")
-            await self.bot.get_channel(679029900299993113).send(embed=disnake.Embed(title = title_pep, description = f"""{BeautifulSoup(f.get("description"), features="html.parser").get_text()[:1500]}...""", url = f.get("link")))
+            await self.bot.get_channel(679029900299993113).send(embed=disnake.Embed(title = title_pep, description = f"""{html.fromstring(f.get("description")).text_content()[:1500]}...""", url = f.get("link")))
    
         
     @tasks.loop(minutes=15.0)
