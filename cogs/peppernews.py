@@ -23,7 +23,7 @@ class PeppernewsCog(commands.Cog):
         self.task_two.cancel()
 
 
-    @commands.slash_command(guild_ids=[631502700244107315])
+    @commands.slash_command(guild_ids=[self.bot._guildid])
     async def db3_remove_entry(self, inter: disnake.ApplicationCommandInteraction, title: str) -> None:
         """
         Add category to database
@@ -41,7 +41,7 @@ class PeppernewsCog(commands.Cog):
         
 
 
-    @commands.slash_command(guild_ids=[631502700244107315])
+    @commands.slash_command(guild_ids=[self.bot._guildid])
     async def pepper(self, inter: disnake.ApplicationCommandInteraction) -> None:
         pass
 
@@ -146,7 +146,7 @@ class PeppernewsCog(commands.Cog):
     @task_one.error
     @task_two.error
     async def cog_error_handler(self, error) -> None:
-        await self.bot.get_channel(793878235066400809).send(f"""```{"".join(traceback.format_exception(type(error), error, error.__traceback__))}```""")
+        await self.bot.get_channel(self.bot._test_channelid).send(f"""```{"".join(traceback.format_exception(type(error), error, error.__traceback__))}```""")
         pass
 
 
