@@ -143,6 +143,12 @@ class PeppernewsCog(commands.Cog):
                 )
         return await self.bot.get_channel(933858887533232218).send(f"""```{output}```""")
 
+    @task_one.error
+    @task_two.error
+    async def cog_error_handler(self, error) -> None:
+        await self.bot.get_channel(793878235066400809).send(f"""```{"".join(traceback.format_exception(type(error), error, error.__traceback__))}```""")
+        pass
+
 
 def setup(bot):
     bot.add_cog(PeppernewsCog(bot))
