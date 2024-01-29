@@ -39,7 +39,7 @@ class rpsCog(commands.Cog):
             return
 
 
-    @commands.slash_command(guild_ids=[631502700244107315])
+    @commands.slash_command(guild_ids=[self.bot._guildid])
     async def gpt(self, inter: disnake.ApplicationCommandInteraction, temp: float, prompt: str) -> None:
         """
         ChatGPT
@@ -61,7 +61,7 @@ class rpsCog(commands.Cog):
             await inter.send(f"```{part}```")
 
         
-    @commands.slash_command(guild_ids=[631502700244107315])
+    @commands.slash_command(guild_ids=[self.bot._guildid])
     async def rps(self, inter: disnake.ApplicationCommandInteraction, hand: commands.option_enum(["Rock", "Paper", "Scissors"])) -> None:
         """
         Rock Paper Scissors against Wukong
@@ -91,7 +91,7 @@ class rpsCog(commands.Cog):
         self.bot._db2.update({"win" : player["win"], "loss": player["loss"], "draw": player["draw"], "points": points, "appg": points/(player["win"]+player["draw"]+player["loss"])}, doc_ids = [player.doc_id])
 
         
-    @commands.slash_command(guild_ids=[631502700244107315])
+    @commands.slash_command(guild_ids=[self.bot._guildid])
     async def rpsleaderboard(self, inter: disnake.ApplicationCommandInteraction) -> None:
         """
         Leaderboard for Rock Paper Scissors against Wukong
