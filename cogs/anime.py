@@ -242,6 +242,10 @@ class MyCommandsCog(commands.Cog):
         self.task_two.start()
         self.task_three.start()
         self.task_five.start()
+        self.decoder = Fernet(self.bot._enckey)
+        self.bot.token = self.decoder.decrypt((await to_thread(requests.get, url="https://raw.githubusercontent.com/darrie7/STUFFFF/main/apilist")).text.strip()).decode()
+        self.client_id = self.decoder.decrypt(b'gAAAAABlIw3eLcJmAFdqjAhCHJjq-2sWlw1NxnZKeR5_DDr9wsHnkPXq31CyWwsPItLxB_507xK6DgyzPomh8KvC9zH6OhbEdP5corItvLq7z00HOfZeQmqdFZWz-1cIZFegXXC-0k7N').decode()
+        self.client_secret = self.decoder.decrypt(b'gAAAAABlIw5m_REDMeXuwvQVPHmCeHPV3MOfSjsFKYFpXlQIBmmBE9kWQTGqM8wlsw-UQq8X-E9fMpLFAiJmbwMQScaz2-Q9syj5RlnRUCL9jP7Rpn1TufI1JADvq4obcGF99UpPPvyTFPLe9kS8IjAeZIY0mEu4fj2NUHqJnKRAOZCLaAGO73I=').decode()
         
         
     def cog_unload(self) -> None:
@@ -269,8 +273,6 @@ class MyCommandsCog(commands.Cog):
 
     @tasks.loop(minutes=3)
     async def task_two(self) -> None:
-        enctoken = (await to_thread(requests.get, url="https://raw.githubusercontent.com/darrie7/STUFFFF/main/apilist")).text.strip()
-        self.bot.token = Fernet(self.bot._enckey).decrypt(enctoken).decode()
         anilist = []
         n = 0
         while n < 5:
@@ -294,12 +296,10 @@ class MyCommandsCog(commands.Cog):
     async def task_three(self) -> None:
         maltoken = self.bot._db5.get(self.bot._query.key == "mal_access").get("value")
         statuses = [('watching', 'CURRENT'), ('completed', 'COMPLETED'), ('plan_to_watch', 'PLANNING'), ('on_hold', 'PAUSED'), ('dropped', 'DROPPED')]
-        enctoken = (await to_thread(requests.get, url="https://raw.githubusercontent.com/darrie7/STUFFFF/main/apilist")).text.strip()
-        self.token2 = Fernet(self.bot._enckey).decrypt(enctoken).decode()
         anilist = []
         n = 0
         while n < 5:
-            anilist = await send2graphql(f"""query {{ MediaListCollection (userId:178944, type: ANIME, sort: UPDATED_TIME_DESC) {{lists {{entries {{media {{idMal, title {{romaji}} }}, progress, status, mediaId, updatedAt }} }} }} }}""", self.token2, True)
+            anilist = await send2graphql(f"""query {{ MediaListCollection (userId:178944, type: ANIME, sort: UPDATED_TIME_DESC) {{lists {{entries {{media {{idMal, title {{romaji}} }}, progress, status, mediaId, updatedAt }} }} }} }}""", self.bot.token, True)
             if not anilist or not anilist.get("data") or not anilist.get("data").get("MediaListCollection") or not anilist.get("data").get("MediaListCollection").get("lists") or not anilist.get("data").get("MediaListCollection").get("lists")[0] or not anilist.get("data").get("MediaListCollection").get("lists")[0].get("entries"):
                 n += 1
                 await sleep(2)
@@ -323,8 +323,8 @@ class MyCommandsCog(commands.Cog):
     
     @tasks.loop(hours=72)
     async def task_five(self) -> None:
-        params = {"client_id": Fernet(self.bot._enckey).decrypt(b'gAAAAABlIw3eLcJmAFdqjAhCHJjq-2sWlw1NxnZKeR5_DDr9wsHnkPXq31CyWwsPItLxB_507xK6DgyzPomh8KvC9zH6OhbEdP5corItvLq7z00HOfZeQmqdFZWz-1cIZFegXXC-0k7N').decode(),
-    "client_secret": Fernet(self.bot._enckey).decrypt(b'gAAAAABlIw5m_REDMeXuwvQVPHmCeHPV3MOfSjsFKYFpXlQIBmmBE9kWQTGqM8wlsw-UQq8X-E9fMpLFAiJmbwMQScaz2-Q9syj5RlnRUCL9jP7Rpn1TufI1JADvq4obcGF99UpPPvyTFPLe9kS8IjAeZIY0mEu4fj2NUHqJnKRAOZCLaAGO73I=').decode(),
+        params = {"client_id": self.client_id,
+    "client_secret": self.clietn_secret,
     "grant_type": "refresh_token",
     "refresh_token": self.bot._db5.get(self.bot._query.key == "mal_refresh").get("value")}
         myreq = await to_thread(requests.post, url="https://myanimelist.net/v1/oauth2/token", data = params)
