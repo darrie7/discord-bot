@@ -74,7 +74,7 @@ class AliexpressCog(commands.Cog):
         pass
 
 
-    @commands.slash_command(guild_ids=[631502700244107315])
+    @commands.slash_command(guild_ids=[self.bot._guildid])
     async def aliexpress(self, inter: disnake.ApplicationCommandInteraction, link: str) -> None:
         """
         Scrape Aliexpress
