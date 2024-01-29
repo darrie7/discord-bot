@@ -182,7 +182,7 @@ class justwatchCog(commands.Cog):
         self.update_newestmedia.cancel()
 
     
-    @commands.slash_command(guild_ids=[631502700244107315])
+    @commands.slash_command(guild_ids=[bot._guildid])
     async def delete_restdb(self,
                         inter: disnake.ApplicationCommandInteraction,
                         title: str) -> None:
@@ -197,7 +197,7 @@ class justwatchCog(commands.Cog):
         r = await to_thread(requests.get, url=self.bot.global_var.url, headers={'content-type': "application/json",'x-apikey': self.bot.global_var.api_key,'cache-control': "no-cache"})
         main = r.json()
         main_entry = next(item for item in main if title.lower() in item["title"].lower())
-        await self.bot.get_channel(793878235066400809).send(f"""```{main_entry}```""")
+        await self.bot.get_channel(self.bot._test_channelid).send(f"""```{main_entry}```""")
         await to_thread(requests.delete, f"{self.bot.global_var.url}/{main_entry.get('_id')}", headers={'content-type': "application/json",'x-apikey': self.bot.global_var.api_key,'cache-control': "no-cache"})
         self.bot._db3.remove(self.bot._query.title.lower() == title.lower())
         return await inter.send(f"{title} removed from databases")
@@ -233,7 +233,7 @@ class justwatchCog(commands.Cog):
     @update_newestmedia.error
     @searchmedia.error
     async def cog_error_handler(self, error) -> None:
-        await self.bot.get_channel(793878235066400809).send(f"""```{"".join(traceback.format_exception(type(error), error, error.__traceback__))}```""")
+        await self.bot.get_channel(self.bot._test_channelid).send(f"""```{"".join(traceback.format_exception(type(error), error, error.__traceback__))}```""")
         pass
     
 def setup(bot):
