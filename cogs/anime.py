@@ -241,7 +241,7 @@ class MyCommandsCog(commands.Cog):
         self.task_five.cancel()
 
 
-    @commands.slash_command(guild_ids=[631502700244107315])
+    @commands.slash_command(guild_ids=[self.bot._guildid])
     async def addatabase5(self,
                         inter: disnake.ApplicationCommandInteraction,
                         key: str,
@@ -305,7 +305,7 @@ class MyCommandsCog(commands.Cog):
                 print(data)
                 header = {'Authorization': f'Bearer {maltoken}'}
                 req = await to_thread(requests.put, url=f"""https://api.myanimelist.net/v2/anime/{x.get("media").get("idMal")}/my_list_status""", headers = header, data = data)
-                await self.bot.get_channel(793878235066400809).send(f"task 3: {req.json()}")
+                await self.bot.get_channel(self.bot._test_channelid).send(f"task 3: {req.json()}")
 
     
     @tasks.loop(hours=168)
@@ -315,7 +315,7 @@ class MyCommandsCog(commands.Cog):
     "grant_type": "refresh_token",
     "refresh_token": self.bot._db5.get(self.bot._query.key == "mal_refresh").get("value")}
         myreq = await to_thread(requests.post, url="https://myanimelist.net/v1/oauth2/token", data = params)
-        await self.bot.get_channel(793878235066400809).send(f"task 5:{myreq.json()}")
+        await self.bot.get_channel(self.bot._test_channelid).send(f"task 5:{myreq.json()}")
         self.bot._db5.upsert({"value": myreq.json().get("access_token")}, self.bot._query.key == "mal_access")
         self.bot._db5.upsert({"value": myreq.json().get("refresh_token")}, self.bot._query.key == "mal_refresh")
 
@@ -324,7 +324,7 @@ class MyCommandsCog(commands.Cog):
     @task_three.error
     @task_five.error
     async def cog_error_handler(self, error) -> None:
-        await self.bot.get_channel(793878235066400809).send(f"""```{"".join(traceback.format_exception(type(error), error, error.__traceback__))}```""")
+        await self.bot.get_channel(self.bot._test_channelid).send(f"""```{"".join(traceback.format_exception(type(error), error, error.__traceback__))}```""")
         pass
 
 
