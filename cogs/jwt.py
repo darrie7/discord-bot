@@ -76,11 +76,14 @@ class Torrent:
         return
 
 
-    async def download_torrent(self) -> None:
+    async def get_trackers(self) -> str:
         trackers = await to_thread(requests.get, url="https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all.txt")
         content_list = trackers.text.splitlines()
         trackers_list = [content for content in content_list if content]
         tracker_string = "&tr=".join(trackers_list)
+        return tracker_string
+
+    async def download_torrent(self) -> None:
         if self.db_entry.get('ismovie'):
             self.search_term = f'''"{self.db_entry.get('title')} {self.db_entry.get('year')}"'''
             t_info = await self.media_scraper()
@@ -92,7 +95,7 @@ class Torrent:
                     self.magnet = el.get('magnet')
                     break
             with DelugeRPCClient(self.global_var.host, 58846, self.global_var.deluge_user, self.global_var.deluge_passwd) as client:
-    	        client.core.add_torrent_magnet(f"{'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={tracker_string}", options={"download_location": "/movies/"})
+    	        client.core.add_torrent_magnet(f"{'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={self.get_trackers()}", options={"download_location": "/movies/"})
             ## update
             self.payload = {"found": True}
             await self.delete_entry()
@@ -114,7 +117,7 @@ class Torrent:
                         self.magnet = el.get('magnet')
                         break
                 with DelugeRPCClient(self.global_var.host, 58846, self.global_var.deluge_user, self.global_var.deluge_passwd) as client:
-    	            client.core.add_torrent_magnet(f"{'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={tracker_string}", options={"download_location": f"/shows/{self.db_entry.get('title').replace(' ', '_')}/"})
+    	            client.core.add_torrent_magnet(f"{'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={self.get_trackers()}", options={"download_location": f"/shows/{self.db_entry.get('title').replace(' ', '_')}/"})
                 ## update
                 self.payload = {"progress_episode": f"E{progress_episode+1}", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z'}
                 await self.update_db()
@@ -134,7 +137,7 @@ class Torrent:
                                 self.magnet = el.get('magnet')
                                 break
                         with DelugeRPCClient(self.global_var.host, 58846, self.global_var.deluge_user, self.global_var.deluge_passwd) as client:
-    	                    client.core.add_torrent_magnet(f"{'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={tracker_string}", options={"download_location": f"/shows/{self.db_entry.get('title').replace(' ', '_')}/"})
+    	                    client.core.add_torrent_magnet(f"{'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={self.get_trackers()}", options={"download_location": f"/shows/{self.db_entry.get('title').replace(' ', '_')}/"})
                         ## update
                         self.payload = {"progress_season": f"S{progress_season+1}", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z'}
                         await self.update_db()
@@ -146,7 +149,7 @@ class Torrent:
                             self.magnet = el.get('magnet')
                             break
                     with DelugeRPCClient(self.global_var.host, 58846, self.global_var.deluge_user, self.global_var.deluge_passwd) as client:
-    	                client.core.add_torrent_magnet(f"{'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={tracker_string}", options={"download_location": f"/shows/{self.db_entry.get('title').replace(' ', '_')}/"})
+    	                client.core.add_torrent_magnet(f"{'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={self.get_trackers()}", options={"download_location": f"/shows/{self.db_entry.get('title').replace(' ', '_')}/"})
                     ## update
                     self.payload = {"progress_episode": f"E{progress_episode+1}", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z'}
                     await self.update_db()
@@ -158,7 +161,7 @@ class Torrent:
                             self.magnet = el.get('magnet')
                             break
                     with DelugeRPCClient(self.global_var.host, 58846, self.global_var.deluge_user, self.global_var.deluge_passwd) as client:
-    	                client.core.add_torrent_magnet(f"{'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={tracker_string}", options={"download_location": f"/shows/{self.db_entry.get('title').replace(' ', '_')}/"})
+    	                client.core.add_torrent_magnet(f"{'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={self.get_trackers()}", options={"download_location": f"/shows/{self.db_entry.get('title').replace(' ', '_')}/"})
                     ## update
                     self.payload = {"progress_season": f"S{progress_season+1}","progress_episode": "E1", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z'}
                     await self.update_db()
