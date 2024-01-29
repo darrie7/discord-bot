@@ -145,42 +145,29 @@ class AnimeStuff:
             'viii': 8,
             'ix': 9,
             'x': 10,
-            '1': 1,
-            '2': 2,
-            '3': 3,
-            '4': 4,
-            '5': 5,
-            '6': 6,
-            '7': 7,
-            '8': 8,
-            '9': 9,
-            '10': 10,
         }
         # Iterate through patterns and check for matches
         season_number = 1
         add_search = []
-        for pattern in season_patterns:
-            for s in self.anime.get("search"):
+        for s in self.anime.get("search"):
+            for pattern in season_patterns:
                 match = pattern.search(s)
-                if not match:
-                    continue
-                matched_substring = match.group(0)
-                ani_title = s.replace(matched_substring, "").strip()
-                season_text = match.group(1)
-                season_text_lower = season_text.lower()
-                if season_text_lower in word_roman_to_number:
-                    season_number = word_roman_to_number[season_text_lower]
+                if match:
+                    start, end = match.span()
+                    ani_title = s[:start].strip() + s[end:].strip()
+                    season_text = match.group(1).lower()
+                    season_number = word_roman_to_number.get(season_text, int(season_text))
                     add_search.append(f"{ani_title} season {season_number}")
                     add_search.append(f"{ani_title} s{season_number}")
                     if season_number == 2:
-                         add_search.append(f"{ani_title} {season_number}nd season")
-                         add_search.append(f"{ani_title} second season")
+                        add_search.append(f"{ani_title} {season_number}nd season")
+                        add_search.append(f"{ani_title} second season")
                     elif season_number == 3:
-                         add_search.append(f"{ani_title} {season_number}rd season")
-                         add_search.append(f"{ani_title} third season")
+                        add_search.append(f"{ani_title} {season_number}rd season")
+                        add_search.append(f"{ani_title} third season")
                     else:
-                         add_search.append(f"{ani_title} {season_number}th season")
-                         add_search.append(f"{ani_title} {season_text_lower} season")
+                        add_search.append(f"{ani_title} {season_number}th season")
+                        add_search.append(f"{ani_title} {season_text} season")
 
         self.anime.get("search").extend(add_search)
         self.anime["search"] = list(dict.fromkeys(self.anime.get("search")))
@@ -321,7 +308,7 @@ class MyCommandsCog(commands.Cog):
                 await self.bot.get_channel(793878235066400809).send(f"task 3: {req.json()}")
 
     
-    @tasks.loop(hours=72)
+    @tasks.loop(hours=168)
     async def task_five(self) -> None:
         params = {"client_id": self.client_id,
     "client_secret": self.client_secret,
