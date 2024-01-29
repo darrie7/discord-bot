@@ -241,7 +241,7 @@ class MyCommandsCog(commands.Cog):
         self.task_five.cancel()
 
 
-    @commands.slash_command(guild_ids=[self.bot._guildid])
+    @commands.slash_command(guild_ids=[bot._guildid])
     async def addatabase5(self,
                         inter: disnake.ApplicationCommandInteraction,
                         key: str,
