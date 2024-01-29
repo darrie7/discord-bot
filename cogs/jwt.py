@@ -1,4 +1,4 @@
-from lxml import etree
+from lxml import html
 import requests
 from disnake.ext import commands, tasks
 import disnake
@@ -38,7 +38,7 @@ class Torrent:
     async def update_show(self) -> None:
         url: str = self.db_entry.get('url')
         r = await to_thread(requests.get, url)
-        dom = etree.HTML(r.text)
+        dom = html.fromstring(r.text)
         season_episode = dom.cssselect('.episodes-item span')[0].text_content().split(" ")
         if season_episode[0] not in self.db_entry.get('newest_season') or season_episode[1] not in self.db_entry.get('newest_episode'):
             self.payload = { "newest_season": season_episode[0], "newest_episode": season_episode[1], "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z' }
@@ -58,7 +58,7 @@ class Torrent:
                 await sleep(5)
                 n += 1
                 continue
-            dom = etree.HTML(r.text)
+            dom = html.fromstring(r.text)
             title_magnet = [{'title': title, 'magnet': magnet.get("href")} for title, magnet, seed in zip([elem.text_content() for elem in dom.cssselect('h5.title.w-100.truncate > a')], dom.cssselect('a.dl-magnet'), dom.cssselect('div.stats > div:nth-child(3) > font')) if (title.lower().startswith(self.search_term.lower().split(' ')[0].replace('"', '')) and convert_to_int(seed.text) >= 2 )]
             return title_magnet if title_magnet else []
 
