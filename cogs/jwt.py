@@ -192,6 +192,7 @@ class justwatchCog(commands.Cog):
         title: title of media entry
         """
         self.bot._db3.remove(self.bot._query.title == title)
+        return await inter.send(f"{title} removed from databases")
 
 
     @commands.slash_command()
