@@ -51,7 +51,7 @@ class Torrent:
             if n == 3:
                 return []
             r = await to_thread(requests.get,
-                url = f"""https://bitsearch.to/search?q={self.search_term}+1080p+-hdrip+-camrip+-hdcam+-hdts""",
+                url = f"""https://bitsearch.to/sort=seeders&search?q={self.search_term}+-hdrip+-camrip+-hdcam+-hdts+-720p+-480p""",
                 headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'}
             )
             if r.status_code != 200:
@@ -59,7 +59,7 @@ class Torrent:
                 n += 1
                 continue
             dom = html.fromstring(r.text)
-            title_magnet = [{'title': title, 'magnet': magnet.get("href")} for title, magnet, seed in zip([elem.text_content() for elem in dom.cssselect('h5.title.w-100.truncate > a')], dom.cssselect('a.dl-magnet'), dom.cssselect('div.stats > div:nth-child(3) > font')) if (title.lower().startswith(self.search_term.lower().split(' ')[0].replace('"', '')) and convert_to_int(seed.text) >= 2 )]
+            title_magnet = [{'title': title, 'magnet': magnet.get("href")} for title, magnet, seed in zip([elem.text_content() for elem in dom.cssselect('h5.title.w-100.truncate > a')], dom.cssselect('a.dl-magnet'), dom.cssselect('div.stats > div:nth-child(3) > font')) if ( "1080p" in title.lower() and title.lower().startswith(self.search_term.lower().split(' ')[0].replace('"', '')) and convert_to_int(seed.text) >= 2 )]
             return title_magnet if title_magnet else []
 
 
@@ -89,11 +89,7 @@ class Torrent:
             t_info = await self.media_scraper()
             if t_info == []:
                 return
-            self.magnet = t_info[0].get('magnet')
-            for el in t_info:
-                if ("x265" or "h265") in el.get('title'):
-                    self.magnet = el.get('magnet')
-                    break
+            self.magnet = next((x for x in t_info if ("265" and "10bit") in x.get("title")), next((x for x in t_info if "265" in x.get("title")), t_info[0])).get("magnet")
             with DelugeRPCClient(self.global_var.host, 58846, self.global_var.deluge_user, self.global_var.deluge_passwd) as client:
     	        client.core.add_torrent_magnet(f"{'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={await self.get_trackers()}", options={"download_location": "/movies/"})
             ## update
@@ -111,11 +107,7 @@ class Torrent:
                 t_info = await self.media_scraper()
                 if t_info == []:
                     return
-                self.magnet = t_info[0].get('magnet')
-                for el in t_info:
-                    if ("x265" or "h265") in el.get('title'):
-                        self.magnet = el.get('magnet')
-                        break
+                self.magnet = next((x for x in t_info if ("265" and "10bit") in x.get("title")), next((x for x in t_info if "265" in x.get("title")), t_info[0])).get("magnet")
                 with DelugeRPCClient(self.global_var.host, 58846, self.global_var.deluge_user, self.global_var.deluge_passwd) as client:
     	            client.core.add_torrent_magnet(f"{'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={await self.get_trackers()}", options={"download_location": f"/tv/{self.db_entry.get('title').replace(' ', '_')}/"})
                 ## update
@@ -131,11 +123,7 @@ class Torrent:
                 if progress_episode == 0:
                     pattern = re.compile(fr's{progress_season:02}(?!e)')
                     if (dl_list := [item for item in t_info if pattern.search(item.get('title').lower())]):
-                        self.magnet = dl_list[0].get('magnet')
-                        for el in dl_list:
-                            if ("x265" or "h265") in el.get('title'):
-                                self.magnet = el.get('magnet')
-                                break
+                        self.magnet = next((x for x in dl_list if ("265" and "10bit") in x.get("title")), next((x for x in dl_list if "265" in x.get("title")), dl_list[0])).get("magnet")
                         with DelugeRPCClient(self.global_var.host, 58846, self.global_var.deluge_user, self.global_var.deluge_passwd) as client:
     	                    client.core.add_torrent_magnet(f"{'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={await self.get_trackers()}", options={"download_location": f"/tv/{self.db_entry.get('title').replace(' ', '_')}/"})
                         ## update
@@ -143,11 +131,7 @@ class Torrent:
                         await self.update_db()
                         return
                 if (dl_list := [item for item in t_info if (f"s{progress_season:02}e{progress_episode+1:02}" in item.get('title').lower())]):
-                    self.magnet = dl_list[0].get('magnet')
-                    for el in dl_list:
-                        if ("x265" or "h265") in el.get('title'):
-                            self.magnet = el.get('magnet')
-                            break
+                    self.magnet = next((x for x in dl_list if ("265" and "10bit") in x.get("title")), next((x for x in dl_list if "265" in x.get("title")), dl_list[0])).get("magnet")
                     with DelugeRPCClient(self.global_var.host, 58846, self.global_var.deluge_user, self.global_var.deluge_passwd) as client:
     	                client.core.add_torrent_magnet(f"{'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={await self.get_trackers()}", options={"download_location": f"/tv/{self.db_entry.get('title').replace(' ', '_')}/"})
                     ## update
@@ -155,11 +139,7 @@ class Torrent:
                     await self.update_db()
                     return
                 if (dl_list := [item for item in t_info if (f"s{progress_season+1:02}e01" in item.get('title').lower())]):
-                    self.magnet = dl_list[0].get('magnet')
-                    for el in dl_list:
-                        if ("x265" or "h265") in el.get('title'):
-                            self.magnet = el.get('magnet')
-                            break
+                    self.magnet = next((x for x in dl_list if ("265" and "10bit") in x.get("title")), next((x for x in dl_list if "265" in x.get("title")), dl_list[0])).get("magnet")
                     with DelugeRPCClient(self.global_var.host, 58846, self.global_var.deluge_user, self.global_var.deluge_passwd) as client:
     	                client.core.add_torrent_magnet(f"{'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={await self.get_trackers()}", options={"download_location": f"/tv/{self.db_entry.get('title').replace(' ', '_')}/"})
                     ## update
