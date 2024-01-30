@@ -89,9 +89,9 @@ class Torrent:
             t_info = await self.media_scraper()
             if t_info == []:
                 return
-            self.magnet = next((x for x in t_info if ("265" and "10bit") in x.get("title")), next((x for x in t_info if "265" in x.get("title")), t_info[0])).get("magnet")
+            magnet_uri = next((x for x in t_info if ("265" and "10bit") in x.get("title")), next((x for x in t_info if "265" in x.get("title")), t_info[0])).get("magnet")
             with DelugeRPCClient(self.global_var.host, 58846, self.global_var.deluge_user, self.global_var.deluge_passwd) as client:
-    	        client.core.add_torrent_magnet(f"{'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={await self.get_trackers()}", options={"download_location": "/movies/"})
+    	        client.core.add_torrent_magnet(f"{'&'.join([ part for part in magnet_uri.split('&') if not part.startswith('tr=') ])}&tr={await self.get_trackers()}", options={"download_location": "/movies/"})
             ## update
             self.payload = {"found": True}
             await self.delete_entry()
@@ -107,9 +107,9 @@ class Torrent:
                 t_info = await self.media_scraper()
                 if t_info == []:
                     return
-                self.magnet = next((x for x in t_info if ("265" and "10bit") in x.get("title")), next((x for x in t_info if "265" in x.get("title")), t_info[0])).get("magnet")
+                magnet_uri = next((x for x in t_info if ("265" and "10bit") in x.get("title")), next((x for x in t_info if "265" in x.get("title")), t_info[0])).get("magnet")
                 with DelugeRPCClient(self.global_var.host, 58846, self.global_var.deluge_user, self.global_var.deluge_passwd) as client:
-    	            client.core.add_torrent_magnet(f"{'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={await self.get_trackers()}", options={"download_location": f"/tv/{self.db_entry.get('title').replace(' ', '_')}/"})
+    	            client.core.add_torrent_magnet(f"{'&'.join([ part for part in magnet_uri.split('&') if not part.startswith('tr=') ])}&tr={await self.get_trackers()}", options={"download_location": f"/tv/{self.db_entry.get('title').replace(' ', '_')}/"})
                 ## update
                 self.payload = {"progress_episode": f"E{progress_episode+1}", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z'}
                 await self.update_db()
@@ -123,25 +123,25 @@ class Torrent:
                 if progress_episode == 0:
                     pattern = re.compile(fr's{progress_season:02}(?!e)')
                     if (dl_list := [item for item in t_info if pattern.search(item.get('title').lower())]):
-                        self.magnet = next((x for x in dl_list if ("265" and "10bit") in x.get("title")), next((x for x in dl_list if "265" in x.get("title")), dl_list[0])).get("magnet")
+                        magnet_uri = next((x for x in dl_list if ("265" and "10bit") in x.get("title")), next((x for x in dl_list if "265" in x.get("title")), dl_list[0])).get("magnet")
                         with DelugeRPCClient(self.global_var.host, 58846, self.global_var.deluge_user, self.global_var.deluge_passwd) as client:
-    	                    client.core.add_torrent_magnet(f"{'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={await self.get_trackers()}", options={"download_location": f"/tv/{self.db_entry.get('title').replace(' ', '_')}/"})
+    	                    client.core.add_torrent_magnet(f"{'&'.join([ part for part in magnet_uri.split('&') if not part.startswith('tr=') ])}&tr={await self.get_trackers()}", options={"download_location": f"/tv/{self.db_entry.get('title').replace(' ', '_')}/"})
                         ## update
                         self.payload = {"progress_season": f"S{progress_season+1}", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z'}
                         await self.update_db()
                         return
                 if (dl_list := [item for item in t_info if (f"s{progress_season:02}e{progress_episode+1:02}" in item.get('title').lower())]):
-                    self.magnet = next((x for x in dl_list if ("265" and "10bit") in x.get("title")), next((x for x in dl_list if "265" in x.get("title")), dl_list[0])).get("magnet")
+                    magnet_uri = next((x for x in dl_list if ("265" and "10bit") in x.get("title")), next((x for x in dl_list if "265" in x.get("title")), dl_list[0])).get("magnet")
                     with DelugeRPCClient(self.global_var.host, 58846, self.global_var.deluge_user, self.global_var.deluge_passwd) as client:
-    	                client.core.add_torrent_magnet(f"{'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={await self.get_trackers()}", options={"download_location": f"/tv/{self.db_entry.get('title').replace(' ', '_')}/"})
+    	                client.core.add_torrent_magnet(f"{'&'.join([ part for part in magnet_uri.split('&') if not part.startswith('tr=') ])}&tr={await self.get_trackers()}", options={"download_location": f"/tv/{self.db_entry.get('title').replace(' ', '_')}/"})
                     ## update
                     self.payload = {"progress_episode": f"E{progress_episode+1}", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z'}
                     await self.update_db()
                     return
                 if (dl_list := [item for item in t_info if (f"s{progress_season+1:02}e01" in item.get('title').lower())]):
-                    self.magnet = next((x for x in dl_list if ("265" and "10bit") in x.get("title")), next((x for x in dl_list if "265" in x.get("title")), dl_list[0])).get("magnet")
+                    magnet_uri = next((x for x in dl_list if ("265" and "10bit") in x.get("title")), next((x for x in dl_list if "265" in x.get("title")), dl_list[0])).get("magnet")
                     with DelugeRPCClient(self.global_var.host, 58846, self.global_var.deluge_user, self.global_var.deluge_passwd) as client:
-    	                client.core.add_torrent_magnet(f"{'&'.join([ part for part in self.magnet.split('&') if not part.startswith('tr=') ])}&tr={await self.get_trackers()}", options={"download_location": f"/tv/{self.db_entry.get('title').replace(' ', '_')}/"})
+    	                client.core.add_torrent_magnet(f"{'&'.join([ part for part in magnet_uri.split('&') if not part.startswith('tr=') ])}&tr={await self.get_trackers()}", options={"download_location": f"/tv/{self.db_entry.get('title').replace(' ', '_')}/"})
                     ## update
                     self.payload = {"progress_season": f"S{progress_season+1}","progress_episode": "E1", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z'}
                     await self.update_db()
