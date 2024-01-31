@@ -8,6 +8,7 @@ from cryptography.fernet import Fernet
 import traceback
 import re
 from deluge_client import DelugeRPCClient
+import random
 
 def convert_to_int(string):
     if string[-1] == 'K':
@@ -51,7 +52,7 @@ class Torrent:
             if n == 3:
                 return []
             r = await to_thread(requests.get,
-                url = f"""https://bitsearch.to/search?q={self.search_term}+-hdrip+-camrip+-hdcam+-hdts+-720p+-480p+-2160p&sort=seeders""",
+                url = random.choice([f"""https://bitsearch.to/search?q={self.search_term}+-hdrip+-camrip+-hdcam+-hdts+-720p+-480p+-2160p&sort=seeders""", f"""https://solidtorrents.to/search?q={self.search_term}+-hdrip+-camrip+-hdcam+-hdts+-720p+-480p+-2160p&sort=seeders"""]),
                 headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'}
             )
             if r.status_code != 200:
