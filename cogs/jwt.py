@@ -69,10 +69,11 @@ class Torrent:
         return
 
 
-    async def update_db(self) -> None:
+    async def update_db(self, restdb = True) -> None:
         payload = self.payload
         self.bot._db3.update(payload, self.bot._query._id == self.db_entry.get('_id'))
-        await to_thread(requests.put, f"{self.global_var.url}/{self.db_entry.get('_id')}", json=payload, headers={'content-type': "application/json",'x-apikey': self.global_var.api_key,'cache-control': "no-cache"})
+        if restdb:
+            await to_thread(requests.put, f"{self.global_var.url}/{self.db_entry.get('_id')}", json=payload, headers={'content-type': "application/json",'x-apikey': self.global_var.api_key,'cache-control': "no-cache"})
         return
 
 
@@ -107,7 +108,7 @@ class Torrent:
             t_info = await self.media_scraper()
             if t_info == []:
                 self.payload = {"_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z'}
-                await self.update_db()
+                await self.update_db(restdb = False)
                 return
             await self.magnet2deluge(t_info, "/movies/")
             ## update
@@ -125,7 +126,7 @@ class Torrent:
                 t_info = await self.media_scraper()
                 if t_info == []:
                     self.payload = {"_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z'}
-                    await self.update_db()
+                    await self.update_db(restdb = False)
                     return
                 await self.magnet2deluge(t_info, f"/tv/{self.db_entry.get('title').replace(' ', '_')}/")
                 ## update
@@ -137,7 +138,7 @@ class Torrent:
                 t_info = await self.media_scraper()
                 if t_info == []:
                     self.payload = {"_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z'}
-                    await self.update_db()
+                    await self.update_db(restdb = False)
                     return
                 ## Look up WHOLE SEASON
                 if progress_episode == 0:
