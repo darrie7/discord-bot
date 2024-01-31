@@ -183,7 +183,7 @@ class Torrent:
                         await self.update_db()
                         return
                 if (dl_list := [item for item in t_info if (f"s{progress_season:02}e{progress_episode+1:02}" in item.get('title').lower())]):
-                    await self.magnet2deluge(dl_list, f"/tv/{self.db_entry.get('title').replace(' ', '_')}/"))
+                    await self.magnet2deluge(dl_list, f"/tv/{self.db_entry.get('title').replace(' ', '_')}/")
                     # magnet_uri = None
                     # for tor_info in dl_list:
                     #     tor_title = tor_info.get("title")
@@ -202,7 +202,7 @@ class Torrent:
                     await self.update_db()
                     return
                 if (dl_list := [item for item in t_info if (f"s{progress_season+1:02}e01" in item.get('title').lower())]):
-                    await self.magnet2deluge(dl_list, f"/tv/{self.db_entry.get('title').replace(' ', '_')}/"))
+                    await self.magnet2deluge(dl_list, f"/tv/{self.db_entry.get('title').replace(' ', '_')}/")
                     # magnet_uri = None
                     # for tor_info in dl_list:
                     #     tor_title = tor_info.get("title")
