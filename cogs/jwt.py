@@ -107,7 +107,6 @@ class Torrent:
             t_info = await self.media_scraper()
             if t_info == []:
                 return
-            # found = next((x for x in t_info if "265" in x.get("title") and ("10bit" in x.get("title") or not found)), t_info[0])
             await self.magnet2deluge(t_info, "/movies/")
             # magnet_uri = None
             # for tor_info in t_info:
