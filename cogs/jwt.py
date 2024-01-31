@@ -48,11 +48,12 @@ class Torrent:
 
     async def media_scraper(self): #, qual
         n: int = 0
-        while n <= 3:
-            if n == 3:
+        while n <= 5:
+            if n == 5:
                 return []
+            urls = ["https://bitsearch.to/search?q=", "https://solidtorrents.to/search?q="]
             r = await to_thread(requests.get,
-                url = random.choice([f"""https://bitsearch.to/search?q={self.search_term}+-hdrip+-camrip+-hdcam+-hdts+-720p+-480p+-2160p&sort=seeders""", f"""https://solidtorrents.to/search?q={self.search_term}+-hdrip+-camrip+-hdcam+-hdts+-720p+-480p+-2160p&sort=seeders"""]),
+                url = f"{urls[(n % len(urls))]}{self.search_term}+-hdrip+-camrip+-hdcam+-hdts+-720p+-480p+-2160p&sort=seeders",
                 headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'}
             )
             if r.status_code != 200:
