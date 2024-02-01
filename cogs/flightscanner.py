@@ -75,35 +75,35 @@ class flightcog(commands.Cog):
     
     @tasks.loop(hours=6.0)
     async def flightscanner(self):
-        dates = await generate_date_range(vacation_range=(datetime(2024, 2, 15), datetime(2024, 4, 5)), vacation_length=(31, 40))
+        dates = await generate_date_range(vacation_range=(datetime(2024,9, 1), datetime(2024, 9, 30)), vacation_length=(5, 10))
         my_dict = {"data": []}
         for d in dates:
-            allres = await gather(*[ self.update_show(["AMS.AIRPORT", "DUS.AIRPORT", "ANR.AIRPORT", "EIN.AIRPORT", "RTM.AIRPORT", "MST.AIRPORT", "GRQ.AIRPORT", "CGN.AIRPORT", "FMO.AIRPORT", "BRU.CITY"], ["CRK.AIRPORT"], d[0], x) for x in d[1:]])
+            allres = await gather(*[ self.update_show(["AMS.AIRPORT", "DUS.AIRPORT", "ANR.AIRPORT", "EIN.AIRPORT", "RTM.AIRPORT", "MST.AIRPORT", "GRQ.AIRPORT", "CGN.AIRPORT"], ["YVR.CITY"], d[0], x) for x in d[1:]])
             for x in allres:
                 my_dict.get("data").extend(x)
             await sleep(2)
         sorted_data = sorted(my_dict["data"], key=lambda x: x["price"])
         await self.sendflightstodiscord(sorted_data)
         # FLIGHT 2
-        dates2 = await generate_date_range(vacation_range=(datetime(2023, 9, 24), datetime(2023, 10, 12)), vacation_length=(18, 19) )
-        my_dict2 = {"data": []}
-        for d in dates2:
-            allres = await gather(*[ self.update_show(["SEL.CITY"], ["TYO.CITY", "OSA.CITY"], d[0], x) for x in d[1:]])
-            for x in allres:
-                my_dict2.get("data").extend(x)
-            await sleep(2)
-        sorted_data2 = sorted(my_dict2["data"], key=lambda x: x["price"])
-        await self.sendflightstodiscord(sorted_data2)
+        #dates2 = await generate_date_range(vacation_range=(datetime(2023, 9, 24), datetime(2023, 10, 12)), vacation_length=(18, 19) )
+        #my_dict2 = {"data": []}
+       # for d in dates2:
+      #      allres = await gather(*[ self.update_show(["SEL.CITY"], ["TYO.CITY", "OSA.CITY"], d[0], x) for x in d[1:]])
+       #     for x in allres:
+         #       my_dict2.get("data").extend(x)
+      #      await sleep(2)
+      #  sorted_data2 = sorted(my_dict2["data"], key=lambda x: x["price"])
+       # await self.sendflightstodiscord(sorted_data2)
         ## FLIGHT 3
-        dates3 = await generate_date_range(vacation_range=(datetime(2023, 9, 10), datetime(2023, 11, 18)), vacation_length=(20, 24))
-        my_dict3 = {"data": []}
-        for d in dates3:
-            allres = await gather(*[ self.update_show(["AMS.AIRPORT", "DUS.AIRPORT", "ANR.AIRPORT", "EIN.AIRPORT", "RTM.AIRPORT", "MST.AIRPORT", "GRQ.AIRPORT", "CGN.AIRPORT", "FMO.AIRPORT", "BRU.CITY"], ["TYO.CITY", "OSA.CITY"], d[0], x) for x in d[1:]])
+      #  dates3 = await generate_date_range(vacation_range=(datetime(2023, 9, 10), datetime(2023, 11, 18)), vacation_length=(20, 24))
+     #   my_dict3 = {"data": []}
+      #  for d in dates3:
+       #     allres = await gather(*[ self.update_show(["AMS.AIRPORT", "DUS.AIRPORT", "ANR.AIRPORT", "EIN.AIRPORT", "RTM.AIRPORT", "MST.AIRPORT", "GRQ.AIRPORT", "CGN.AIRPORT", "FMO.AIRPORT", "BRU.CITY"], ["TYO.CITY", "OSA.CITY"], d[0], x) for x in d[1:]])
             for x in allres:
-                my_dict3.get("data").extend(x)
-            await sleep(2)
-        sorted_data3 = sorted(my_dict3["data"], key=lambda x: x["price"])
-        await self.sendflightstodiscord(sorted_data3)
+      #          my_dict3.get("data").extend(x)
+       #     await sleep(2)
+      #  sorted_data3 = sorted(my_dict3["data"], key=lambda x: x["price"])
+      #  await self.sendflightstodiscord(sorted_data3)
 
     async def sendflightstodiscord(self, sorteddata):
         sorted_data = sorteddata
