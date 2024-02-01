@@ -30,7 +30,7 @@ class flightcog(commands.Cog):
 
 
     @commands.slash_command()
-    async def lookupflight(
+    async def lookupflight(self,
         inter: disnake.ApplicationCommandInteraction,
         dep_airp: str,
         arr_airp: str,
