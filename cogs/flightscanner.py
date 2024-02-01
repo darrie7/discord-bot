@@ -23,7 +23,6 @@ class flightcog(commands.Cog):
     def __init__(self, bot) -> None:
         self.bot = bot
         self.flightscanner.start()
-        self.arrivalTerminal = ["OSA.CITY"]
         
 
     def cog_unload(self) -> None:
@@ -90,9 +89,9 @@ class flightcog(commands.Cog):
         value = f"[Dep: {data.get('departTime')[5:-3]}\nArr: {data.get('arrivTime')[5:-3]}]({shortenedurl})"
         return [name, value]
     
-    #@tasks.loop(hours=6.0)
+    @tasks.loop(hours=500.0)
     async def flightscanner(self):
-        dates = await generate_date_range(vacation_range=(datetime(2024,9, 1), datetime(2024, 9, 30)), vacation_length=(5, 10))
+        dates = await generate_date_range(vacation_range=(datetime(2024,9, 1), datetime(2024, 9, 30)), vacation_length=(9, 10))
         my_dict = {"data": []}
         for d in dates:
             allres = await gather(*[ self.look_for_flights(["AMS.AIRPORT", "DUS.AIRPORT", "ANR.AIRPORT", "EIN.AIRPORT", "RTM.AIRPORT", "MST.AIRPORT", "GRQ.AIRPORT", "CGN.AIRPORT"], ["YVR.CITY"], d[0], x) for x in d[1:]])
