@@ -99,7 +99,7 @@ class flightcog(commands.Cog):
      #   my_dict3 = {"data": []}
       #  for d in dates3:
        #     allres = await gather(*[ self.update_show(["AMS.AIRPORT", "DUS.AIRPORT", "ANR.AIRPORT", "EIN.AIRPORT", "RTM.AIRPORT", "MST.AIRPORT", "GRQ.AIRPORT", "CGN.AIRPORT", "FMO.AIRPORT", "BRU.CITY"], ["TYO.CITY", "OSA.CITY"], d[0], x) for x in d[1:]])
-            for x in allres:
+        #    for x in allres:
       #          my_dict3.get("data").extend(x)
        #     await sleep(2)
       #  sorted_data3 = sorted(my_dict3["data"], key=lambda x: x["price"])
