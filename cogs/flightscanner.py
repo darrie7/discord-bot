@@ -29,7 +29,24 @@ class flightcog(commands.Cog):
     def cog_unload(self) -> None:
         self.flightscanner.cancel()
 
-    async def update_show(self, departureTerminals, arrivalTerminals, departdate, returndate) -> None:
+
+    @commands.slash_command()
+    async def lookupflight(
+        inter: disnake.ApplicationCommandInteraction,
+        dep_airp: str,
+        arr_airp: str,
+        vac_min: int,
+        vac_max: int,
+        dep_year: int = commands.Param(choices=[i for i in range(int(datetime.now().year), int(datetime.now().year)+5)]),
+        dep_month: int = commands.Param(choices=[i for i in range(1, 13)]),
+        dep_day: int = commands.Param(choices=[i for i in range(1, 32)]),
+        ret_year: int = commands.Param(choices=[i for i in range(int(datetime.now().year), int(datetime.now().year)+5)])
+        ret_month: int = commands.Param(choices=[i for i in range(1, 13)])
+        ret_day: int = commands.Param(choices=[i for i in range(1, 32)])
+    ):
+        await inter.response.send_message(dep_airp, arr_airp, vac_min, vac_max, dep_year, dep_month, dep_day)
+
+    async def look_for_flights(self, departureTerminals, arrivalTerminals, departdate, returndate) -> None:
         # self.arrivalTerminal = ["OSA.CITY"] if not self.arrivalTerminal == ["OSA.CITY"] else ["TYO.CITY"]
         url = f"https://flights.booking.com/api/flights/?type=ROUNDTRIP&adults=2&cabinClass=ECONOMY&children=&from={'%2C'.join(departureTerminals)}&to={'%2C'.join(arrivalTerminals)}&depart={departdate}&return={returndate}&sort=CHEAPEST&travelPurpose=leisure&duration=33"
         n = 1
@@ -73,37 +90,18 @@ class flightcog(commands.Cog):
         value = f"[Dep: {data.get('departTime')[5:-3]}\nArr: {data.get('arrivTime')[5:-3]}]({shortenedurl})"
         return [name, value]
     
-    @tasks.loop(hours=6.0)
+    #@tasks.loop(hours=6.0)
     async def flightscanner(self):
         dates = await generate_date_range(vacation_range=(datetime(2024,9, 1), datetime(2024, 9, 30)), vacation_length=(5, 10))
         my_dict = {"data": []}
         for d in dates:
-            allres = await gather(*[ self.update_show(["AMS.AIRPORT", "DUS.AIRPORT", "ANR.AIRPORT", "EIN.AIRPORT", "RTM.AIRPORT", "MST.AIRPORT", "GRQ.AIRPORT", "CGN.AIRPORT"], ["YVR.CITY"], d[0], x) for x in d[1:]])
+            allres = await gather(*[ self.look_for_flights(["AMS.AIRPORT", "DUS.AIRPORT", "ANR.AIRPORT", "EIN.AIRPORT", "RTM.AIRPORT", "MST.AIRPORT", "GRQ.AIRPORT", "CGN.AIRPORT"], ["YVR.CITY"], d[0], x) for x in d[1:]])
             for x in allres:
                 my_dict.get("data").extend(x)
             await sleep(2)
         sorted_data = sorted(my_dict["data"], key=lambda x: x["price"])
         await self.sendflightstodiscord(sorted_data)
-        # FLIGHT 2
-        #dates2 = await generate_date_range(vacation_range=(datetime(2023, 9, 24), datetime(2023, 10, 12)), vacation_length=(18, 19) )
-        #my_dict2 = {"data": []}
-       # for d in dates2:
-      #      allres = await gather(*[ self.update_show(["SEL.CITY"], ["TYO.CITY", "OSA.CITY"], d[0], x) for x in d[1:]])
-       #     for x in allres:
-         #       my_dict2.get("data").extend(x)
-      #      await sleep(2)
-      #  sorted_data2 = sorted(my_dict2["data"], key=lambda x: x["price"])
-       # await self.sendflightstodiscord(sorted_data2)
-        ## FLIGHT 3
-      #  dates3 = await generate_date_range(vacation_range=(datetime(2023, 9, 10), datetime(2023, 11, 18)), vacation_length=(20, 24))
-     #   my_dict3 = {"data": []}
-      #  for d in dates3:
-       #     allres = await gather(*[ self.update_show(["AMS.AIRPORT", "DUS.AIRPORT", "ANR.AIRPORT", "EIN.AIRPORT", "RTM.AIRPORT", "MST.AIRPORT", "GRQ.AIRPORT", "CGN.AIRPORT", "FMO.AIRPORT", "BRU.CITY"], ["TYO.CITY", "OSA.CITY"], d[0], x) for x in d[1:]])
-        #    for x in allres:
-      #          my_dict3.get("data").extend(x)
-       #     await sleep(2)
-      #  sorted_data3 = sorted(my_dict3["data"], key=lambda x: x["price"])
-      #  await self.sendflightstodiscord(sorted_data3)
+
 
     async def sendflightstodiscord(self, sorteddata):
         sorted_data = sorteddata
