@@ -40,8 +40,8 @@ class flightcog(commands.Cog):
         dep_year: int = commands.Param(choices=[i for i in range(int(datetime.now().year), int(datetime.now().year)+5)]),
         dep_month: int = commands.Param(choices=[i for i in range(1, 13)]),
         dep_day: int = commands.Param(choices=[i for i in range(1, 32)]),
-        ret_year: int = commands.Param(choices=[i for i in range(int(datetime.now().year), int(datetime.now().year)+5)])
-        ret_month: int = commands.Param(choices=[i for i in range(1, 13)])
+        ret_year: int = commands.Param(choices=[i for i in range(int(datetime.now().year), int(datetime.now().year)+5)]),
+        ret_month: int = commands.Param(choices=[i for i in range(1, 13)]),
         ret_day: int = commands.Param(choices=[i for i in range(1, 32)])
     ):
         await inter.response.send_message(dep_airp, arr_airp, vac_min, vac_max, dep_year, dep_month, dep_day)
