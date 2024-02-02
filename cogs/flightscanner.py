@@ -40,7 +40,7 @@ class flightcog(commands.Cog):
         arrairp: str,
         vacmin: str,
         vacmax: str,
-        depmonth: str = commands.Param(choices=self.nmlist(1,12)),
+        depmonth: str = commands.Param(choices=nmlist(1,12)),
     #    depday: str = commands.Param(choices=),
       #  retmonth: str = commands.Param(choices=),
         #retday: str = commands.Param(choices=)
