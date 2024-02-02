@@ -29,6 +29,10 @@ class flightcog(commands.Cog):
         self.flightscanner.cancel()
 
 
+    def nmlist(self, start, end):
+        return [str(x) for x in range(start, end+1)]
+
+
     @commands.slash_command()
     async def lookupflight(self,
         inter: disnake.ApplicationCommandInteraction,
@@ -36,12 +40,12 @@ class flightcog(commands.Cog):
         arrairp: str,
         vacmin: str,
         vacmax: str,
-        depmonth: str = commands.Param(choices=[str(i) for i in range(1,13)]),
-        depday: str = commands.Param(choices=[str(i) for i in range(1,32)]),
-        retmonth: str = commands.Param(choices=[str(i) for i in range(1,13)]),
-        retday: str = commands.Param(choices=[str(i) for i in range(1,32)])
+        depmonth: str = commands.Param(choices=self.nmlist(1,12)),
+    #    depday: str = commands.Param(choices=),
+      #  retmonth: str = commands.Param(choices=),
+        #retday: str = commands.Param(choices=)
     ):
-        await inter.response.send_message(depairp, arrairp, vacmin, vacmax, depmonth, depday)
+        await inter.response.send_message(depairp, arrairp, vacmin, vacmax, depmonth)
 
     async def look_for_flights(self, departureTerminals, arrivalTerminals, departdate, returndate) -> None:
         # self.arrivalTerminal = ["OSA.CITY"] if not self.arrivalTerminal == ["OSA.CITY"] else ["TYO.CITY"]
