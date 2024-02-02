@@ -29,7 +29,7 @@ class flightcog(commands.Cog):
         self.flightscanner.cancel()
 
 
-    def nmlist(self, start, end):
+    def nmlist(start, end):
         return [str(x) for x in range(start, end+1)]
 
 
