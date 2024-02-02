@@ -45,7 +45,8 @@ class flightcog(commands.Cog):
         depday: int,
         retyear: int,
         retmonth: int,
-        retday: int
+        retday: int,
+        savesearch: bool
     ):
         self.depairp = depairp.split(" ")
         self.arrairp = arrairp.split(" ")
@@ -57,7 +58,7 @@ class flightcog(commands.Cog):
         self.retyear = retyear
         self.retmonth = retmonth
         self.retday = retday
-        await inter.response.send_message("we do be searching", ephemeral=True, delete_after=30)
+        await inter.send("we do be searching", ephemeral=True, delete_after=15)
         await self.flightscanner()
 
     async def look_for_flights(self, departureTerminals, arrivalTerminals, departdate, returndate) -> None:
