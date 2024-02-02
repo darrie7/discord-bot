@@ -89,17 +89,18 @@ class flightcog(commands.Cog):
         value = f"[Dep: {data.get('departTime')[5:-3]}\nArr: {data.get('arrivTime')[5:-3]}]({shortenedurl})"
         return [name, value]
     
-    @tasks.loop(hours=500.0)
+    @tasks.loop(hours=6.0)
     async def flightscanner(self):
-        dates = await generate_date_range(vacation_range=(datetime(2024,9, 1), datetime(2024, 9, 30)), vacation_length=(9, 10))
-        my_dict = {"data": []}
-        for d in dates:
-            allres = await gather(*[ self.look_for_flights(["AMS.AIRPORT", "DUS.AIRPORT", "ANR.AIRPORT", "EIN.AIRPORT", "RTM.AIRPORT", "MST.AIRPORT", "GRQ.AIRPORT", "CGN.AIRPORT"], ["YVR.CITY"], d[0], x) for x in d[1:]])
-            for x in allres:
-                my_dict.get("data").extend(x)
-            await sleep(2)
-        sorted_data = sorted(my_dict["data"], key=lambda x: x["price"])
-        await self.sendflightstodiscord(sorted_data)
+        for entry in self.bot._db:
+            dates = await generate_date_range(vacation_range=(datetime(2024,9, 1), datetime(2024, 9, 30)), vacation_length=(9, 10))
+            my_dict = {"data": []}
+            for d in dates:
+                allres = await gather(*[ self.look_for_flights(["AMS.AIRPORT", "DUS.AIRPORT", "ANR.AIRPORT", "EIN.AIRPORT", "RTM.AIRPORT", "MST.AIRPORT", "GRQ.AIRPORT", "CGN.AIRPORT"], ["YVR.CITY"], d[0], x) for x in d[1:]])
+                for x in allres:
+                    my_dict.get("data").extend(x)
+                await sleep(2)
+            sorted_data = sorted(my_dict["data"], key=lambda x: x["price"])
+            await self.sendflightstodiscord(sorted_data)
 
 
     async def sendflightstodiscord(self, sorteddata):
