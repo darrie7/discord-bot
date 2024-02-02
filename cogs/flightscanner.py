@@ -36,15 +36,12 @@ class flightcog(commands.Cog):
         arrairp: str,
         vacmin: str,
         vacmax: str,
-        depyear: int = commands.Param(choices=[i for i in range(int(datetime.now().year), int(datetime.now().year)+5)]),
-        depmonth: int = commands.Param(choices=[i for i in range(1, 13)]),
-        depday: int = commands.Param(choices=[i for i in range(1, 32)]),
-        retyear: int = commands.Param(choices=[i for i in range(int(datetime.now().year), int(datetime.now().year)+5)]),
-        retmonth: int = commands.Param(choices=[i for i in range(1, 13)]),
-        retday: int = commands.Param(choices=[i for i in range(1, 32)]),
-                           
+        depmonth: commands.Range[int, 1, 12],
+        depday: commands.Range[int, 1, 31],
+        remonth: commands.Range[int, 1, 12],
+        retday: commands.Range[int, 1, 31],
     ):
-        await inter.response.send_message(dep_airp, arr_airp, vac_min, vac_max, dep_year, dep_month, dep_day)
+        await inter.response.send_message(dep_airp, arr_airp, vac_min, vac_max, dep_month, dep_day)
 
     async def look_for_flights(self, departureTerminals, arrivalTerminals, departdate, returndate) -> None:
         # self.arrivalTerminal = ["OSA.CITY"] if not self.arrivalTerminal == ["OSA.CITY"] else ["TYO.CITY"]
