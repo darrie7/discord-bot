@@ -38,17 +38,29 @@ class flightcog(commands.Cog):
         inter: disnake.ApplicationCommandInteraction,
         depairp: str,
         arrairp: str,
-        vacmin: str,
-        vacmax: str,
-        depmonth: str = commands.Param(choices=nmlist(1,12)),
-    #    depday: str = commands.Param(choices=),
-      #  retmonth: str = commands.Param(choices=),
-        #retday: str = commands.Param(choices=)
+        vacmin: int,
+        vacmax: int,
+        depyear:int,
+        depmonth: int,
+        depday: int,
+        retyear: int,
+        retmonth: int,
+        retday: int
     ):
-        await inter.response.send_message(depairp, arrairp, vacmin, vacmax, depmonth)
+        self.depairp = depairp.split(" ")
+        self.arrairp = arrairp.split(" ")
+        self.vacmin = vacmin
+        self.vacmax = vacmax
+        self.depyear = depyear
+        self.depmonth = depmonth
+        self.depday = depday
+        self.retyear = retyear
+        self.retmonth = retmonth
+        self.retday = retday
+        await inter.response.send_message("we do be searching", ephemeral=True, delete_after=30)
+        await self.flightscanner()
 
     async def look_for_flights(self, departureTerminals, arrivalTerminals, departdate, returndate) -> None:
-        # self.arrivalTerminal = ["OSA.CITY"] if not self.arrivalTerminal == ["OSA.CITY"] else ["TYO.CITY"]
         url = f"https://flights.booking.com/api/flights/?type=ROUNDTRIP&adults=2&cabinClass=ECONOMY&children=&from={'%2C'.join(departureTerminals)}&to={'%2C'.join(arrivalTerminals)}&depart={departdate}&return={returndate}&sort=CHEAPEST&travelPurpose=leisure&duration=33"
         n = 1
         while n:
@@ -91,18 +103,17 @@ class flightcog(commands.Cog):
         value = f"[Dep: {data.get('departTime')[5:-3]}\nArr: {data.get('arrivTime')[5:-3]}]({shortenedurl})"
         return [name, value]
     
-    @tasks.loop(hours=6.0)
+
     async def flightscanner(self):
-        for entry in self.bot._db:
-            dates = await generate_date_range(vacation_range=(datetime(2024,9, 1), datetime(2024, 9, 30)), vacation_length=(9, 10))
-            my_dict = {"data": []}
-            for d in dates:
-                allres = await gather(*[ self.look_for_flights(["AMS.AIRPORT", "DUS.AIRPORT", "ANR.AIRPORT", "EIN.AIRPORT", "RTM.AIRPORT", "MST.AIRPORT", "GRQ.AIRPORT", "CGN.AIRPORT"], ["YVR.CITY"], d[0], x) for x in d[1:]])
-                for x in allres:
-                    my_dict.get("data").extend(x)
-                await sleep(2)
-            sorted_data = sorted(my_dict["data"], key=lambda x: x["price"])
-            await self.sendflightstodiscord(sorted_data)
+        dates = await generate_date_range(vacation_range=(datetime(self.depyear,self.depmonth, self.depday), datetime(self.retyear, self.retmonth, self.retday)), vacation_length=(self.vacmin, self.vacmax))
+        my_dict = {"data": []}
+        for d in dates:
+            allres = await gather(*[ self.look_for_flights(self.depairp, self.arrairp, d[0], x) for x in d[1:]])
+            for x in allres:
+                my_dict.get("data").extend(x)
+            await sleep(2)
+        sorted_data = sorted(my_dict["data"], key=lambda x: x["price"])
+        await self.sendflightstodiscord(sorted_data)
 
 
     async def sendflightstodiscord(self, sorteddata):
