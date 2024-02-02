@@ -36,10 +36,10 @@ class flightcog(commands.Cog):
         arrairp: str,
         vacmin: int,
         vacmax: int,
-        depmonth: commands.Param(choices=[str(i) for i in range(1,13)]),
-        depday: commands.Param(choices=[str(i) for i in range(1,32)]),
-        remonth: commands.Param(choices=[str(i) for i in range(1,13)]),
-        retday: commands.Param(choices=[str(i) for i in range(1,32)]),
+        depmonth: str = commands.Param(choices=[str(i) for i in range(1,13)]),
+        depday: str = commands.Param(choices=[str(i) for i in range(1,32)]),
+        remonth: str = commands.Param(choices=[str(i) for i in range(1,13)]),
+        retday: str = commands.Param(choices=[str(i) for i in range(1,32)]),
     ):
         await inter.response.send_message(dep_airp, arr_airp, vac_min, vac_max, dep_month, dep_day)
 
