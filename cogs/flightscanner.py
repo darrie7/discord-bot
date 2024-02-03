@@ -33,10 +33,13 @@ class flightcog(commands.Cog):
     @commands.slash_command()
     async def lookupflight(self,
         inter: disnake.ApplicationCommandInteraction,
+        roundtrip: bool,
+        nradults: int,
         vaclength: str,
         startperiod: str,
         endperiod: str,
         savesearch: bool,
+        agechildren: str = "",
         depcity: str = None,
         arrcity: str = None,
         depcountry: str = None,
@@ -59,11 +62,17 @@ class flightcog(commands.Cog):
         self.vacmin, self.vacmax = vaclength.split('-')
         self.depday, self.depmonth, self.depyear = startperiod.split('-')
         self.retday, self.retmonth, self.retyear = endperiod.split('-')
+        self.roundtrip = roundtrip
+        self.nradults = nradults
+        self.agechildren = '%2C'.join(agechildren.split(','))
         await inter.send("we do be searching", ephemeral=True, delete_after=15)
         await self.flightscanner()
 
     async def look_for_flights(self, departureTerminals, arrivalTerminals, departdate, returndate) -> None:
-        url = f"https://flights.booking.com/api/flights/?type=ROUNDTRIP&adults=2&cabinClass=ECONOMY&children=&from={'%2C'.join(departureTerminals)}&to={'%2C'.join(arrivalTerminals)}&depart={departdate}&return={returndate}&sort=CHEAPEST&travelPurpose=leisure&duration=33"
+        self.roundtripconf = "ROUNDTRIP"
+        if not self.roundtrip:
+            self.roundtripconf = "ONEWAY"
+        url = f"https://flights.booking.com/api/flights/?type={self.roundtripconf}&adults={self.nradults}&children={self.agechildren}&cabinClass=ECONOMY&children=&from={'%2C'.join(departureTerminals)}&to={'%2C'.join(arrivalTerminals)}&depart={departdate}&return={returndate}&sort=CHEAPEST&travelPurpose=leisure&duration=33"
         n = 1
         while n:
             if n == 10:
@@ -88,7 +97,7 @@ class flightcog(commands.Cog):
         n = 0
         while n <= 2:
             if n == 2:
-                return f"https://flights.booking.com/flights/X/?type=ROUNDTRIP&adults=2&cabinClass=ECONOMY&from={self.dep}.AIRPORT&to={self.arr}.AIRPORT&depart={data.get('dates')[0][:10]}&return={data.get('dates')[1][:10]}&sort=CHEAPEST"
+                return f"https://flights.booking.com/flights/X/?type={self.roundtripconf}&adults={self.nradults}&children={self.agechildren}&cabinClass=ECONOMY&from={self.dep}.AIRPORT&to={self.arr}.AIRPORT&depart={data.get('dates')[0][:10]}&return={data.get('dates')[1][:10]}&sort=CHEAPEST"
             response = await to_thread(requests.get, url=api_url, params=param)
             if response.status_code != 200:
                 await sleep(3)
@@ -100,7 +109,7 @@ class flightcog(commands.Cog):
 
     async def embedfields(self, data):
         shortenedurl = await self.url_shortener(data)
-        # shortenedurl = f"https://flights.booking.com/flights/X/?type=ROUNDTRIP&adults=2&cabinClass=ECONOMY&from={self.dep}.AIRPORT&to={self.arr}.AIRPORT&depart={data.get('dates')[0][:10]}&return={data.get('dates')[1][:10]}&sort=CHEAPEST"
+        # shortenedurl = f"https://flights.booking.com/flights/X/?type={roundtrip}&adults={self.nradults}&cabinClass=ECONOMY&from={self.dep}.AIRPORT&to={self.arr}.AIRPORT&depart={data.get('dates')[0][:10]}&return={data.get('dates')[1][:10]}&sort=CHEAPEST"
         name = f"€{data.get('price')} || {data.get('dates')[0][5:]}({data.get('flightTime')//3600}h{data.get('flightTime')%3600//60}m) → {data.get('dates')[1][5:]}({data.get('flightTimeback')//3600}h{data.get('flightTimeback')%3600//60}m)" 
         value = f"[Dep: {data.get('departTime')[5:-3]}\nArr: {data.get('arrivTime')[5:-3]}]({shortenedurl})"
         return [name, value]
