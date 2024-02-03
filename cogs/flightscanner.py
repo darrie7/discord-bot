@@ -22,11 +22,11 @@ async def generate_date_range(vacation_range: tuple[datetime], vacation_length: 
 class flightcog(commands.Cog):
     def __init__(self, bot) -> None:
         self.bot = bot
-        self.flightscanner.start()
+        #self.flightscanner.start()
         
 
     def cog_unload(self) -> None:
-        self.flightscanner.cancel()
+        #self.flightscanner.cancel()
 
 
     @commands.slash_command()
