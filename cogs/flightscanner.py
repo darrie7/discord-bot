@@ -76,7 +76,7 @@ class flightcog(commands.Cog):
         url = f"https://flights.booking.com/api/flights/?type=ROUNDTRIP&adults=2&cabinClass=ECONOMY&children=&from={'%2C'.join(departureTerminals)}&to={'%2C'.join(arrivalTerminals)}&depart={departdate}&return={returndate}&sort=CHEAPEST&travelPurpose=leisure&duration=33"
         n = 1
         while n:
-            if n == 101:
+            if n == 10:
                 return []
             r = await to_thread(requests.get, url)
             if r.status_code != 200:
