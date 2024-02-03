@@ -33,17 +33,12 @@ class flightcog(commands.Cog):
     @commands.slash_command()
     async def lookupflight(self,
         inter: disnake.ApplicationCommandInteraction,
-        depcity: str,
-        arrcity: str,
-        vacmin: int,
-        vacmax: int,
-        depyear:int,
-        depmonth: int,
-        depday: int,
-        retyear: int,
-        retmonth: int,
-        retday: int,
+        vaclength: str,
+        startperiod: str,
+        endperiod: str,
         savesearch: bool,
+        depcity: str = None,
+        arrcity: str = None,
         depcountry: str = None,
         arrcountry: str = None
     ):
@@ -52,23 +47,18 @@ class flightcog(commands.Cog):
         if depcountry:
             res = await to_thread(requests.get, f"{url}{'%20or%20'.join([f'country_name=%22{c}%22' for c in depcountry.split()])}")
             self.depcity = [f"{x.get('column_1')}.AIRPORT" for x in res.json().get("results")]
-        else:
+        elif depcity:
             res = await to_thread(requests.get, f"{url}{'%20or%20'.join([f'city_name=%22{c}%22%20or%20airport_name%20LIKE%20%22{c}%22' for c in depcity.split()])}")
             self.depcity = [f"{x.get('column_1')}.AIRPORT" for x in res.json().get("results")]
         if arrcountry:
             res = await to_thread(requests.get, f"{url}{'%20or%20'.join([f'country_name=%22{c}%22' for c in arrcountry.split()])}")
             self.arrcity = [f"{x.get('column_1')}.AIRPORT" for x in res.json().get("results")]
-        else:
+        elif arrcity:
             res = await to_thread(requests.get, f"{url}{'%20or%20'.join([f'city_name=%22{c}%22%20or%20airport_name%20LIKE%20%22{c}%22' for c in arrcity.split()])}")
             self.arrcity = [f"{x.get('column_1')}.AIRPORT" for x in res.json().get("results")]
-        self.vacmin = vacmin
-        self.vacmax = vacmax
-        self.depyear = depyear
-        self.depmonth = depmonth
-        self.depday = depday
-        self.retyear = retyear
-        self.retmonth = retmonth
-        self.retday = retday
+        self.vacmin, self.vacmax = vaclength.split('-')
+        self.depday, self.depmonth, self.depyear = startperiod.split('-')
+        self.retday, self.retmonth, self.retyear = endperiod.split('-')
         await inter.send("we do be searching", ephemeral=True, delete_after=15)
         await self.flightscanner()
 
@@ -117,7 +107,7 @@ class flightcog(commands.Cog):
     
 
     async def flightscanner(self):
-        dates = await generate_date_range(vacation_range=(datetime(self.depyear,self.depmonth, self.depday), datetime(self.retyear, self.retmonth, self.retday)), vacation_length=(self.vacmin, self.vacmax))
+        dates = await generate_date_range(vacation_range=(datetime(int(self.depyear),int(self.depmonth), int(self.depday)), datetime(int(self.retyear), int(self.retmonth), int(self.retday))), vacation_length=(int(self.vacmin), int(self.vacmax)))
         my_dict = {"data": []}
         for d in dates:
             allres = await gather(*[ self.look_for_flights(self.depcity, self.arrcity, d[0], x) for x in d[1:]])
