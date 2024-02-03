@@ -73,6 +73,7 @@ class AnimeStuff:
             i = 0
             while i < 5:
                 spanime = await send2graphql(query, self.token, True)
+                await self.bot.get_channel(self.bot._test_channelid).send(f"""```{spanime}```""")
                 if not spanime and not spanime.get("data", {}) and not spanime.get("data", {}).get("Media", {}) and not spanime.get("data", {}).get("Media", {}).get("relations", {}) and not spanime.get("data", {}).get("Media", {}).get("relations", {}).get("edges", []):
                     i += 1
                     await sleep(2)
