@@ -84,7 +84,7 @@ class AnimeStuff:
                     await self.bot.get_channel(self.bot._test_channelid).send(f"""```{data}```""")
                     if data == []:
                         syn.append(re.sub(r'[^a-zA-Z0-9-_ ]', '', self.anime.get("media").get("title").get("romaji")))
-                        self.anime["notes"] = f"""{{'lastdl': {self.anime.get("progress")}, 'syn': syn, 'epoffset': 0, 'synoffset': [] }}"""
+                        self.anime["notes"] = f"""{{'lastdl': {self.anime.get("progress")}, 'syn': {syn}, 'epoffset': 0, 'synoffset': [] }}"""
                     for relation in data:
                         if relation.get("relationType") == "ADAPTATION":
                             title = relation.get("node").get("title").get("romaji").replace("\'", "").replace("\"", "").replace(",", "")
@@ -96,7 +96,7 @@ class AnimeStuff:
                                     episodes += related.get("node", {}).get("episodes")
                             if episodes == 0:
                                 syn.append(re.sub(r'[^a-zA-Z0-9-_ ]', '', self.anime.get("media").get("title").get("romaji")))
-                            self.anime["notes"] = f"""{{'lastdl': {self.anime.get("progress")}, 'syn': syn, 'epoffset': {episodes}, 'synoffset': ['{re.sub(r'[^a-zA-Z0-9-_ ]', '', title)}'] }}"""
+                            self.anime["notes"] = f"""{{'lastdl': {self.anime.get("progress")}, 'syn': {syn}, 'epoffset': {episodes}, 'synoffset': ['{re.sub(r'[^a-zA-Z0-9-_ ]', '', title)}'] }}"""
                             break
                     break
         if ( "ignore" in self.anime.get("notes").lower()) or (json.loads(self.anime.get("notes").replace("\'", "\"")).get("lastdl") > self.anime.get("progress") ):
