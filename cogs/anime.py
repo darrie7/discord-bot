@@ -81,7 +81,6 @@ class AnimeStuff:
                 else:     
                     syn = []
                     data = spanime.get("data", {}).get("Media", {}).get("relations", {}).get("edges", [])
-                    await self.bot.get_channel(self.bot._test_channelid).send(f"""```{data}```""")
                     if data == []:
                         syn.append(re.sub(r'[^a-zA-Z0-9-_ ]', '', self.anime.get("media").get("title").get("romaji")))
                         self.anime["notes"] = f"""{{'lastdl': {self.anime.get("progress")}, 'syn': {syn}, 'epoffset': 0, 'synoffset': [] }}"""
@@ -105,7 +104,6 @@ class AnimeStuff:
             return self.anime
         if ( self.anime.get("media").get("nextAiringEpisode").get("episode") - self.anime.get("progress") ) < 2:
             return None
-        await self.bot.get_channel(self.bot._test_channelid).send(f"""```{self.anime}```""")
         return self.anime
 
     async def search_gen(self) -> dict:
