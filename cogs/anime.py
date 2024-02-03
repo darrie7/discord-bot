@@ -77,14 +77,14 @@ class AnimeStuff:
                     i += 1
                     await sleep(2)
                     if i == 3:
-                        syn =[]
-                        syn.append(re.sub(r'[^a-zA-Z0-9-_ ]', '', self.anime.get("media").get("title").get("romaji")))
-                        self.anime["notes"] = f"""{{'lastdl': {self.anime.get("progress")}, 'syn': {syn}, 'epoffset': 0, 'synoffset': [] }}"""
                         break
                 else:     
+                    syn = []
                     data = spanime.get("data", {}).get("Media", {}).get("relations", {}).get("edges", [])
                     await self.bot.get_channel(self.bot._test_channelid).send(f"""```{data}```""")
-                    syn = []
+                    if data == []:
+                        syn.append(re.sub(r'[^a-zA-Z0-9-_ ]', '', self.anime.get("media").get("title").get("romaji")))
+                        self.anime["notes"] = f"""{{'lastdl': {self.anime.get("progress")}, 'syn': syn, 'epoffset': 0, 'synoffset': [] }}"""
                     for relation in data:
                         if relation.get("relationType") == "ADAPTATION":
                             title = relation.get("node").get("title").get("romaji").replace("\'", "").replace("\"", "").replace(",", "")
