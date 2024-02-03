@@ -36,8 +36,8 @@ class flightcog(commands.Cog):
     @commands.slash_command()
     async def lookupflight(self,
         inter: disnake.ApplicationCommandInteraction,
-        depairp: str,
-        arrairp: str,
+        depcity: str,
+        arrcity: str,
         vacmin: int,
         vacmax: int,
         depyear:int,
@@ -48,9 +48,10 @@ class flightcog(commands.Cog):
         retday: int,
         savesearch: bool
     ):
-        ## url = https://data.opendatasoft.com/api/explore/v2.1/catalog/datasets/airports-code@public/records?select=column_1%2Ccity_name%2Ccountry_name&order_by=country_name&limit=100&where=city_name=%22Amsterdam%22%20or%20airport_name%20LIKE%20%22Vancouver%22
-        self.depairp = depairp.split(" ")
-        self.arrairp = arrairp.split(" ")
+        ## url = "https://data.opendatasoft.com/api/explore/v2.1/catalog/datasets/airports-code@public/records?select=column_1%2Ccity_name%2Ccountry_name&order_by=country_name&limit=100&where="
+        ## cities = 'or'.join([f"city_name=%22{c}%22%20or%20airport_name%20LIKE%20%22{c}%22" for c in depcity.split(" ")])
+        self.depcity = depcity.split(" ")
+        self.arrcity = arrcity.split(" ")
         self.vacmin = vacmin
         self.vacmax = vacmax
         self.depyear = depyear
@@ -110,7 +111,7 @@ class flightcog(commands.Cog):
         dates = await generate_date_range(vacation_range=(datetime(self.depyear,self.depmonth, self.depday), datetime(self.retyear, self.retmonth, self.retday)), vacation_length=(self.vacmin, self.vacmax))
         my_dict = {"data": []}
         for d in dates:
-            allres = await gather(*[ self.look_for_flights(self.depairp, self.arrairp, d[0], x) for x in d[1:]])
+            allres = await gather(*[ self.look_for_flights(self.depcity, self.arrcity, d[0], x) for x in d[1:]])
             for x in allres:
                 my_dict.get("data").extend(x)
             await sleep(2)
