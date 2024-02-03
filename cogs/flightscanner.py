@@ -29,10 +29,6 @@ class flightcog(commands.Cog):
         self.flightscanner.cancel()
 
 
-    def nmlist(start, end):
-        return [str(x) for x in range(start, end+1)]
-
-
     @commands.slash_command()
     async def lookupflight(self,
         inter: disnake.ApplicationCommandInteraction,
