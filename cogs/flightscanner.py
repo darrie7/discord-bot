@@ -42,12 +42,16 @@ class flightcog(commands.Cog):
         retyear: int,
         retmonth: int,
         retday: int,
-        savesearch: bool
+        savesearch: bool,
+        depcountry: str = None,
+        arrcountry: str = None
     ):
         ## url = "https://data.opendatasoft.com/api/explore/v2.1/catalog/datasets/airports-code@public/records?select=column_1%2Ccity_name%2Ccountry_name&order_by=country_name&limit=100&where="
         ## cities = 'or'.join([f"city_name=%22{c}%22%20or%20airport_name%20LIKE%20%22{c}%22" for c in depcity.split(" ")])
-        self.depcity = depcity.split(" ")
-        self.arrcity = arrcity.split(" ")
+        if depcountry:
+            self.depcity = depcity.split(" ")
+        if arrcountry:
+            self.arrcity = arrcity.split(" ")
         self.vacmin = vacmin
         self.vacmax = vacmax
         self.depyear = depyear
