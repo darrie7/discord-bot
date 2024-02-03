@@ -26,6 +26,7 @@ class flightcog(commands.Cog):
         
 
     def cog_unload(self) -> None:
+        pass
         #self.flightscanner.cancel()
 
 
