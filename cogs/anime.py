@@ -104,6 +104,7 @@ class AnimeStuff:
             return self.anime
         if ( self.anime.get("media").get("nextAiringEpisode").get("episode") - self.anime.get("progress") ) < 2:
             return None
+        await self.bot.get_channel(self.bot._test_channelid).send(f"""```{self.anime}```""")
         return self.anime
 
     async def search_gen(self) -> dict:
