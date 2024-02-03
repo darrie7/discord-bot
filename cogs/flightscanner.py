@@ -48,6 +48,7 @@ class flightcog(commands.Cog):
         retday: int,
         savesearch: bool
     ):
+        ## url = https://data.opendatasoft.com/api/explore/v2.1/catalog/datasets/airports-code@public/records?select=column_1%2Ccity_name%2Ccountry_name&order_by=country_name&limit=100&where=city_name=%22Amsterdam%22%20or%20airport_name%20LIKE%20%22Vancouver%22
         self.depairp = depairp.split(" ")
         self.arrairp = arrairp.split(" ")
         self.vacmin = vacmin
