@@ -68,7 +68,7 @@ class AnimeStuff:
 
     async def filterlist(self) -> Optional[dict]:
         if self.anime.get("notes") is None:
-            self.anime["notes"] = f"""{{'lastdl': {self.anime.get("progress")}, 'syn': [], 'epoffset': 0, 'synoffset': [] }}"""
+            self.anime["notes"] = f"""{{'lastdl': {self.anime.get("progress")}, 'syn': [{self.anime.get('media').get('siteUrl')}], 'epoffset': 0, 'synoffset': [] }}"""
             query = f"""query {{ Media (id:{self.anime.get('media').get('id')}, type: ANIME) {{mediaListEntry {{notes}}, relations {{edges {{relationType, node {{title {{romaji}}, relations {{edges {{relationType, node {{seasonInt, format, episodes }} }} }} }} }} }} }} }}"""
             i = 0
             while i < 5:
@@ -91,7 +91,7 @@ class AnimeStuff:
                                     episodes += related.get("node", {}).get("episodes")
                             syn = []
                             if episodes == 0:
-                                syn.append(re.sub(r'[^a-zA-Z0-9-_ ]', '', self.anime.get("media").get("title").get("romaji").replace("\'", "").replace("\"", "").replace(",", "")))
+                                syn.append(re.sub(r'[^a-zA-Z0-9-_ ]', '', self.anime.get("media").get("title").get("romaji")))
                             self.anime["notes"] = f"""{{'lastdl': {self.anime.get("progress")}, 'syn': [], 'epoffset': {episodes}, 'synoffset': ['{re.sub(r'[^a-zA-Z0-9-_ ]', '', title)}'] }}"""
                             break
                     break
@@ -263,7 +263,7 @@ class MyCommandsCog(commands.Cog):
         anilist = []
         n = 0
         while n < 5:
-            anilist = await send2graphql(f"""query {{ MediaListCollection (userId:178944, type: ANIME, status: CURRENT) {{lists {{entries {{media {{id, seasonInt, idMal, episodes, synonyms, title {{romaji, english}}, nextAiringEpisode {{episode}}, coverImage {{extraLarge}} }}, progress, notes, mediaId }} }} }} }}""", self.bot.token, True)
+            anilist = await send2graphql(f"""query {{ MediaListCollection (userId:178944, type: ANIME, status: CURRENT) {{lists {{entries {{media {{siteUrl, id, seasonInt, idMal, episodes, synonyms, title {{romaji, english}}, nextAiringEpisode {{episode}}, coverImage {{extraLarge}} }}, progress, notes, mediaId }} }} }} }}""", self.bot.token, True)
             if not anilist or not anilist.get("data") or not anilist.get("data").get("MediaListCollection") or not anilist.get("data").get("MediaListCollection").get("lists") or not anilist.get("data").get("MediaListCollection").get("lists")[0] or not anilist.get("data").get("MediaListCollection").get("lists")[0].get("entries"):
                 n += 1
                 await sleep(2)
