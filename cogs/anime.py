@@ -74,18 +74,16 @@ class AnimeStuff:
             while i < 5:
                 spanime = await send2graphql(query, self.token, True)
                 if not spanime and not spanime.get("data", {}) and not spanime.get("data", {}).get("Media", {}) and not spanime.get("data", {}).get("Media", {}).get("relations", {}) and not spanime.get("data", {}).get("Media", {}).get("relations", {}).get("edges", []):
-                    await self.bot.get_channel(self.bot._test_channelid).send(f"""```not spanime not i==3```""")
                     i += 1
                     await sleep(2)
                     if i == 3:
-                        await self.bot.get_channel(self.bot._test_channelid).send(f"""```not spanime i==3```""")
                         syn =[]
                         syn.append(re.sub(r'[^a-zA-Z0-9-_ ]', '', self.anime.get("media").get("title").get("romaji")))
                         self.anime["notes"] = f"""{{'lastdl': {self.anime.get("progress")}, 'syn': {syn}, 'epoffset': 0, 'synoffset': [] }}"""
                         break
                 else:     
-                    await self.bot.get_channel(self.bot._test_channelid).send(f"""```else```""")
                     data = spanime.get("data", {}).get("Media", {}).get("relations", {}).get("edges", [])
+                    await self.bot.get_channel(self.bot._test_channelid).send(f"""```{data}```""")
                     syn = []
                     for relation in data:
                         if relation.get("relationType") == "ADAPTATION":
