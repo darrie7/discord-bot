@@ -5,8 +5,10 @@ import json
 from asyncio import run, gather, to_thread, sleep
 from disnake.ext import commands, tasks
 import disnake
+from cryptography.fernet import Fernet
 
 baseurl = "https://flights.booking.com/flights/X/"
+geoapi = Fernet(enckey).decrypt(b'gAAAAABlvt_UBZV3G4oQoeIz74m3Y6oiTsRCOYgXGsvhYvL2AI0bGeGGuckDUY9A5esg-XUYQ0PzslUYqyIgRMFJlPL0wSTTZTATiSudSQOCL2FpLqJKC64=').decode()
 
 async def generate_date_range(vacation_range: tuple[datetime], vacation_length: tuple[int]):
     date_range = []
@@ -31,7 +33,7 @@ class flightcog(commands.Cog):
 
 
     @commands.slash_command()
-    async def lookupflight(self,
+    async def searchflights(self,
         inter: disnake.ApplicationCommandInteraction,
         roundtrip: bool,
         nradults: int,
@@ -45,6 +47,23 @@ class flightcog(commands.Cog):
         depcountry: str = None,
         arrcountry: str = None
     ):
+        """
+        search for flights
+
+        Parameters
+        ----------
+        roundtrip: Is the flight a roundtrip
+        nradults: number of adults flying
+        vaclength: length op vacation (5-10) days
+        startperiod: search within this period start
+        endperiod: search within this period end
+        savesearch: repeatedly search for flights
+        agechildren: age of children flying (2 4 7)
+        depcity: departure cities (Amsterdam Dusseldorf)
+        arrcity: arrival cities (Amsterdam Dusseldorf)
+        depcountry: departure countries (Netherlands Belgium)
+        arrcountry: arrival countries (Netherlands Belgium)
+        """
         url = "https://data.opendatasoft.com/api/explore/v2.1/catalog/datasets/airports-code@public/records?select=column_1%2Ccity_name%2Ccountry_name&order_by=country_name&limit=100&where="
         ## cities = 'or'.join([f"city_name=%22{c}%22%20or%20airport_name%20LIKE%20%22{c}%22" for c in depcity.split(" ")])
         if depcountry:
@@ -64,7 +83,62 @@ class flightcog(commands.Cog):
         self.retday, self.retmonth, self.retyear = endperiod.split('-')
         self.roundtrip = roundtrip
         self.nradults = nradults
-        self.agechildren = '%2C'.join(agechildren.split(','))
+        self.agechildren = '%2C'.join(agechildren.split())
+        await inter.send("we do be searching", ephemeral=True, delete_after=15)
+        await self.flightscanner()
+
+
+    @commands.slash_command()
+    async def searchflightsfromhome(self,
+        inter: disnake.ApplicationCommandInteraction,
+        roundtrip: bool,
+        nradults: int,
+        vaclength: str,
+        startperiod: str,
+        endperiod: str,
+        savesearch: bool,
+        agechildren: str = "",
+        homecity: str,
+        homemaxdistance: int,
+        arrcity: str,
+        arrmaxdistance: int         
+    ):
+        """
+        search for flights with airports within x km
+
+        Parameters
+        ----------
+        roundtrip: Is the flight a roundtrip
+        nradults: number of adults flying
+        vaclength: length op vacation (5-10) days
+        startperiod: search within this period start
+        endperiod: search within this period end
+        savesearch: repeatedly search for flights
+        agechildren: age of children flying (2 4 7)
+        homecity: city you depart from
+        homemaxdistance: look for airports within this range in km
+        arrcity: city you want to go to
+        arrmaxdistance: look for airports within this range in km
+        """
+        await inter.send("we do be searching", ephemeral=True, delete_after=15)
+        
+        geohome = await to_thread(requests.get, f"https://geocode.maps.co/search?q={homecity}&api_key={geoapi}")
+        lathome, lonhome = geohome.json()[0].get("lat"), geohome.json()[0].get("lon")
+        geourlshome = f"https://data.opendatasoft.com/api/explore/v2.1/catalog/datasets/airports-code@public/records?select=column_1&order_by=country_name&limit=100&where=latitude%3C{lathome+(1/111*homemaxdistance)}%20and%20latitude%3E{lathome-(1/111*homemaxdistance)}%20and%20longitude%3C{lonhome+(1/111*homemaxdistance)}%20and%20longitude%3E{lonhome-(1/111*homemaxdistance)}"
+        res = await to_thread(requests.get, geourlshome)
+        self.depcity = [f"{x.get('column_1')}.AIRPORT" for x in res.json().get("results")]
+        
+        geoarr = await to_thread(requests.get, f"https://geocode.maps.co/search?q={arrcity}&api_key={geoapi}")
+        latarr, lonarr = geoarr.json()[0].get("lat"), geoarr.json()[0].get("lon")
+        geourlsarr = f"https://data.opendatasoft.com/api/explore/v2.1/catalog/datasets/airports-code@public/records?select=column_1&order_by=country_name&limit=100&where=latitude%3C{latarr+(1/111*arrmaxdistance)}%20and%20latitude%3E{latarr-(1/111*arrmaxdistance)}%20and%20longitude%3C{lonarr+(1/111*arrmaxdistance)}%20and%20longitude%3E{lonarr-(1/111*arrmaxdistance)}"
+        res = await to_thread(requests.get, geourlsarr)
+        self.arrcity = [f"{x.get('column_1')}.AIRPORT" for x in res.json().get("results")]
+        self.vacmin, self.vacmax = vaclength.split('-')
+        self.depday, self.depmonth, self.depyear = startperiod.split('-')
+        self.retday, self.retmonth, self.retyear = endperiod.split('-')
+        self.roundtrip = roundtrip
+        self.nradults = nradults
+        self.agechildren = '%2C'.join(agechildren.split())
         await inter.send("we do be searching", ephemeral=True, delete_after=15)
         await self.flightscanner()
 
