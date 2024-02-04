@@ -97,11 +97,11 @@ class flightcog(commands.Cog):
         startperiod: str,
         endperiod: str,
         savesearch: bool,
-        agechildren: str = "",
         homecity: str,
         homemaxdistance: int,
         arrcity: str,
-        arrmaxdistance: int         
+        arrmaxdistance: int,
+        agechildren: str = "",
     ):
         """
         search for flights with airports within x km
