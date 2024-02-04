@@ -8,7 +8,6 @@ import disnake
 from cryptography.fernet import Fernet
 
 baseurl = "https://flights.booking.com/flights/X/"
-geoapi = Fernet(enckey).decrypt(b'gAAAAABlvt_UBZV3G4oQoeIz74m3Y6oiTsRCOYgXGsvhYvL2AI0bGeGGuckDUY9A5esg-XUYQ0PzslUYqyIgRMFJlPL0wSTTZTATiSudSQOCL2FpLqJKC64=').decode()
 
 async def generate_date_range(vacation_range: tuple[datetime], vacation_length: tuple[int]):
     date_range = []
