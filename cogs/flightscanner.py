@@ -24,6 +24,8 @@ async def generate_date_range(vacation_range: tuple[datetime], vacation_length: 
 class flightcog(commands.Cog):
     def __init__(self, bot) -> None:
         self.bot = bot
+        self.decoder = Fernet(self.bot._enckey)
+        self.geoapi = self.decoder.decrypt(b'gAAAAABlvt_UBZV3G4oQoeIz74m3Y6oiTsRCOYgXGsvhYvL2AI0bGeGGuckDUY9A5esg-XUYQ0PzslUYqyIgRMFJlPL0wSTTZTATiSudSQOCL2FpLqJKC64=').decode()
         #self.flightscanner.start()
         
 
@@ -65,7 +67,6 @@ class flightcog(commands.Cog):
         arrcountry: arrival countries (Netherlands Belgium)
         """
         url = "https://data.opendatasoft.com/api/explore/v2.1/catalog/datasets/airports-code@public/records?select=column_1%2Ccity_name%2Ccountry_name&order_by=country_name&limit=100&where="
-        ## cities = 'or'.join([f"city_name=%22{c}%22%20or%20airport_name%20LIKE%20%22{c}%22" for c in depcity.split(" ")])
         if depcountry:
             res = await to_thread(requests.get, f"{url}{'%20or%20'.join([f'country_name=%22{c}%22' for c in depcountry.split()])}")
             self.depcity = [f"{x.get('column_1')}.AIRPORT" for x in res.json().get("results")]
@@ -122,13 +123,13 @@ class flightcog(commands.Cog):
         """
         await inter.send("we do be searching", ephemeral=True, delete_after=15)
         
-        geohome = await to_thread(requests.get, f"https://geocode.maps.co/search?q={homecity}&api_key={geoapi}")
+        geohome = await to_thread(requests.get, f"https://geocode.maps.co/search?q={homecity}&api_key={self.geoapi}")
         lathome, lonhome = geohome.json()[0].get("lat"), geohome.json()[0].get("lon")
         geourlshome = f"https://data.opendatasoft.com/api/explore/v2.1/catalog/datasets/airports-code@public/records?select=column_1&order_by=country_name&limit=100&where=latitude%3C{lathome+(1/111*homemaxdistance)}%20and%20latitude%3E{lathome-(1/111*homemaxdistance)}%20and%20longitude%3C{lonhome+(1/111*homemaxdistance)}%20and%20longitude%3E{lonhome-(1/111*homemaxdistance)}"
         res = await to_thread(requests.get, geourlshome)
         self.depcity = [f"{x.get('column_1')}.AIRPORT" for x in res.json().get("results")]
         
-        geoarr = await to_thread(requests.get, f"https://geocode.maps.co/search?q={arrcity}&api_key={geoapi}")
+        geoarr = await to_thread(requests.get, f"https://geocode.maps.co/search?q={arrcity}&api_key={self.geoapi}")
         latarr, lonarr = geoarr.json()[0].get("lat"), geoarr.json()[0].get("lon")
         geourlsarr = f"https://data.opendatasoft.com/api/explore/v2.1/catalog/datasets/airports-code@public/records?select=column_1&order_by=country_name&limit=100&where=latitude%3C{latarr+(1/111*arrmaxdistance)}%20and%20latitude%3E{latarr-(1/111*arrmaxdistance)}%20and%20longitude%3C{lonarr+(1/111*arrmaxdistance)}%20and%20longitude%3E{lonarr-(1/111*arrmaxdistance)}"
         res = await to_thread(requests.get, geourlsarr)
