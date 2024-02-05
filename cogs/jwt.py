@@ -243,7 +243,7 @@ class justwatchCog(commands.Cog):
     @update_newestmedia.error
     @searchmedia.error
     async def cog_error_handler(self, error) -> None:
-        await self.bot.get_channel(793878235066400809).send(f"""```{"".join(traceback.format_exception(type(error), error, error.__traceback__))}```""")
+        await self.bot.get_channel(793878235066400809).send(f"""```{"".join(traceback.format_exception(type(error), error, error.__traceback__))[-1500:]}```""")
         pass
     
 def setup(bot):
