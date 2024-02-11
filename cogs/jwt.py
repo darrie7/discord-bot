@@ -100,7 +100,10 @@ class Torrent:
         if not magnet_uri:
             magnet_uri = torrents[0].get("magnet")
         with DelugeRPCClient(self.global_var.host, 58846, self.global_var.deluge_user, self.global_var.deluge_passwd) as client:
-            client.core.add_torrent_magnet(f"{'&'.join([ part for part in magnet_uri.split('&') if not part.startswith('tr=') ])}&tr={await self.get_trackers()}", options={"download_location": medium})
+            try:
+                client.core.add_torrent_magnet(f"{'&'.join([ part for part in magnet_uri.split('&') if not part.startswith('tr=') ])}&tr={await self.get_trackers()}", options={"download_location": medium})
+            except Exception as e:
+                await self.bot.get_channel(self.bot._test_channelid).send(f"""```{e}```""")
         return
     
 
