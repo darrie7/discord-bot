@@ -68,13 +68,13 @@ class Torrent:
 
     async def delete_entry(self) -> None:
         await to_thread(requests.delete, f"{self.global_var.url}/{self.db_entry.get('_id')}", headers={'content-type': "application/json",'x-apikey': self.global_var.api_key,'cache-control': "no-cache"})
-        self.bot._db3.remove(self.bot._query._id == self.db_entry.get('_id'))
+        self.bot._db3.remove(self.bot._query["_id"] == self.db_entry.get('_id'))
         return
 
 
     async def update_db(self, restdb = True) -> None:
         payload = self.payload
-        self.bot._db3.update(payload, self.bot._query._id == self.db_entry.get('_id'))
+        self.bot._db3.update(payload, self.bot._query["_id"] == self.db_entry.get('_id'))
         if restdb:
             await to_thread(requests.put, f"{self.global_var.url}/{self.db_entry.get('_id')}", json=payload, headers={'content-type': "application/json",'x-apikey': self.global_var.api_key,'cache-control': "no-cache"})
         return
@@ -258,7 +258,6 @@ class justwatchCog(commands.Cog):
 
     @tasks.loop(hours=12)
     async def update_newestmedia(self) -> None:
-        return
         [ await Torrent(self, x).update_show() for x in self.bot._db3 if x.get('ismovie') is False ]
 
     @delete_restdb.error
