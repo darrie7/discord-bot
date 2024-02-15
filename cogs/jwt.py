@@ -133,7 +133,7 @@ class Torrent:
                     self.payload = {"_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z'}
                     await self.update_db(restdb = False)
                     return
-                if (dl_list := [item for item in t_info if not f"s{progress_season:02}e{progress_episode+1:02}" in item.get('title').lower()]):
+                if progress_episode == 0 and (dl_list := [item for item in t_info if not f"s{progress_season:02}e{progress_episode+1:02}" in item.get('title').lower()]):
                     await self.magnet2deluge(dl_list, f"/tv/{self.db_entry.get('title').replace(' ', '_')}/")
                     self.payload = {"progress_episode": f"E{newest_episode}", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z'}
                     await self.update_db()
