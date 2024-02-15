@@ -72,11 +72,6 @@ class Torrent:
         return
 
 
-    async def delete_whole_db(self) -> None:
-        self.bot._db3.truncate()
-        return
-
-
     async def update_db(self, restdb = True) -> None:
         payload = self.payload
         self.bot._db3.update(payload, self.bot._query._id == self.db_entry.get('_id'))
@@ -189,6 +184,12 @@ class justwatchCog(commands.Cog):
     def cog_unload(self) -> None:
         self.searchmedia.cancel()
         self.update_newestmedia.cancel()
+
+
+    @commands.slash_command()
+    async def delete_whole_db(self) -> None:
+        self.bot._db3.truncate()
+        return
 
     @commands.slash_command()
     async def delete_db3_entry(self, inter, title) -> None:
