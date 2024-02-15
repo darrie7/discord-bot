@@ -187,8 +187,17 @@ class justwatchCog(commands.Cog):
 
 
     @commands.slash_command()
-    async def delete_whole_db(self) -> None:
+    async def delete_whole_db(self,
+                        inter: disnake.ApplicationCommandInteraction) -> None:
+        """
+        delete db 
+
+        Parameters
+        ----------
+        """
+        await inter.response.defer(with_message=True, ephemeral=False)
         self.bot._db3.truncate()
+        await inter.send("Deleted")
         return
 
     @commands.slash_command()
