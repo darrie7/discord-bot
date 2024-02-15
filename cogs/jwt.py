@@ -38,7 +38,6 @@ class Torrent:
 
     async def update_show(self) -> None:
         url: str = self.db_entry.get('url')
-        await self.bot.get_channel(793878235066400809).send(f"""```{url[-1500:]}```""")
         r = await to_thread(requests.get, url)
         dom = html.fromstring(r.text)
         season_episode = dom.cssselect('.episodes-item span')[0].text_content().split(" ")
