@@ -127,7 +127,7 @@ class Torrent:
             progress_season = int(self.db_entry.get('progress_season').replace('S', ''))
             progress_episode = int(self.db_entry.get('progress_episode').replace('E', ''))
             if (newest_season == progress_season) and (newest_episode > progress_episode):
-                self.search_term = f"{self.db_entry.get('title')} S{progress_season:02}E{progress_episode+1:02}"
+                self.search_term = f"\"{self.db_entry.get('title')} S{progress_season:02}E{progress_episode+1:02}\"|\"{self.db_entry.get('title')} S{progress_season:02}\""
                 t_info = await self.media_scraper()
                 if t_info == []:
                     self.payload = {"_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z'}
