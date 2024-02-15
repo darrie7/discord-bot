@@ -243,7 +243,7 @@ class justwatchCog(commands.Cog):
 
     @tasks.loop(hours=12)
     async def update_newestmedia(self) -> None:
-        await gather(*[ Torrent(self, x).update_show() for x in self.bot._db3 if x.get('ismovie') is False ])
+        [ await Torrent(self, x).update_show() for x in self.bot._db3 if x.get('ismovie') is False ]
 
     @delete_restdb.error
     @update_newestmedia.error
