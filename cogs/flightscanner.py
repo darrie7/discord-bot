@@ -59,24 +59,24 @@ class flightcog(commands.Cog):
         startperiod: search within this period start
         endperiod: search within this period end
         savesearch: repeatedly search for flights
-        agechildren: age of children flying (2 4 7)
-        depcity: departure cities (Amsterdam Dusseldorf)
-        arrcity: arrival cities (Amsterdam Dusseldorf)
-        depcountry: departure countries (Netherlands Belgium)
-        arrcountry: arrival countries (Netherlands Belgium)
+        agechildren: age of children flying (2,4,7)
+        depcity: departure cities (Amsterdam,Dusseldorf)
+        arrcity: arrival cities (Amsterdam,Dusseldorf)
+        depcountry: departure countries (Netherlands,Belgium)
+        arrcountry: arrival countries (Netherlands,Belgium)
         """
         url = "https://data.opendatasoft.com/api/explore/v2.1/catalog/datasets/airports-code@public/records?select=column_1%2Ccity_name%2Ccountry_name&order_by=country_name&limit=100&where="
         if depcountry:
-            res = await to_thread(requests.get, f"{url}{'%20or%20'.join([f'country_name=%22{c}%22' for c in depcountry.split()])}")
+            res = await to_thread(requests.get, f"{url}{'%20or%20'.join([f'country_name=%22{c.title()}%22' for c in depcountry.split(',')])}")
             self.depcity = [f"{x.get('column_1')}.AIRPORT" for x in res.json().get("results")]
         elif depcity:
-            res = await to_thread(requests.get, f"{url}{'%20or%20'.join([f'city_name=%22{c}%22%20or%20airport_name%20LIKE%20%22{c}%22' for c in depcity.split()])}")
+            res = await to_thread(requests.get, f"{url}{'%20or%20'.join([f'city_name=%22{c.title()}%22%20or%20airport_name%20LIKE%20%22{c}%22' for c in depcity.split(',')])}")
             self.depcity = [f"{x.get('column_1')}.AIRPORT" for x in res.json().get("results")]
         if arrcountry:
-            res = await to_thread(requests.get, f"{url}{'%20or%20'.join([f'country_name=%22{c}%22' for c in arrcountry.split()])}")
+            res = await to_thread(requests.get, f"{url}{'%20or%20'.join([f'country_name=%22{c.title()}%22' for c in arrcountry.split(',')])}")
             self.arrcity = [f"{x.get('column_1')}.AIRPORT" for x in res.json().get("results")]
         elif arrcity:
-            res = await to_thread(requests.get, f"{url}{'%20or%20'.join([f'city_name=%22{c}%22%20or%20airport_name%20LIKE%20%22{c}%22' for c in arrcity.split()])}")
+            res = await to_thread(requests.get, f"{url}{'%20or%20'.join([f'city_name=%22{c}%22%20or%20airport_name%20LIKE%20%22{c.title()}%22' for c in arrcity.split(',')])}")
             self.arrcity = [f"{x.get('column_1')}.AIRPORT" for x in res.json().get("results")]
         self.vacmin, self.vacmax = vaclength.split('-')
         self.depday, self.depmonth, self.depyear = startperiod.split('-')
