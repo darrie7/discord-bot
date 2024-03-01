@@ -244,9 +244,9 @@ class justwatchCog(commands.Cog):
         media_path: where media is located
         """
         await inter.response.defer(with_message=True, ephemeral=False)
-        torrent = f"/mnt/9C33-6BBD/Media/Shows/{media_path}"
+        torrent = Path("/mnt/9C33-6BBD/Media/Shows/", media_path)
         if media_type:
-            torrent = f"/mnt/9C33-6BBD/Media/Movies/{media_path}"
+            torrent = Path("/mnt/9C33-6BBD/Media/Movies/", media_path)
         if torrent.is_file():
             if any(torrent.suffix.lower().endswith(ext) for ext in VIDEO_EXTENSIONS):
                 await self.download_subs(str(torrent))
