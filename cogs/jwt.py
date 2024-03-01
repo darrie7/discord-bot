@@ -9,6 +9,15 @@ import traceback
 import re
 from deluge_client import DelugeRPCClient
 import random
+from babelfish import Language
+from subliminal import download_best_subtitles, region, save_subtitles, scan_video
+from pathlib import Path
+
+VIDEO_EXTENSIONS = [
+    ".avi", ".mp4", ".mkv", ".mpg",
+    ".mpeg", ".mov", ".rm", ".vob",
+    ".wmv", ".flv", ".3gp",".3g2", ".swf", ".mswmm"
+]
 
 def convert_to_int(string):
     if string[-1] == 'K':
@@ -210,6 +219,40 @@ class justwatchCog(commands.Cog):
         """
         self.bot._db3.remove(self.bot._query.title == title)
         return await inter.send(f"{title} removed from databases")
+
+
+    async def download_subs(self, file_path):
+        await sleep(random.randint(2, 15))
+        region.configure('dogpile.cache.dbm', arguments={'filename': '/home/Scripts/pythonvenvs/deluge/deluge_scripts/cachefile.dbm'}, replace_existing_backend=True)
+        video = scan_video(file_path)
+        subtitles = await to_thread(download_best_subtitles, [video], {Language('eng')})
+        # save them to disk, next to the video
+        save_subtitles(video, subtitles[video])
+        return
+
+    @commands.slash_command()
+    async def download_subs(self,
+                        inter: disnake.ApplicationCommandInteraction,
+                        media_type: bool,
+                        media_path: str) -> None:
+        """
+        Download subtitles
+
+        Parameters
+        ----------
+        media_type: if movie set True, if tv show set False
+        media_path: where media is located
+        """
+        await inter.response.defer(with_message=True, ephemeral=False)
+        torrent = f"/mnt/9C33-6BBD/Media/Shows/{media_path}"
+        if media_type:
+            torrent = f"/mnt/9C33-6BBD/Media/Movies/{media_path}"
+        if torrent.is_file():
+            if any(torrent.suffix.lower().endswith(ext) for ext in VIDEO_EXTENSIONS):
+                await self.download_subs(str(torrent))
+            return
+        await gather(*[ self.download_subs(str(vid_file)) for vid_file in torrent.rglob('*') if vid_file.is_file() and any(vid_file.suffix.lower().endswith(ext) for ext in VIDEO_EXTENSIONS) ])
+        return await inter.send(f"Downloaded subs for {torrent}")
 
 
     @commands.slash_command()
