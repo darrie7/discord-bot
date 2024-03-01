@@ -231,7 +231,7 @@ class justwatchCog(commands.Cog):
         return
 
     @commands.slash_command()
-    async def download_subs(self,
+    async def download_subtitles(self,
                         inter: disnake.ApplicationCommandInteraction,
                         media_type: bool,
                         media_path: str) -> None:
@@ -302,6 +302,9 @@ class justwatchCog(commands.Cog):
     async def update_newestmedia(self) -> None:
         [ await Torrent(self, x).update_show() for x in self.bot._db3 if x.get('ismovie') is False ]
 
+    @delete_whole_db.error
+    @delete_db3_entry.error
+    @download_subtitles.error
     @delete_restdb.error
     @update_newestmedia.error
     @searchmedia.error
