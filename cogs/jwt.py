@@ -24,8 +24,10 @@ def convert_to_int(string):
         numeric_part = float(string[:-1])  # Remove 'K' and convert to float
         integer_value = int(numeric_part * 1000)  # Convert to integer by multiplying with 1000
         return integer_value
-    else:
+    if string[-1].isdigit():
         return int(string)  # If no 'K', directly convert to integer
+    else:
+        return 0
 
 
 class GlobalVars(commands.Cog):
