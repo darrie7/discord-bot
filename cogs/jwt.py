@@ -12,6 +12,7 @@ import random
 from babelfish import Language
 from subliminal import download_best_subtitles, region, save_subtitles, scan_video
 from pathlib import Path
+import json
 
 VIDEO_EXTENSIONS = [
     ".avi", ".mp4", ".mkv", ".mpg",
