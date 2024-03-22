@@ -187,7 +187,7 @@ class AnimeStuff:
         for x in sorted(parse(r.text).get("entries"), key = lambda v: int(v.get("nyaa_seeders")), reverse=True):
             x = dict(x)
             if any(title.lower() in x.get("title").lower().replace("\'", "").replace("\"", "").replace(",", "") for title in searchlist) and any(ep.lower() in x.get("title").lower().replace("\'", "").replace("\"", "").replace(",", "") for ep in episodesearch):
-                with DelugeRPCClient(self.host, 443, self.deluge_user, self.deluge_passwd) as client:
+                with DelugeRPCClient(self.host, 58846, self.deluge_user, self.deluge_passwd) as client:
                     try:
                         client.core.add_torrent_magnet(f"magnet:?xt=urn:btih:{x.get('nyaa_infohash')}", options={"download_location": "/downloads/"})
                     except Exception as e:
@@ -245,7 +245,7 @@ class MyCommandsCog(commands.Cog):
         self.bot.token = self.decoder.decrypt((requests.get(url="https://raw.githubusercontent.com/darrie7/STUFFFF/main/apilist")).text.strip()).decode()
         self.client_id = self.decoder.decrypt(b'gAAAAABlIw3eLcJmAFdqjAhCHJjq-2sWlw1NxnZKeR5_DDr9wsHnkPXq31CyWwsPItLxB_507xK6DgyzPomh8KvC9zH6OhbEdP5corItvLq7z00HOfZeQmqdFZWz-1cIZFegXXC-0k7N').decode()
         self.client_secret = self.decoder.decrypt(b'gAAAAABlIw5m_REDMeXuwvQVPHmCeHPV3MOfSjsFKYFpXlQIBmmBE9kWQTGqM8wlsw-UQq8X-E9fMpLFAiJmbwMQScaz2-Q9syj5RlnRUCL9jP7Rpn1TufI1JADvq4obcGF99UpPPvyTFPLe9kS8IjAeZIY0mEu4fj2NUHqJnKRAOZCLaAGO73I=').decode()
-        self.bot.host = self.decoder.decrypt(b'gAAAAABl_MRnO0H1XYPvaX4RQk-lZvC-vhlr5XpiU6Ydq2ztgdP1cB8-AWHZ7cZmWSsieWLRJ_hqrkmFZ3m2hx5Lvi6qH4xZ9lMOcJOKWQgrJgHRhX9s9vE=').decode()
+        self.bot.host = self.decoder.decrypt(b'gAAAAABlpWObOSHPZsnwbjQWP9MwULDlDRuxFXKPYBFAZS_s6X_Lr620EKMtklKbFRvK1uFNdX6YYUWvrO2gXKLHEDkvERVE3w==').decode()
         self.bot.deluge_user =  self.decoder.decrypt(b'gAAAAABlIxN9JUKSkB2Ncjq1Na0huIM53UJGIGEb621_We33mUKHkN4uaifSZYp_pfexSEpq6NKI4Iy97KFjthaVbeUm5gPSkA==').decode()
         self.bot.deluge_passwd = self.decoder.decrypt(b'gAAAAABlIxOc7ZikmiK3gtZK5hvEDFZHAEp3dQurdZl4YoMzfHBZ3eveES_0WY-cqF10fIwPuIDVbawOiCsKFVHaiPs6GQ6s8g==').decode()
         
