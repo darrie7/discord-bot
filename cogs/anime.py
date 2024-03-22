@@ -9,7 +9,7 @@ from typing import Optional
 import requests
 from cryptography.fernet import Fernet
 import re
-from deluge_client import DelugeRPCClient
+# from deluge_client import DelugeRPCClient
 
 
 class Dropdown(disnake.ui.Select):
