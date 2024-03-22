@@ -35,9 +35,11 @@ class GlobalVars(commands.Cog):
         self.url = "https://mymovies-41c3.restdb.io/rest/movies"
         self.decoder = Fernet(bot._enckey)
         self.api_key = self.decoder.decrypt(b'gAAAAABlIxJoppaR4gM008w5-s-mzxwgBIKhOR1-tVV4BoLq93w7jgCvP-TBNvUd-Pmojh1eSYYDIhukFVx0YkbGD4HXRkz-h0_C0aMl4t2MfxDP2RoKvMk=').decode()
-        self.host = self.decoder.decrypt(b'gAAAAABlpWObOSHPZsnwbjQWP9MwULDlDRuxFXKPYBFAZS_s6X_Lr620EKMtklKbFRvK1uFNdX6YYUWvrO2gXKLHEDkvERVE3w==').decode()
-        self.deluge_user =  self.decoder.decrypt(b'gAAAAABlIxN9JUKSkB2Ncjq1Na0huIM53UJGIGEb621_We33mUKHkN4uaifSZYp_pfexSEpq6NKI4Iy97KFjthaVbeUm5gPSkA==').decode()
-        self.deluge_passwd = self.decoder.decrypt(b'gAAAAABlIxOc7ZikmiK3gtZK5hvEDFZHAEp3dQurdZl4YoMzfHBZ3eveES_0WY-cqF10fIwPuIDVbawOiCsKFVHaiPs6GQ6s8g==').decode()
+        # self.host = self.decoder.decrypt(b'gAAAAABlpWObOSHPZsnwbjQWP9MwULDlDRuxFXKPYBFAZS_s6X_Lr620EKMtklKbFRvK1uFNdX6YYUWvrO2gXKLHEDkvERVE3w==').decode()
+        # self.deluge_user =  self.decoder.decrypt(b'gAAAAABlIxN9JUKSkB2Ncjq1Na0huIM53UJGIGEb621_We33mUKHkN4uaifSZYp_pfexSEpq6NKI4Iy97KFjthaVbeUm5gPSkA==').decode()
+        # self.deluge_passwd = self.decoder.decrypt(b'gAAAAABlIxOc7ZikmiK3gtZK5hvEDFZHAEp3dQurdZl4YoMzfHBZ3eveES_0WY-cqF10fIwPuIDVbawOiCsKFVHaiPs6GQ6s8g==').decode()
+        self.host = self.decoder.decrypt(b'gAAAAABl_exEE4XNI2DIJk34tap0xf-2Vdt7rhsMQ5ZV8FB-7EZ_BpqGTqFoXq9AQ04rsxSXgVJ_8FcguE_eKS0ChNuVq-zApOALV0VlA0NO1pUO_SnXODU=').decode()
+        self.deluge_passwd = self.decoder.decrypt(b'gAAAAABl_eyPYG0TxoImSD3TCeliHQ2hmMGnpMd22CcuPbtyCVzcCDjynwutv6zzWUaGRTCPNpfNDIUt3vX3KG43kymuMCdiKSHu2Km3wh8DjQUdY6bcYCg=').decode()
 
 
 class Torrent:
@@ -110,11 +112,24 @@ class Torrent:
                     break
         if not magnet_uri:
             magnet_uri = torrents[0].get("magnet")
-        with DelugeRPCClient(self.global_var.host, 58846, self.global_var.deluge_user, self.global_var.deluge_passwd) as client:
-            try:
-                client.core.add_torrent_magnet(f"{'&'.join([ part for part in magnet_uri.split('&') if not part.startswith('tr=') ])}&tr={await self.get_trackers()}", options={"download_location": medium})
-            except Exception as e:
-                await self.bot.get_channel(self.bot._test_channelid).send(f"""```{e}```""")
+        with requests.Session() as s:
+            url = self.host
+            headers = {'content-type': 'application/json'}
+            for data in [{"method": "auth.login", "params": [self.deluge_passwd]}, {"method": "web.connect", "params": ["58de378ad2f643d78c3e1ea72cbbc719"]}, {"method": "web.connected", "params": []}, {"method": "core.add_torrent_magnet", "params": [f"{'&'.join([ part for part in magnet_uri.split('&') if not part.startswith('tr=') ])}&tr={await self.get_trackers()}", {'save_path': medium}]}]:
+                payload = {
+                    'method': data.get("method"),
+                    'params': data.get("params"),
+                    'id': 1
+                }
+                response = s.post(url, data=json.dumps(payload), headers=headers)
+                if response.json().get("error"):
+                    await self.bot.get_channel(self.bot._test_channelid).send(f"""```{response.json().get("error")}```""")
+                    return
+        # with DelugeRPCClient(self.global_var.host, 58846, self.global_var.deluge_user, self.global_var.deluge_passwd) as client:
+        #     try:
+        #         client.core.add_torrent_magnet(f"{'&'.join([ part for part in magnet_uri.split('&') if not part.startswith('tr=') ])}&tr={await self.get_trackers()}", options={"download_location": medium})
+        #     except Exception as e:
+        #         await self.bot.get_channel(self.bot._test_channelid).send(f"""```{e}```""")
         return
     
 
