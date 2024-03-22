@@ -187,11 +187,24 @@ class AnimeStuff:
         for x in sorted(parse(r.text).get("entries"), key = lambda v: int(v.get("nyaa_seeders")), reverse=True):
             x = dict(x)
             if any(title.lower() in x.get("title").lower().replace("\'", "").replace("\"", "").replace(",", "") for title in searchlist) and any(ep.lower() in x.get("title").lower().replace("\'", "").replace("\"", "").replace(",", "") for ep in episodesearch):
-                with DelugeRPCClient(self.host, 58846, self.deluge_user, self.deluge_passwd) as client:
-                    try:
-                        client.core.add_torrent_magnet(f"magnet:?xt=urn:btih:{x.get('nyaa_infohash')}", options={"download_location": "/downloads/"})
-                    except Exception as e:
-                        await self.bot.get_channel(self.bot._test_channelid).send(f"""```{e}```""")
+                with requests.Session() as s:
+                    url = self.host
+                    headers = {'content-type': 'application/json'}
+                    for data in [{"method": "auth.login", "params": [self.deluge_passwd]}, {"method": "web.connect", "params": ["58de378ad2f643d78c3e1ea72cbbc719"]}, {"method": "web.connected", "params": []}, {"method": "core.add_torrent_magnet", "params": [f"magnet:?xt=urn:btih:{x.get('nyaa_infohash')}", {'save_path': '/downloads/'}]}]:
+                        payload = {
+                            'method': data.get("method"),
+                            'params': data.get("params"),
+                            'id': 1
+                        }
+                        response = s.post(url, data=json.dumps(payload), headers=headers)
+                        if response.json().get("error"):
+                            await self.bot.get_channel(self.bot._test_channelid).send(f"""```{e}```""")
+                            return
+                # with DelugeRPCClient(self.host, 58846, self.deluge_user, self.deluge_passwd) as client:
+                #     try:
+                #         client.core.add_torrent_magnet(f"magnet:?xt=urn:btih:{x.get('nyaa_infohash')}", options={"download_location": "/downloads/"})
+                #     except Exception as e:
+                #         await self.bot.get_channel(self.bot._test_channelid).send(f"""```{e}```""")
                 embed = disnake.Embed(title = x.get("title"))
                 embed.set_thumbnail(url=self.anime.get("media").get("coverImage").get("extraLarge"))
                 await self.bot.get_channel(679029957728665628).send(await self.url_shortener(f"magnet:?xt=urn:btih:{x['nyaa_infohash']}"))
@@ -245,9 +258,12 @@ class MyCommandsCog(commands.Cog):
         self.bot.token = self.decoder.decrypt((requests.get(url="https://raw.githubusercontent.com/darrie7/STUFFFF/main/apilist")).text.strip()).decode()
         self.client_id = self.decoder.decrypt(b'gAAAAABlIw3eLcJmAFdqjAhCHJjq-2sWlw1NxnZKeR5_DDr9wsHnkPXq31CyWwsPItLxB_507xK6DgyzPomh8KvC9zH6OhbEdP5corItvLq7z00HOfZeQmqdFZWz-1cIZFegXXC-0k7N').decode()
         self.client_secret = self.decoder.decrypt(b'gAAAAABlIw5m_REDMeXuwvQVPHmCeHPV3MOfSjsFKYFpXlQIBmmBE9kWQTGqM8wlsw-UQq8X-E9fMpLFAiJmbwMQScaz2-Q9syj5RlnRUCL9jP7Rpn1TufI1JADvq4obcGF99UpPPvyTFPLe9kS8IjAeZIY0mEu4fj2NUHqJnKRAOZCLaAGO73I=').decode()
-        self.bot.host = self.decoder.decrypt(b'gAAAAABlpWObOSHPZsnwbjQWP9MwULDlDRuxFXKPYBFAZS_s6X_Lr620EKMtklKbFRvK1uFNdX6YYUWvrO2gXKLHEDkvERVE3w==').decode()
-        self.bot.deluge_user =  self.decoder.decrypt(b'gAAAAABlIxN9JUKSkB2Ncjq1Na0huIM53UJGIGEb621_We33mUKHkN4uaifSZYp_pfexSEpq6NKI4Iy97KFjthaVbeUm5gPSkA==').decode()
-        self.bot.deluge_passwd = self.decoder.decrypt(b'gAAAAABlIxOc7ZikmiK3gtZK5hvEDFZHAEp3dQurdZl4YoMzfHBZ3eveES_0WY-cqF10fIwPuIDVbawOiCsKFVHaiPs6GQ6s8g==').decode()
+        # self.bot.host = self.decoder.decrypt(b'gAAAAABlpWObOSHPZsnwbjQWP9MwULDlDRuxFXKPYBFAZS_s6X_Lr620EKMtklKbFRvK1uFNdX6YYUWvrO2gXKLHEDkvERVE3w==').decode()
+        # self.bot.deluge_user =  self.decoder.decrypt(b'gAAAAABlIxN9JUKSkB2Ncjq1Na0huIM53UJGIGEb621_We33mUKHkN4uaifSZYp_pfexSEpq6NKI4Iy97KFjthaVbeUm5gPSkA==').decode()
+        # self.bot.deluge_passwd = self.decoder.decrypt(b'gAAAAABlIxOc7ZikmiK3gtZK5hvEDFZHAEp3dQurdZl4YoMzfHBZ3eveES_0WY-cqF10fIwPuIDVbawOiCsKFVHaiPs6GQ6s8g==').decode()
+        self.bot.host = self.decoder.decrypt(b'gAAAAABl_exEE4XNI2DIJk34tap0xf-2Vdt7rhsMQ5ZV8FB-7EZ_BpqGTqFoXq9AQ04rsxSXgVJ_8FcguE_eKS0ChNuVq-zApOALV0VlA0NO1pUO_SnXODU=').decode()
+        self.bot.deluge_passwd = self.decoder.decrypt(b'gAAAAABl_eyPYG0TxoImSD3TCeliHQ2hmMGnpMd22CcuPbtyCVzcCDjynwutv6zzWUaGRTCPNpfNDIUt3vX3KG43kymuMCdiKSHu2Km3wh8DjQUdY6bcYCg=').decode()
+        
         
         
     def cog_unload(self) -> None:
