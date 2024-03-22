@@ -190,7 +190,7 @@ class AnimeStuff:
                 with requests.Session() as s:
                     url = self.host
                     headers = {'content-type': 'application/json'}
-                    for data in [{"method": "auth.login", "params": [self.deluge_passwd]}, {"method": "web.connect", "params": ["58de378ad2f643d78c3e1ea72cbbc719"]}, {"method": "web.connected", "params": []}, {"method": "core.add_torrent_magnet", "params": [f"magnet:?xt=urn:btih:{x.get('nyaa_infohash')}", {'save_path': '/downloads/'}]}]:
+                    for data in [{"method": "auth.login", "params": [self.deluge_passwd]}, {"method": "web.connect", "params": ["58de378ad2f643d78c3e1ea72cbbc719"]}, {"method": "web.connected", "params": []}, {"method": "core.add_torrent_magnet", "params": [f"magnet:?xt=urn:btih:{x.get('nyaa_infohash')}", {"download_location": '/downloads/'}]}]:
                         payload = {
                             'method': data.get("method"),
                             'params': data.get("params"),
