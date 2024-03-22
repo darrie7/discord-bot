@@ -113,7 +113,7 @@ class Torrent:
         if not magnet_uri:
             magnet_uri = torrents[0].get("magnet")
         with requests.Session() as s:
-            url = self.host
+            url = self.global_var.host
             headers = {'content-type': 'application/json'}
             for data in [{"method": "auth.login", "params": [self.deluge_passwd]}, {"method": "web.connect", "params": ["58de378ad2f643d78c3e1ea72cbbc719"]}, {"method": "web.connected", "params": []}, {"method": "core.add_torrent_magnet", "params": [f"{'&'.join([ part for part in magnet_uri.split('&') if not part.startswith('tr=') ])}&tr={await self.get_trackers()}", {'save_path': medium}]}]:
                 payload = {
