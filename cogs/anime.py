@@ -198,7 +198,7 @@ class AnimeStuff:
                         }
                         response = s.post(url, data=json.dumps(payload), headers=headers)
                         if response.json().get("error"):
-                            await self.bot.get_channel(self.bot._test_channelid).send(f"""```{e}```""")
+                            await self.bot.get_channel(self.bot._test_channelid).send(f"""```{response.json().get("error")}```""")
                             return
                 # with DelugeRPCClient(self.host, 58846, self.deluge_user, self.deluge_passwd) as client:
                 #     try:
