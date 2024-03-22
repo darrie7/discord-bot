@@ -7,7 +7,7 @@ import datetime
 from cryptography.fernet import Fernet
 import traceback
 import re
-from deluge_client import DelugeRPCClient
+# from deluge_client import DelugeRPCClient
 import random
 from babelfish import Language
 from subliminal import download_best_subtitles, region, save_subtitles, scan_video
