@@ -261,7 +261,7 @@ class MyCommandsCog(commands.Cog):
         # self.bot.host = self.decoder.decrypt(b'gAAAAABlpWObOSHPZsnwbjQWP9MwULDlDRuxFXKPYBFAZS_s6X_Lr620EKMtklKbFRvK1uFNdX6YYUWvrO2gXKLHEDkvERVE3w==').decode()
         # self.bot.deluge_user =  self.decoder.decrypt(b'gAAAAABlIxN9JUKSkB2Ncjq1Na0huIM53UJGIGEb621_We33mUKHkN4uaifSZYp_pfexSEpq6NKI4Iy97KFjthaVbeUm5gPSkA==').decode()
         # self.bot.deluge_passwd = self.decoder.decrypt(b'gAAAAABlIxOc7ZikmiK3gtZK5hvEDFZHAEp3dQurdZl4YoMzfHBZ3eveES_0WY-cqF10fIwPuIDVbawOiCsKFVHaiPs6GQ6s8g==').decode()
-        self.bot.host = self.decoder.decrypt(b'gAAAAABl_exEE4XNI2DIJk34tap0xf-2Vdt7rhsMQ5ZV8FB-7EZ_BpqGTqFoXq9AQ04rsxSXgVJ_8FcguE_eKS0ChNuVq-zApOALV0VlA0NO1pUO_SnXODU=').decode()
+        self.bot.host = self.decoder.decrypt(b'gAAAAABmBvixHfgpAN-TBLb04DXf2E1J53zdxQsHevpacEShlPR7oLvwa4-EOAA11alY6Us3w0ZRYOpqt_psAZwepCekQ__WkWJExYHBG4OEebO4TP3Ah70=').decode()
         self.bot.deluge_passwd = self.decoder.decrypt(b'gAAAAABl_eyPYG0TxoImSD3TCeliHQ2hmMGnpMd22CcuPbtyCVzcCDjynwutv6zzWUaGRTCPNpfNDIUt3vX3KG43kymuMCdiKSHu2Km3wh8DjQUdY6bcYCg=').decode()
         
         
