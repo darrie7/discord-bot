@@ -59,7 +59,7 @@ class AnimeStuff:
         self.anime = anime
         self.token = bot.token
         self.host = bot.host
-        self.deluge_user = bot.deluge_user
+        # self.deluge_user = bot.deluge_user
         self.deluge_passwd = bot.deluge_passwd
 
 
