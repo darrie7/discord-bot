@@ -120,7 +120,7 @@ class AnimeStuff:
         search = [ s for s in search if s and s.isascii() ]
         '''for z in [("season ", "s"), (": ", " - "), (": ", " "), ("-"," ")]:'''
         for z in [(": ", " - "), (": ", " "), ("-"," ")]:
-            search.extend([" - ".join([a.lower().replace(z[0], z[1]) for a in title.split(" - ")]) for title in search if z[0] in title.lower()])
+            search.extend([" - ".join([a.replace(z[0], z[1]) for a in title.split(" - ")]) for title in search if z[0] in title.lower()])
         self.anime["search"] = list(dict.fromkeys(search))
         '''episode search'''
         # Regular expression patterns to match season indicators
@@ -129,7 +129,7 @@ class AnimeStuff:
             re.compile(r's(\d+)', re.IGNORECASE),
             re.compile(r'(\d+)(?:st|nd|rd|th) season', re.IGNORECASE),
             re.compile(r'(second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth) season', re.IGNORECASE),
-            re.compile(r' (II|III|IV|V|VI|VII|VIII|IX|X)$', re.IGNORECASE),  # Roman numerals
+            re.compile(r' (II|III|IV|V|VI|VII|VIII|IX|X)$'),  # Roman numerals
         ]
         # Dictionary to map words to numeric values
         word_roman_to_number = {
