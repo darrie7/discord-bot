@@ -235,7 +235,7 @@ class justwatchCog(commands.Cog):
         """
         await inter.response.defer(with_message=True, ephemeral=False)
         self.bot._db3.truncate()
-        await inter.send("Deleted")
+        await inter.send("```Deleted```")
         return
 
     @commands.slash_command()
@@ -248,7 +248,7 @@ class justwatchCog(commands.Cog):
         title: title of media entry
         """
         self.bot._db3.remove(self.bot._query.title == title)
-        return await inter.send(f"{title} removed from databases")
+        return await inter.send(f"```{title} removed from databases```")
 
 
     async def download_subs(self, file_path):
@@ -282,7 +282,7 @@ class justwatchCog(commands.Cog):
                 await self.download_subs(str(torrent))
             return
         await gather(*[ self.download_subs(str(vid_file)) for vid_file in torrent.rglob('*') if vid_file.is_file() and any(vid_file.suffix.lower().endswith(ext) for ext in VIDEO_EXTENSIONS) ])
-        return await inter.send(f"Downloaded subs for {torrent}")
+        return await inter.send(f"```Downloaded subs for {torrent}```")
 
 
     @commands.slash_command()
@@ -303,7 +303,7 @@ class justwatchCog(commands.Cog):
         await self.bot.get_channel(self.bot._test_channelid).send(f"""```{main_entry}```""")
         await to_thread(requests.delete, f"{self.bot.global_var.url}/{main_entry.get('_id')}", headers={'content-type': "application/json",'x-apikey': self.bot.global_var.api_key,'cache-control': "no-cache"})
         self.bot._db3.remove(self.bot._query.title == title)
-        return await inter.send(f"{title} removed from databases")
+        return await inter.send(f"```{title} removed from databases```")
 
 
     @tasks.loop(seconds=60)
