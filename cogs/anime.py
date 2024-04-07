@@ -120,7 +120,7 @@ class AnimeStuff:
         search = [ s for s in search if s and s.isascii() ]
         '''for z in [("season ", "s"), (": ", " - "), (": ", " "), ("-"," ")]:'''
         for z in [(": ", " - "), (": ", " "), ("-"," ")]:
-            search.extend([" - ".join([a.replace(z[0], z[1]) for a in title.split(" - ")]) for title in search if z[0] in title.lower()])
+            search.extend([" - ".join([a.replace(z[0], z[1]) for a in title.split(" - ")]) for title in search if z[0] in title])
         self.anime["search"] = list(dict.fromkeys(search))
         '''episode search'''
         # Regular expression patterns to match season indicators
