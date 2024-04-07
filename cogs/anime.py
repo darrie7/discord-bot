@@ -286,7 +286,7 @@ class MyCommandsCog(commands.Cog):
         value: the value
         """
         self.bot._db5.upsert({"key": key, "value": value}, self.bot._query.key == key)
-        await inter.response.send_message(f"{key} has been added or updated", ephemeral=True)
+        await inter.response.send_message(f"```{key} has been added or updated```", ephemeral=True)
 
 
     @tasks.loop(minutes=5)
@@ -336,7 +336,7 @@ class MyCommandsCog(commands.Cog):
                 print(data)
                 header = {'Authorization': f'Bearer {maltoken}'}
                 req = await to_thread(requests.put, url=f"""https://api.myanimelist.net/v2/anime/{x.get("media").get("idMal")}/my_list_status""", headers = header, data = data)
-                await self.bot.get_channel(self.bot._test_channelid).send(f"task 3: {req.json()}")
+                await self.bot.get_channel(self.bot._test_channelid).send(f"```task 3: {req.json()}```")
 
     
     @tasks.loop(hours=168)
@@ -346,7 +346,7 @@ class MyCommandsCog(commands.Cog):
     "grant_type": "refresh_token",
     "refresh_token": self.bot._db5.get(self.bot._query.key == "mal_refresh").get("value")}
         myreq = await to_thread(requests.post, url="https://myanimelist.net/v1/oauth2/token", data = params)
-        await self.bot.get_channel(self.bot._test_channelid).send(f"task 5:{myreq.json()}")
+        await self.bot.get_channel(self.bot._test_channelid).send(f"```task 5:{myreq.json()}```")
         self.bot._db5.upsert({"value": myreq.json().get("access_token")}, self.bot._query.key == "mal_access")
         self.bot._db5.upsert({"value": myreq.json().get("refresh_token")}, self.bot._query.key == "mal_refresh")
 
