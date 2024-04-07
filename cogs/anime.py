@@ -117,7 +117,7 @@ class AnimeStuff:
         if self.anime.get("notes").get("syn"):
             search.extend(self.anime.get("notes").get("syn"))
         search.extend(self.anime.get("media").get("synonyms"))
-        search = [ s for s in search if s and s.isascii() ]
+        search = [ s for s in search if s and s.isascii() and len(s) > 2 ]
         '''for z in [("season ", "s"), (": ", " - "), (": ", " "), ("-"," ")]:'''
         for z in [(": ", " - "), (": ", " "), ("-"," ")]:
             search.extend([" - ".join([a.replace(z[0], z[1]) for a in title.split(" - ")]) for title in search if z[0] in title])
