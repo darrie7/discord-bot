@@ -127,6 +127,7 @@ class AnimeStuff:
         season_patterns = [
             re.compile(r'season (\d+)', re.IGNORECASE),
             re.compile(r's(\d+)', re.IGNORECASE),
+            re.compile(r' (\d+)$', re.IGNORECASE),
             re.compile(r'(\d+)(?:st|nd|rd|th) season', re.IGNORECASE),
             re.compile(r'(second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth) season', re.IGNORECASE),
             re.compile(r' (II|III|IV|V|VI|VII|VIII|IX|X)$'),  # Roman numerals
