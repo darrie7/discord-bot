@@ -9,6 +9,8 @@ from typing import Optional
 import requests
 from cryptography.fernet import Fernet
 import re
+import string
+import random
 # from deluge_client import DelugeRPCClient
 
 
@@ -254,6 +256,7 @@ class MyCommandsCog(commands.Cog):
         self.bot = bot
         self.task_two.start()
         self.task_three.start()
+        self.task_four.start()
         self.task_five.start()
         self.decoder = Fernet(self.bot._enckey)
         self.bot.token = self.decoder.decrypt(b'gAAAAABmBvXouylSxaCLf73YU23aES0icnrji2pYrhlpNsKVAUgj30oV8Ey0h5VeXcl1qLgE1gU6tg6k3IPKSRU46Ijz7VfZjL1U1HZfLHn_SPhBIyJ26qMjTBoYUhMOXtrhRCN9yRHMVbnruYaR4gkNNaHTRBFwN2WveSEiu9SrtYsdxp_48wdoBJxOUoIK_1mpgILKN6a1yPGHsuiWbDkYk9gfp6GRu3Bh7E94dMIj2u_XpE1dwnyBCuDp2OucSH9gqvKG4A5Ewdp70g7WGs1s9rJcjxheKqS7RpYkXUQMRmS9FsVz7INhI0um3BXMqlokYhtEc9anTON341jrs2IXL4x2jpRRhTzimtMcx24lDv981X1m1ykVfkSeZUfD5qa9tIXBpgjVhg2mq2axQiBUhJr2D3cQk1iH-6OSzC-0-ZkswPC69YvfRFSVBU0cE7h6gPuD_1CJWBQXAogJAMVyl78jCPAtjUw8IKKMzvTDy73KAHGbi84DrTs4l04hjIlv44rj-2WYDdEF8BEWk-C8iiq5qL5a3zzHg_xEK_caARlqWByXNPmpds4EZIRLYfjrqAcAKSh8AMAcF0vMQbGw_seeoTDZM0T5MsZzkOrXHScqtkdt6J1FSO6CNUmPKCgCDFJZ2T7FOBBT4RGZ_Tm3lHBuoamI-ts1v5nXoEe2Fmn52I5pl4VIszWinGlZ0g0MHaCpee1hdT-rBLlfuJoP9QErQ2aSQfXN1RP5-oc3CN_TFYv0q3yvQWj_6Ma8Bb3Kd-nK6jhmC1s3Z4bhb0qk3MaBlKkYUH-M76tNHnx2AZQBjRpqf6Gx74ftBg3uz__SQ5qHDXf_FtCKYR1POSWLdTiHmwq0uad69vc2EfKApOXqk-S9aD7P2CtSF_3I43ia3aRid1eJbiSkzHulEElW9oh6p-P7myEZVvSY2BdxDfClcRsRlSLupQGW0Kku9hZnRqptsuY8LPRWRTseGoXiiGYHOl_p0iSjWFYowdKAxRqAhgBfYsNvM0RP_XCTXEdxaititPtEqCikzsePoV6QuU21hdRzwlQj5beZz_aoIHjyE8SyHVZLnXgtvZMOUrSETI9ABTgX4gBIg2L3M3BLoMGSTWZLeZkDa7ZeBkDg3LTtSRMezamoVqzT0LgJxJuKqEfU8KAN67aVYtBs1ymQgOZqKriJkEhtl_Ts7GPYlhw8M9pQt3NnImdMONEQ-C1fh5WWEsJFj5NwJZEVkp1C44LG8o6OZcHmUsWfLZnYrm-PUVnvvCc4_WzQj4B8P8oVZpEkjugttfjy8Ks_7NuZQU_z6Kx9HSJkdsQ94NtRB2ckBqSZ3IlIhPP1ISiXbaggtjNEydhL8pIgwDSKxpMuF6BXdnCRLXX2e405XNkb_LSFZAx4xdVE7yPa-5ZKTqI5JUSmvjX0L7zh4EIE7CtZVYSODt-ReZnJ8DqiYXjeGeuwkfR2ci-n-7F6Smu8_BLwq_rH4enchgOh8Sq-HTx_HheZr0wZ385FKgN4CV_LKortMBc4i1k=').decode()
@@ -271,6 +274,7 @@ class MyCommandsCog(commands.Cog):
         self.task_two.cancel()
         self.task_three.cancel()
         self.task_five.cancel()
+        self.task_four.cancel()
 
 
     @commands.slash_command()
@@ -310,6 +314,10 @@ class MyCommandsCog(commands.Cog):
             return
         await send2graphql(f"""mutation {{ {"".join(res[0] for res in r)} }}""", self.bot.token)
 
+
+    @tasks.loop(hours=2)
+    async def task_four(self) -> None:
+        self.bot._db5.update({'value': ''.join(random.choice(string.ascii_letters) for i in range(50))}, self.bot._query.key == "cookies")
 
     @tasks.loop(minutes=15)
     async def task_three(self) -> None:
