@@ -102,26 +102,24 @@ class Torrent:
 
 
     async def magnet2deluge(self, torrents, medium):
-        magnet_uri = None
+        found_torrent = None
         for tor_info in torrents:
-            tor_title = tor_info.get("title")
-            if "265" in tor_title:
-                if not magnet_uri:
-                    magnet_uri = tor_info.get("magnet")
+            if "265" in tor_info.get("title"):
+                if not found_torrent:
+                    found_torrent = tor_info
                 if "10bit" in tor_title:
-                    magnet_uri = tor_info.get("magnet")
+                    found_torrent = tor_info
                     break
-                else:
-                    if self.db_entry.get('h26510_cycle') < 4:
-                        self.payload = {"_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": self.db_entry.get('h26510_cycle')+1}
-                        await self.update_db(restdb = False)
-                        return True        
-        if not magnet_uri:
-            magnet_uri = torrents[0].get("magnet")
+        if "10bit" not in found_torrent.get("title") and self.db_entry.get('h26510_cycle') < 4:
+            self.payload = {"_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": self.db_entry.get('h26510_cycle')+1}
+            await self.update_db(restdb = False)
+            return True
+        if not found_torrent:
+            found_torrent = torrents[0]
         with requests.Session() as s:
             url = self.global_var.host
             headers = {'content-type': 'application/json'}
-            for data in [{"method": "auth.login", "params": [self.global_var.deluge_passwd]}, {"method": "web.connect", "params": ["58de378ad2f643d78c3e1ea72cbbc719"]}, {"method": "web.connected", "params": []}, {"method": "core.add_torrent_magnet", "params": [f"{'&'.join([ part for part in magnet_uri.split('&') if not part.startswith('tr=') ])}&tr={await self.get_trackers()}", {"download_location": medium}]}]:
+            for data in [{"method": "auth.login", "params": [self.global_var.deluge_passwd]}, {"method": "web.connect", "params": ["58de378ad2f643d78c3e1ea72cbbc719"]}, {"method": "web.connected", "params": []}, {"method": "core.add_torrent_magnet", "params": [f"{'&'.join([ part for part in found_torrent.get("magnet").split('&') if not part.startswith('tr=') ])}&tr={await self.get_trackers()}", {"download_location": medium}]}]:
                 payload = {
                     'method': data.get("method"),
                     'params': data.get("params"),
