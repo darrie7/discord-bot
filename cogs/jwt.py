@@ -107,7 +107,7 @@ class Torrent:
             if "265" in tor_info.get("title"):
                 if not found_torrent:
                     found_torrent = tor_info
-                if "10bit" in tor_title:
+                if "10bit" in tor_info.get("title"):
                     found_torrent = tor_info
                     break
         if "10bit" not in found_torrent.get("title") and self.db_entry.get('h26510_cycle') < 4:
