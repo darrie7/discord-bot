@@ -13,6 +13,7 @@ from babelfish import Language
 from subliminal import download_best_subtitles, region, save_subtitles, scan_video
 from pathlib import Path
 import json
+import xml.etree.ElementTree as ET
 
 VIDEO_EXTENSIONS = [
     ".avi", ".mp4", ".mkv", ".mpg",
@@ -41,6 +42,7 @@ class GlobalVars(commands.Cog):
         # self.deluge_passwd = self.decoder.decrypt(b'gAAAAABlIxOc7ZikmiK3gtZK5hvEDFZHAEp3dQurdZl4YoMzfHBZ3eveES_0WY-cqF10fIwPuIDVbawOiCsKFVHaiPs6GQ6s8g==').decode()
         self.host = self.decoder.decrypt(b'gAAAAABmBvixHfgpAN-TBLb04DXf2E1J53zdxQsHevpacEShlPR7oLvwa4-EOAA11alY6Us3w0ZRYOpqt_psAZwepCekQ__WkWJExYHBG4OEebO4TP3Ah70=').decode()
         self.deluge_passwd = self.decoder.decrypt(b'gAAAAABmEvel4VRvjFbNkKvvqWrb3c5Jrngy6JOQZ83JjyDHPXuioI0-xwROYDG7EdQ8Gjpmy-JuCZLdjsIKrZ1V0YF0cBxkiQm10mMU0ScTWBW1EZVJrft5WTe4ZsHf9v6W4C57Kk_luG4BB4wy98mOe9ZxY1bKFDlMYAAy-IH77YUO4MBr2_QtWk7JwOhpF7-Bwctfp00s-3T2Q4QDE5fA-aaOp-dqqKAQUZw44rcMA_3-KdKWjdfkobof8QQoKBQ5cEdrA5JO').decode()
+        self.jkt = self.decoder.decrypt(b'gAAAAABmRUBmnARecJEV7e02UAXCZhv9uIsuMtvcHw5KCeEl0-caj94VYCaueaQv7LeB_iFASbkA3abMasRRAbxj_5YOHCjQK_hy8Av7GPfgYFuEAaMWlwcP4prBuVMg7p7EL2oGvKJ-HBCfnS4ICwc7RTVjCsuYxR2cjtv9rlbP2upMnpj-wVACNzK7wZ4jWpgUh9zt-rjWE7fTzEIOTXoCbHsb1_MIwTtGdIuPuvyzgAGXojuEl1E=').decode()
 
 
 class Torrent:
@@ -96,13 +98,25 @@ class Torrent:
 
     async def media_scraper(self):
         n: int = 0
-        funcs = [self.bitsearch_downloader, self.magnetdl_downloader]
-        while n < len(funcs):
-            scraped = await funcs[n % len(funcs)]()
-            if scraped:
-                return scraped
-            n += 1
+        uri = f"{self.jkt}{self.search_term}+1080p"
+        while n < 2:
+            data = await to_thread(requests.get, uri)
+            if not data.ok:
+                n += 1
+                continue
+            root = ET.fromstring(data.text)
+            title_magnet = [{'title': item.find('title').text, 'magnet': item.find(".//{http://torznab.com/schemas/2015/feed}attr[@name='magneturl']").attrib['value']} for item in root.findall('.//item') if (int(item.find(".//{http://torznab.com/schemas/2015/feed}attr[@name='seeders']").attrib['value']) > 2 and item.find('title').text.lower().startswith(self.search_term.lower().split(' ')[0].replace('"', '')))]:
+            return title_magnet if title_magnet else []
         return []
+        
+        # n: int = 0
+        # funcs = [self.bitsearch_downloader, self.magnetdl_downloader]
+        # while n < len(funcs):
+        #     scraped = await funcs[n % len(funcs)]()
+        #     if scraped:
+        #         return scraped
+        #     n += 1
+        # return []
 
 
     async def delete_entry(self) -> None:
