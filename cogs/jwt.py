@@ -56,8 +56,7 @@ class Torrent:
         dom = html.fromstring(r.text)
         season_episode = dom.cssselect('.episodes-item span')[0].text_content().split(" ")
         if season_episode[0] not in self.db_entry.get('newest_season') or season_episode[1] not in self.db_entry.get('newest_episode'):
-            self.payload = { "newest_season": season_episode[0], "newest_episode": season_episode[1], "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z' }
-            await self.update_db()
+            await self.update_db({ "newest_season": season_episode[0], "newest_episode": season_episode[1], "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z' })
 
 
     async def magnetdl_downloader(self): ## ADD filter for +-hdrip+-camrip+-hdcam+-hdts+
@@ -112,8 +111,7 @@ class Torrent:
         return
 
 
-    async def update_db(self, restdb = True) -> None:
-        payload = self.payload
+    async def update_db(self, payload, restdb = True) -> None:
         self.bot._db3.update(payload, self.bot._query["_id"] == self.db_entry.get('_id'))
         if restdb:
             await to_thread(requests.put, f"{self.global_var.url}/{self.db_entry.get('_id')}", json=payload, headers={'content-type': "application/json",'x-apikey': self.global_var.api_key,'cache-control': "no-cache"})
@@ -138,8 +136,7 @@ class Torrent:
                     found_torrent = tor_info
                     break
         if "10bit" not in found_torrent.get("title") and self.db_entry.get('h26510_cycle') < 4:
-            self.payload = {"_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": self.db_entry.get('h26510_cycle')+1}
-            await self.update_db(restdb = False)
+            await self.update_db({"_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": self.db_entry.get('h26510_cycle')+1}, restdb = False)
             return True
         if not found_torrent:
             found_torrent = torrents[0]
@@ -164,8 +161,7 @@ class Torrent:
             self.search_term = f'''"{self.db_entry.get('title')} {self.db_entry.get('year')}"'''
             t_info = await self.media_scraper()
             if t_info == []:
-                self.payload = {"_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z'}
-                await self.update_db(restdb = False)
+                await self.update_db({"_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z'}, restdb = False)
                 return
             mag2del = await self.magnet2deluge(t_info, "/movies/")
             if mag2del:
@@ -187,8 +183,7 @@ class Torrent:
                     mag2del = await self.magnet2deluge(t_info, f"/tv/{self.db_entry.get('title').replace(' ', '_')}/")
                     if mag2del:
                         return
-                    self.payload = {"progress_season": f"S{progress_season + 1}", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": 0} if (newest_season > progress_season) else {"progress_episode": f"E{newest_episode}", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": 0}
-                    await self.update_db()
+                    await self.update_db({"progress_season": f"S{progress_season + 1}", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": 0} if (newest_season > progress_season) else {"progress_episode": f"E{newest_episode}", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": 0})
                     return
                 self.search_term = f"{self.db_entry.get('title')} S{progress_season:02}E{progress_episode+1:02}"
                 t_info = await self.media_scraper()
@@ -196,11 +191,9 @@ class Torrent:
                     mag2del = await self.magnet2deluge(t_info, f"/tv/{self.db_entry.get('title').replace(' ', '_')}/")
                     if mag2del:
                         return
-                    self.payload = {"progress_episode": f"E{progress_episode+1}", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": 0}
-                    await self.update_db()
+                    await self.update_db({"progress_episode": f"E{progress_episode+1}", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": 0})
                     return
-                self.payload = {"_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z'}
-                await self.update_db(restdb = False)
+                await self.update_db({"_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z'}, restdb = False)
                 return
             self.search_term = f"{self.db_entry.get('title')} S{progress_season:02}E{progress_episode+1:02}"
             t_info = await self.media_scraper()
@@ -208,8 +201,7 @@ class Torrent:
                 mag2del = await self.magnet2deluge(t_info, f"/tv/{self.db_entry.get('title').replace(' ', '_')}/")
                 if mag2del:
                     return
-                self.payload = {"progress_episode": f"E{progress_episode+1}", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": 0}
-                await self.update_db()
+                await self.update_db({"progress_episode": f"E{progress_episode+1}", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": 0})
                 return
             self.search_term = f"{self.db_entry.get('title')} S{progress_season+1:02}"
             t_info = await self.media_scraper()
@@ -217,8 +209,7 @@ class Torrent:
                 mag2del = await self.magnet2deluge(t_info, f"/tv/{self.db_entry.get('title').replace(' ', '_')}/")
                 if mag2del:
                     return
-                self.payload = {"progress_season": f"S{progress_season+1}","progress_episode": f"E0", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": 0} if (newest_season > progress_season+1) else {"progress_season": f"S{newest_season}","progress_episode": f"E{newest_episode}", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": 0}
-                await self.update_db()
+                await self.update_db({"progress_season": f"S{progress_season+1}","progress_episode": f"E0", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": 0} if (newest_season > progress_season+1) else {"progress_season": f"S{newest_season}","progress_episode": f"E{newest_episode}", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": 0})
                 return
             self.search_term = f"{self.db_entry.get('title')} S{progress_season+1:02}E01"
             t_info = await self.media_scraper()
@@ -226,11 +217,9 @@ class Torrent:
                 mag2del = await self.magnet2deluge(t_info, f"/tv/{self.db_entry.get('title').replace(' ', '_')}/")
                 if mag2del:
                     return
-                self.payload = {"progress_season": f"S{progress_season+1}","progress_episode": "E1", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": 0}
-                await self.update_db()
+                await self.update_db({"progress_season": f"S{progress_season+1}","progress_episode": "E1", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": 0})
                 return
-            self.payload = {"_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z'}
-            await self.update_db(restdb = False)
+            await self.update_db({"_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z'}, restdb = False)
             return
 
 
