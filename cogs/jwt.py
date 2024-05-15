@@ -176,11 +176,12 @@ class Torrent:
             newest_episode = int(self.db_entry.get('newest_episode').replace('E', ''))
             progress_season = int(self.db_entry.get('progress_season').replace('S', ''))
             progress_episode = int(self.db_entry.get('progress_episode').replace('E', ''))
+            dl_path = f"/tv/{self.db_entry.get('title').replace(' ', '_')}/"
             if progress_episode == 0:
                 self.search_term = f"{self.db_entry.get('title')} S{progress_season:02}"
                 t_info = await self.media_scraper()
                 if not t_info == []:
-                    mag2del = await self.magnet2deluge(t_info, f"/tv/{self.db_entry.get('title').replace(' ', '_')}/")
+                    mag2del = await self.magnet2deluge(t_info, dl_path)
                     if mag2del:
                         return
                     await self.update_db({"progress_season": f"S{progress_season + 1}", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": 0} if (newest_season > progress_season) else {"progress_episode": f"E{newest_episode}", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": 0})
@@ -188,7 +189,7 @@ class Torrent:
                 self.search_term = f"{self.db_entry.get('title')} S{progress_season:02}E{progress_episode+1:02}"
                 t_info = await self.media_scraper()
                 if not t_info == []:
-                    mag2del = await self.magnet2deluge(t_info, f"/tv/{self.db_entry.get('title').replace(' ', '_')}/")
+                    mag2del = await self.magnet2deluge(t_info, dl_path)
                     if mag2del:
                         return
                     await self.update_db({"progress_episode": f"E{progress_episode+1}", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": 0})
@@ -198,7 +199,7 @@ class Torrent:
             self.search_term = f"{self.db_entry.get('title')} S{progress_season:02}E{progress_episode+1:02}"
             t_info = await self.media_scraper()
             if not t_info == []:
-                mag2del = await self.magnet2deluge(t_info, f"/tv/{self.db_entry.get('title').replace(' ', '_')}/")
+                mag2del = await self.magnet2deluge(t_info, dl_path)
                 if mag2del:
                     return
                 await self.update_db({"progress_episode": f"E{progress_episode+1}", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": 0})
@@ -206,7 +207,7 @@ class Torrent:
             self.search_term = f"{self.db_entry.get('title')} S{progress_season+1:02}"
             t_info = await self.media_scraper()
             if not t_info == []:
-                mag2del = await self.magnet2deluge(t_info, f"/tv/{self.db_entry.get('title').replace(' ', '_')}/")
+                mag2del = await self.magnet2deluge(t_info, dl_path)
                 if mag2del:
                     return
                 await self.update_db({"progress_season": f"S{progress_season+1}","progress_episode": f"E0", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": 0} if (newest_season > progress_season+1) else {"progress_season": f"S{newest_season}","progress_episode": f"E{newest_episode}", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": 0})
@@ -214,7 +215,7 @@ class Torrent:
             self.search_term = f"{self.db_entry.get('title')} S{progress_season+1:02}E01"
             t_info = await self.media_scraper()
             if not t_info == []:
-                mag2del = await self.magnet2deluge(t_info, f"/tv/{self.db_entry.get('title').replace(' ', '_')}/")
+                mag2del = await self.magnet2deluge(t_info, dl_path)
                 if mag2del:
                     return
                 await self.update_db({"progress_season": f"S{progress_season+1}","progress_episode": "E1", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": 0})
