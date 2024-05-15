@@ -98,7 +98,7 @@ class Torrent:
 
     async def media_scraper(self):
         n: int = 0
-        uri = f"{self.jkt}{self.search_term}+1080p"
+        uri = f"{self.global_var.jkt}{self.search_term}+1080p"
         while n < 2:
             data = await to_thread(requests.get, uri)
             if not data.ok:
