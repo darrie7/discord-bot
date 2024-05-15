@@ -67,19 +67,17 @@ class Torrent:
                     url = f"https://www.magnetdl.com/{self.search_term[0]}/{self.search_term}-1080p/se/desc/",
                     headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'}
             )
-            if r.status_code != 200:
+            if not r.ok:
                 await sleep(5)
                 n += 1
                 continue
             dom = html.fromstring(r.text)
             table = tree.xpath('//table[@class="download"]')[0]
-            title_magnet = [{'title': row.xpath('.//td')[1].text_content().strip(), 'magnet': row.xpath('.//td')[0].xpath('./a/@href')[0]} for row in table.xpath('.//tr[position()>1]') if ("1080p" in row.xpath('.//td')[1].text_content().strip() and row.xpath('.//td')[1].text_content().strip().lower().startswith(self.search_term.lower().split(' ')[0].replace('"', '')) and int(row.xpath('.//td')[6].text_content().strip()) > 2]
+            title_magnet = [{'title': row.xpath('.//td')[1].text_content().strip(), 'magnet': row.xpath('.//td')[0].xpath('./a/@href')[0]} for row in table.xpath('.//tr[position()>1]') if (not any(word in row.xpath('.//td')[1].text_content().strip() for word in ['hdrip', 'camrip', 'hdcam', 'hdts']) and "1080p" in row.xpath('.//td')[1].text_content().strip() and row.xpath('.//td')[1].text_content().strip().lower().startswith(self.search_term.lower().split(' ')[0].replace('"', '')) and int(row.xpath('.//td')[6].text_content().strip()) > 2]
             return title_magnet if title_magnet else []
         return []
 
     async def media_scraper(self): #, qual
-        if self.db_entry.get('ismovie'):
-            search_term = f'''"{self.db_entry.get('title')} {self.db_entry.get('year')}"'''
         n: int = 0
         while n < 3:
             urls = ["https://bitsearch.to/search?q=", "https://solidtorrents.to/search?q="]
@@ -87,13 +85,24 @@ class Torrent:
                 url = f"{urls[(n % len(urls))]}{self.search_term}+-hdrip+-camrip+-hdcam+-hdts+-720p+-480p+-2160p&sort=seeders",
                 headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'}
             )
-            if r.status_code != 200:
+            if not r.ok:
                 await sleep(5)
                 n += 1
                 continue
             dom = html.fromstring(r.text)
             title_magnet = [{'title': title, 'magnet': magnet.get("href")} for title, magnet, seed in zip([elem.text_content() for elem in dom.cssselect('h5.title.w-100.truncate > a')], dom.cssselect('a.dl-magnet'), dom.cssselect('div.stats > div:nth-child(3) > font')) if ( "1080p" in title.lower() and title.lower().startswith(self.search_term.lower().split(' ')[0].replace('"', '')) and convert_to_int(seed.text) >= 2 )]
             return title_magnet if title_magnet else []
+        return []
+
+
+    async def media_scraper(self):
+        n: int = 0
+        funcs = [self.bitsearch_downloader, self.magnetdl_downloader]
+        while n < len(funcs):
+            scraped = await funcs[n % len(funcs)]()
+            if scraped:
+                return scraped
+            n += 1
         return []
 
 
