@@ -73,7 +73,7 @@ class Torrent:
                 continue
             dom = html.fromstring(r.text)
             table = tree.xpath('//table[@class="download"]')[0]
-            title_magnet = [{'title': row.xpath('.//td')[1].text_content().strip(), 'magnet': row.xpath('.//td')[0].xpath('./a/@href')[0]} for row in table.xpath('.//tr[position()>1]') if (not any(word in row.xpath('.//td')[1].text_content().strip() for word in ['hdrip', 'camrip', 'hdcam', 'hdts']) and "1080p" in row.xpath('.//td')[1].text_content().strip() and row.xpath('.//td')[1].text_content().strip().lower().startswith(self.search_term.lower().split(' ')[0].replace('"', '')) and int(row.xpath('.//td')[6].text_content().strip()) > 2]
+            title_magnet = [{'title': row.xpath('.//td')[1].text_content().strip(), 'magnet': row.xpath('.//td')[0].xpath('./a/@href')[0]} for row in table.xpath('.//tr[position()>1]') if (not any(word in row.xpath('.//td')[1].text_content().strip() for word in ['hdrip', 'camrip', 'hdcam', 'hdts']) and "1080p" in row.xpath('.//td')[1].text_content().strip() and row.xpath('.//td')[1].text_content().strip().lower().startswith(self.search_term.lower().split(' ')[0].replace('"', '')) and int(row.xpath('.//td')[6].text_content().strip()) > 2)]
             return title_magnet if title_magnet else []
         return []
 
