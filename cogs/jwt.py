@@ -187,7 +187,7 @@ class Torrent:
                     mag2del = await self.magnet2deluge(t_info, f"/tv/{self.db_entry.get('title').replace(' ', '_')}/")
                     if mag2del:
                         return
-                    self.payload = {"progress_season": f"S{progress_season + 1}", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": 0} if (newest_season > progress_season) else self.payload = {"progress_episode": f"E{newest_episode}", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": 0}
+                    self.payload = {"progress_season": f"S{progress_season + 1}", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": 0} if (newest_season > progress_season) else {"progress_episode": f"E{newest_episode}", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": 0}
                     await self.update_db()
                     return
                 self.search_term = f"{self.db_entry.get('title') S{progress_season:02}E{progress_episode+1:02}"
