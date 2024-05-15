@@ -77,7 +77,7 @@ class Torrent:
             return title_magnet if title_magnet else []
         return []
 
-    async def media_scraper(self): #, qual
+    async def bitsearch_downloader(self): #, qual
         n: int = 0
         while n < 3:
             urls = ["https://bitsearch.to/search?q=", "https://solidtorrents.to/search?q="]
@@ -181,57 +181,56 @@ class Torrent:
             progress_season = int(self.db_entry.get('progress_season').replace('S', ''))
             progress_episode = int(self.db_entry.get('progress_episode').replace('E', ''))
             if progress_episode == 0:
-                self.search_term = f"\"{self.db_entry.get('title')}\" S{progress_season:02}E{progress_episode+1:02}|\"{self.db_entry.get('title')}\" S{progress_season:02}"
+                self.search_term = f"{self.db_entry.get('title')} S{progress_season:02}"
                 t_info = await self.media_scraper()
-                if t_info == []:
-                    self.payload = {"_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z'}
-                    await self.update_db(restdb = False)
-                    return
-                if (dl_list := [item for item in t_info if not f"s{progress_season:02}e{progress_episode+1:02}" in item.get('title').lower()]):
-                    mag2del = await self.magnet2deluge(dl_list, f"/tv/{self.db_entry.get('title').replace(' ', '_')}/")
+                if not t_info == []:
+                    mag2del = await self.magnet2deluge(t_info, f"/tv/{self.db_entry.get('title').replace(' ', '_')}/")
                     if mag2del:
                         return
-                    self.payload = {"progress_episode": f"E{newest_episode}", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z'}
-                    if newest_season > progress_season:
-                        self.payload = {"progress_season": f"S{progress_season + 1}", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": 0}
+                    self.payload = {"progress_season": f"S{progress_season + 1}", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": 0} if (newest_season > progress_season) else self.payload = {"progress_episode": f"E{newest_episode}", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": 0}
                     await self.update_db()
                     return
-                if (dl_list := [item for item in t_info if f"s{progress_season:02}e{progress_episode+1:02}" in item.get('title').lower()]):
-                    mag2del = await self.magnet2deluge(dl_list, f"/tv/{self.db_entry.get('title').replace(' ', '_')}/")
+                self.search_term = f"{self.db_entry.get('title') S{progress_season:02}E{progress_episode+1:02}"
+                t_info = await self.media_scraper()
+                if not t_info == []:
+                    mag2del = await self.magnet2deluge(t_info, f"/tv/{self.db_entry.get('title').replace(' ', '_')}/")
                     if mag2del:
                         return
                     self.payload = {"progress_episode": f"E{progress_episode+1}", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": 0}
                     await self.update_db()
                     return
-            self.search_term = f"\"{self.db_entry.get('title')}\" S{progress_season:02}E{progress_episode+1:02}|\"{self.db_entry.get('title')}\" S{progress_season+1:02}E01|\"{self.db_entry.get('title')}\" S{progress_season+1:02}"
-            t_info = await self.media_scraper()
-            if t_info == []:
                 self.payload = {"_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z'}
                 await self.update_db(restdb = False)
                 return
-            if (dl_list := [item for item in t_info if (f"s{progress_season:02}e{progress_episode+1:02}" in item.get('title').lower())]):
-                mag2del = await self.magnet2deluge(dl_list, f"/tv/{self.db_entry.get('title').replace(' ', '_')}/")
+            self.search_term = f"{self.db_entry.get('title')} S{progress_season:02}E{progress_episode+1:02}"
+            t_info = await self.media_scraper()
+            if not t_info == []:
+                mag2del = await self.magnet2deluge(t_info, f"/tv/{self.db_entry.get('title').replace(' ', '_')}/")
                 if mag2del:
                     return
                 self.payload = {"progress_episode": f"E{progress_episode+1}", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": 0}
                 await self.update_db()
                 return
-            if (dl_list := [item for item in t_info if not (f"s{progress_season+1:02}e01" in item.get('title').lower())]):
-                mag2del = await self.magnet2deluge(dl_list, f"/tv/{self.db_entry.get('title').replace(' ', '_')}/")
+            self.search_term = f"{self.db_entry.get('title')} S{progress_season+1:02}"
+            t_info = await self.media_scraper()
+            if not t_info == []:
+                mag2del = await self.magnet2deluge(t_info, f"/tv/{self.db_entry.get('title').replace(' ', '_')}/")
                 if mag2del:
                     return
-                self.payload = {"progress_season": f"S{newest_season}","progress_episode": f"E{newest_episode}", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": 0}
-                if newest_season > progress_season+1:
-                    self.payload = {"progress_season": f"S{progress_season+1}","progress_episode": f"E0", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": 0}
+                self.payload = {"progress_season": f"S{progress_season+1}","progress_episode": f"E0", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": 0} if (newest_season > progress_season+1) else {"progress_season": f"S{newest_season}","progress_episode": f"E{newest_episode}", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": 0}
                 await self.update_db()
                 return
-            if (dl_list := [item for item in t_info if (f"s{progress_season+1:02}e01" in item.get('title').lower())]):
-                mag2del = await self.magnet2deluge(dl_list, f"/tv/{self.db_entry.get('title').replace(' ', '_')}/")
+            self.search_term = f"{self.db_entry.get('title')} S{progress_season+1:02}E01"
+            t_info = await self.media_scraper()
+            if not t_info == []:
+                mag2del = await self.magnet2deluge(t_info, f"/tv/{self.db_entry.get('title').replace(' ', '_')}/")
                 if mag2del:
                     return
                 self.payload = {"progress_season": f"S{progress_season+1}","progress_episode": "E1", "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": 0}
                 await self.update_db()
                 return
+            self.payload = {"_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z'}
+            await self.update_db(restdb = False)
             return
 
 
