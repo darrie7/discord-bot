@@ -14,6 +14,7 @@ from subliminal import download_best_subtitles, region, save_subtitles, scan_vid
 from pathlib import Path
 import json
 import xml.etree.ElementTree as ET
+from guessit import guessit
 
 VIDEO_EXTENSIONS = [
     ".avi", ".mp4", ".mkv", ".mpg",
@@ -64,10 +65,11 @@ class Torrent:
         while n < 2:
             data = await to_thread(requests.get, uri)
             if not data.ok:
+                await sleep(random.randint(2, 15))
                 n += 1
                 continue
             root = ET.fromstring(data.text)
-            title_magnet = [{'title': item.find('title').text, 'magnet': item.find(".//{http://torznab.com/schemas/2015/feed}attr[@name='magneturl']").attrib['value']} for item in root.findall('.//item') if (not any(word in item.find('title').text.lower() for word in ['hdrip', 'camrip', 'hdcam', 'hdts']) and int(item.find(".//{http://torznab.com/schemas/2015/feed}attr[@name='seeders']").attrib['value']) > 2 and item.find('title').text.lower().startswith(self.search_term.lower().split(' ')[0].replace('"', '')))]
+            title_magnet = [{'title': item.find('title').text, 'magnet': item.find(".//{http://torznab.com/schemas/2015/feed}attr[@name='magneturl']").attrib['value']} for item in root.findall('.//item') if (not any(word in item.find('title').text.lower() for word in ['hdrip', 'camrip', 'hdcam', 'hdts']) and int(item.find(".//{http://torznab.com/schemas/2015/feed}attr[@name='seeders']").attrib['value']) > 2 and guessit(item.find('title').text).get('title').strip().lower() in self.db_entry.get('title').lower() )]
             return title_magnet if title_magnet else []
         return []
 
