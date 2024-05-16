@@ -21,15 +21,15 @@ VIDEO_EXTENSIONS = [
     ".wmv", ".flv", ".3gp",".3g2", ".swf", ".mswmm"
 ]
 
-def convert_to_int(string):
-    if string[-1] == 'K':
-        numeric_part = float(string[:-1])  # Remove 'K' and convert to float
-        integer_value = int(numeric_part * 1000)  # Convert to integer by multiplying with 1000
-        return integer_value
-    if string[-1].isdigit():
-        return int(string)  # If no 'K', directly convert to integer
-    else:
-        return 0
+# def convert_to_int(string):
+#     if string[-1] == 'K':
+#         numeric_part = float(string[:-1])  # Remove 'K' and convert to float
+#         integer_value = int(numeric_part * 1000)  # Convert to integer by multiplying with 1000
+#         return integer_value
+#     if string[-1].isdigit():
+#         return int(string)  # If no 'K', directly convert to integer
+#     else:
+#         return 0
 
 
 class GlobalVars(commands.Cog):
@@ -37,9 +37,6 @@ class GlobalVars(commands.Cog):
         self.url = "https://mymovies-41c3.restdb.io/rest/movies"
         self.decoder = Fernet(bot._enckey)
         self.api_key = self.decoder.decrypt(b'gAAAAABlIxJoppaR4gM008w5-s-mzxwgBIKhOR1-tVV4BoLq93w7jgCvP-TBNvUd-Pmojh1eSYYDIhukFVx0YkbGD4HXRkz-h0_C0aMl4t2MfxDP2RoKvMk=').decode()
-        # self.host = self.decoder.decrypt(b'gAAAAABlpWObOSHPZsnwbjQWP9MwULDlDRuxFXKPYBFAZS_s6X_Lr620EKMtklKbFRvK1uFNdX6YYUWvrO2gXKLHEDkvERVE3w==').decode()
-        # self.deluge_user =  self.decoder.decrypt(b'gAAAAABlIxN9JUKSkB2Ncjq1Na0huIM53UJGIGEb621_We33mUKHkN4uaifSZYp_pfexSEpq6NKI4Iy97KFjthaVbeUm5gPSkA==').decode()
-        # self.deluge_passwd = self.decoder.decrypt(b'gAAAAABlIxOc7ZikmiK3gtZK5hvEDFZHAEp3dQurdZl4YoMzfHBZ3eveES_0WY-cqF10fIwPuIDVbawOiCsKFVHaiPs6GQ6s8g==').decode()
         self.host = self.decoder.decrypt(b'gAAAAABmBvixHfgpAN-TBLb04DXf2E1J53zdxQsHevpacEShlPR7oLvwa4-EOAA11alY6Us3w0ZRYOpqt_psAZwepCekQ__WkWJExYHBG4OEebO4TP3Ah70=').decode()
         self.deluge_passwd = self.decoder.decrypt(b'gAAAAABmEvel4VRvjFbNkKvvqWrb3c5Jrngy6JOQZ83JjyDHPXuioI0-xwROYDG7EdQ8Gjpmy-JuCZLdjsIKrZ1V0YF0cBxkiQm10mMU0ScTWBW1EZVJrft5WTe4ZsHf9v6W4C57Kk_luG4BB4wy98mOe9ZxY1bKFDlMYAAy-IH77YUO4MBr2_QtWk7JwOhpF7-Bwctfp00s-3T2Q4QDE5fA-aaOp-dqqKAQUZw44rcMA_3-KdKWjdfkobof8QQoKBQ5cEdrA5JO').decode()
         self.jkt = self.decoder.decrypt(b'gAAAAABmRUBmnARecJEV7e02UAXCZhv9uIsuMtvcHw5KCeEl0-caj94VYCaueaQv7LeB_iFASbkA3abMasRRAbxj_5YOHCjQK_hy8Av7GPfgYFuEAaMWlwcP4prBuVMg7p7EL2oGvKJ-HBCfnS4ICwc7RTVjCsuYxR2cjtv9rlbP2upMnpj-wVACNzK7wZ4jWpgUh9zt-rjWE7fTzEIOTXoCbHsb1_MIwTtGdIuPuvyzgAGXojuEl1E=').decode()
@@ -61,41 +58,6 @@ class Torrent:
             await self.update_db({ "newest_season": season_episode[0], "newest_episode": season_episode[1], "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z' })
 
 
-    async def magnetdl_downloader(self): ## ADD filter for +-hdrip+-camrip+-hdcam+-hdts+
-        n: int = 0
-        while n < 2:
-            r = await to_thread(requests.get,
-                    url = f"https://www.magnetdl.com/{self.search_term[0]}/{self.search_term}-1080p/se/desc/",
-                    headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'}
-            )
-            if not r.ok:
-                await sleep(5)
-                n += 1
-                continue
-            dom = html.fromstring(r.text)
-            table = tree.xpath('//table[@class="download"]')[0]
-            title_magnet = [{'title': row.xpath('.//td')[1].text_content().strip(), 'magnet': row.xpath('.//td')[0].xpath('./a/@href')[0]} for row in table.xpath('.//tr[position()>1]') if (not any(word in row.xpath('.//td')[1].text_content().strip() for word in ['hdrip', 'camrip', 'hdcam', 'hdts']) and "1080p" in row.xpath('.//td')[1].text_content().strip() and row.xpath('.//td')[1].text_content().strip().lower().startswith(self.search_term.lower().split(' ')[0].replace('"', '')) and int(row.xpath('.//td')[6].text_content().strip()) > 2)]
-            return title_magnet if title_magnet else []
-        return []
-
-    async def bitsearch_downloader(self): #, qual
-        n: int = 0
-        while n < 3:
-            urls = ["https://bitsearch.to/search?q=", "https://solidtorrents.to/search?q="]
-            r = await to_thread(requests.get,
-                url = f"{urls[(n % len(urls))]}{self.search_term}+-hdrip+-camrip+-hdcam+-hdts+-720p+-480p+-2160p&sort=seeders",
-                headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'}
-            )
-            if not r.ok:
-                await sleep(5)
-                n += 1
-                continue
-            dom = html.fromstring(r.text)
-            title_magnet = [{'title': title, 'magnet': magnet.get("href")} for title, magnet, seed in zip([elem.text_content() for elem in dom.cssselect('h5.title.w-100.truncate > a')], dom.cssselect('a.dl-magnet'), dom.cssselect('div.stats > div:nth-child(3) > font')) if ( "1080p" in title.lower() and title.lower().startswith(self.search_term.lower().split(' ')[0].replace('"', '')) and convert_to_int(seed.text) >= 2 )]
-            return title_magnet if title_magnet else []
-        return []
-
-
     async def media_scraper(self):
         n: int = 0
         uri = f"{self.global_var.jkt}{self.search_term}+1080p"
@@ -108,15 +70,6 @@ class Torrent:
             title_magnet = [{'title': item.find('title').text, 'magnet': item.find(".//{http://torznab.com/schemas/2015/feed}attr[@name='magneturl']").attrib['value']} for item in root.findall('.//item') if (not any(word in item.find('title').text.lower() for word in ['hdrip', 'camrip', 'hdcam', 'hdts']) and int(item.find(".//{http://torznab.com/schemas/2015/feed}attr[@name='seeders']").attrib['value']) > 2 and item.find('title').text.lower().startswith(self.search_term.lower().split(' ')[0].replace('"', '')))]
             return title_magnet if title_magnet else []
         return []
-        
-        # n: int = 0
-        # funcs = [self.bitsearch_downloader, self.magnetdl_downloader]
-        # while n < len(funcs):
-        #     scraped = await funcs[n % len(funcs)]()
-        #     if scraped:
-        #         return scraped
-        #     n += 1
-        # return []
 
 
     async def delete_entry(self) -> None:
