@@ -196,6 +196,7 @@ class Torrent:
 class justwatchCog(commands.Cog):
     def __init__(self, bot) -> None:
         self.bot = bot
+        self.restart_failed.start()
         self.searchmedia.start()
         self.update_newestmedia.start()
         self.bot.global_var = GlobalVars(self.bot)
@@ -203,6 +204,7 @@ class justwatchCog(commands.Cog):
 
 
     def cog_unload(self) -> None:
+        self.restart_failed.cancel()
         self.searchmedia.cancel()
         self.update_newestmedia.cancel()
 
@@ -315,14 +317,31 @@ class justwatchCog(commands.Cog):
     async def update_newestmedia(self) -> None:
         [ await Torrent(self, x).update_show() for x in self.bot._db3 if x.get('ismovie') is False ]
 
-    @delete_whole_db.error
-    @delete_db3_entry.error
-    @download_subtitles.error
-    @delete_restdb.error
-    @update_newestmedia.error
-    @searchmedia.error
-    async def cog_error_handler(self, error) -> None:
+
+    @tasks.loop(minutes=5)
+    async def restart_failed(self) -> None:
+        if self.searchmedia.failed() or not self.searchmedia.is_running():
+            self.searchmedia.restart()
+        if self.update_newestmedia.failed() or not self.update_newestmedia.is_running():
+            self.update_newestmedia.restart()
+
+    @restart_failed.error
+    async def restart_failed_error_handler(self, error) -> None:
         await self.bot.get_channel(793878235066400809).send(f"""```{"".join(traceback.format_exception(type(error), error, error.__traceback__))[-1500:]}```""")
+        self.restart_failed.restart()
+        pass
+
+    
+    @searchmedia.error
+    async def searchmedia_error_handler(self, error) -> None:
+        await self.bot.get_channel(793878235066400809).send(f"""```{"".join(traceback.format_exception(type(error), error, error.__traceback__))[-1500:]}```""")
+        self.searchmedia.restart()
+        pass
+
+    @update_newestmedia.error
+    async def update_newestmedia_error_handler(self, error) -> None:
+        await self.bot.get_channel(793878235066400809).send(f"""```{"".join(traceback.format_exception(type(error), error, error.__traceback__))[-1500:]}```""")
+        self.update_newestmedia.restart()
         pass
     
 def setup(bot):
