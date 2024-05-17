@@ -258,6 +258,7 @@ class MyCommandsCog(commands.Cog):
         self.task_three.start()
         self.task_four.start()
         self.task_five.start()
+        self.restart_failed.start()
         self.decoder = Fernet(self.bot._enckey)
         self.bot.token = self.decoder.decrypt(b'gAAAAABmBvXouylSxaCLf73YU23aES0icnrji2pYrhlpNsKVAUgj30oV8Ey0h5VeXcl1qLgE1gU6tg6k3IPKSRU46Ijz7VfZjL1U1HZfLHn_SPhBIyJ26qMjTBoYUhMOXtrhRCN9yRHMVbnruYaR4gkNNaHTRBFwN2WveSEiu9SrtYsdxp_48wdoBJxOUoIK_1mpgILKN6a1yPGHsuiWbDkYk9gfp6GRu3Bh7E94dMIj2u_XpE1dwnyBCuDp2OucSH9gqvKG4A5Ewdp70g7WGs1s9rJcjxheKqS7RpYkXUQMRmS9FsVz7INhI0um3BXMqlokYhtEc9anTON341jrs2IXL4x2jpRRhTzimtMcx24lDv981X1m1ykVfkSeZUfD5qa9tIXBpgjVhg2mq2axQiBUhJr2D3cQk1iH-6OSzC-0-ZkswPC69YvfRFSVBU0cE7h6gPuD_1CJWBQXAogJAMVyl78jCPAtjUw8IKKMzvTDy73KAHGbi84DrTs4l04hjIlv44rj-2WYDdEF8BEWk-C8iiq5qL5a3zzHg_xEK_caARlqWByXNPmpds4EZIRLYfjrqAcAKSh8AMAcF0vMQbGw_seeoTDZM0T5MsZzkOrXHScqtkdt6J1FSO6CNUmPKCgCDFJZ2T7FOBBT4RGZ_Tm3lHBuoamI-ts1v5nXoEe2Fmn52I5pl4VIszWinGlZ0g0MHaCpee1hdT-rBLlfuJoP9QErQ2aSQfXN1RP5-oc3CN_TFYv0q3yvQWj_6Ma8Bb3Kd-nK6jhmC1s3Z4bhb0qk3MaBlKkYUH-M76tNHnx2AZQBjRpqf6Gx74ftBg3uz__SQ5qHDXf_FtCKYR1POSWLdTiHmwq0uad69vc2EfKApOXqk-S9aD7P2CtSF_3I43ia3aRid1eJbiSkzHulEElW9oh6p-P7myEZVvSY2BdxDfClcRsRlSLupQGW0Kku9hZnRqptsuY8LPRWRTseGoXiiGYHOl_p0iSjWFYowdKAxRqAhgBfYsNvM0RP_XCTXEdxaititPtEqCikzsePoV6QuU21hdRzwlQj5beZz_aoIHjyE8SyHVZLnXgtvZMOUrSETI9ABTgX4gBIg2L3M3BLoMGSTWZLeZkDa7ZeBkDg3LTtSRMezamoVqzT0LgJxJuKqEfU8KAN67aVYtBs1ymQgOZqKriJkEhtl_Ts7GPYlhw8M9pQt3NnImdMONEQ-C1fh5WWEsJFj5NwJZEVkp1C44LG8o6OZcHmUsWfLZnYrm-PUVnvvCc4_WzQj4B8P8oVZpEkjugttfjy8Ks_7NuZQU_z6Kx9HSJkdsQ94NtRB2ckBqSZ3IlIhPP1ISiXbaggtjNEydhL8pIgwDSKxpMuF6BXdnCRLXX2e405XNkb_LSFZAx4xdVE7yPa-5ZKTqI5JUSmvjX0L7zh4EIE7CtZVYSODt-ReZnJ8DqiYXjeGeuwkfR2ci-n-7F6Smu8_BLwq_rH4enchgOh8Sq-HTx_HheZr0wZ385FKgN4CV_LKortMBc4i1k=').decode()
         self.client_id = self.decoder.decrypt(b'gAAAAABlIw3eLcJmAFdqjAhCHJjq-2sWlw1NxnZKeR5_DDr9wsHnkPXq31CyWwsPItLxB_507xK6DgyzPomh8KvC9zH6OhbEdP5corItvLq7z00HOfZeQmqdFZWz-1cIZFegXXC-0k7N').decode()
@@ -275,6 +276,7 @@ class MyCommandsCog(commands.Cog):
         self.task_three.cancel()
         self.task_five.cancel()
         self.task_four.cancel()
+        self.restart_failed.cancel()
 
 
     @commands.slash_command()
@@ -359,12 +361,47 @@ class MyCommandsCog(commands.Cog):
         self.bot._db5.upsert({"value": myreq.json().get("access_token")}, self.bot._query.key == "mal_access")
         self.bot._db5.upsert({"value": myreq.json().get("refresh_token")}, self.bot._query.key == "mal_refresh")
 
+
+    @tasks.loop(minutes=5)
+    async def restart_failed(self) -> None:
+        if self.task_five.failed() or not self.task_five.is_running():
+            self.task_five.restart()
+        if self.task_four.failed() or not self.task_four.is_running():
+            self.task_four.restart()
+        if self.task_three.failed() or not self.task_three.is_running():
+            self.task_three.restart()
+        if self.task_two.failed() or not self.task_two.is_running():
+            self.task_two.restart()
+        pass
+
+    @restart_failed.error
+    async def restart_failed_error_handler(self, error) -> None:
+        await self.bot.get_channel(793878235066400809).send(f"""```{"".join(traceback.format_exception(type(error), error, error.__traceback__))[-1500:]}```""")
+        self.restart_failed.restart()
+        pass
     
     @task_two.error
-    @task_three.error
-    @task_five.error
-    async def cog_error_handler(self, error) -> None:
+    async def task_two_error_handler(self, error) -> None:
         await self.bot.get_channel(self.bot._test_channelid).send(f"""```{"".join(traceback.format_exception(type(error), error, error.__traceback__))}```""")
+        self.task_two.restart()
+        pass
+
+    @task_three.error
+    async def task_three_error_handler(self, error) -> None:
+        await self.bot.get_channel(self.bot._test_channelid).send(f"""```{"".join(traceback.format_exception(type(error), error, error.__traceback__))}```""")
+        self.task_three.restart()
+        pass
+
+    @task_four.error
+    async def task_four_error_handler(self, error) -> None:
+        await self.bot.get_channel(self.bot._test_channelid).send(f"""```{"".join(traceback.format_exception(type(error), error, error.__traceback__))}```""")
+        self.task_four.restart()
+        pass
+
+    @task_five.error
+    async def task_five_error_handler(self, error) -> None:
+        await self.bot.get_channel(self.bot._test_channelid).send(f"""```{"".join(traceback.format_exception(type(error), error, error.__traceback__))}```""")
+        self.task_five.restart()
         pass
 
 
