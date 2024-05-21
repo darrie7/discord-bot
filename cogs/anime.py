@@ -88,11 +88,11 @@ class AnimeStuff:
                     syn = []
                     data = spanime.get("data", {}).get("Media", {}).get("relations", {}).get("edges", [])
                     if data == []:
-                        syn.append(re.sub(r'[^a-zA-Z0-9-_ ]', '', self.anime.get("media").get("title").get("romaji")))
+                        syn.append(re.sub(r'[^a-zA-Z0-9-_ ]', '', self.my_func(self.anime.get("media").get("title").get("romaji"))))
                         self.anime["notes"] = f"""{{'lastdl': {self.anime.get("progress")}, 'syn': {syn}, 'epoffset': 0, 'synoffset': [] }}"""
                     for relation in data:
                         if relation.get("relationType") == "ADAPTATION":
-                            title = re.sub(r'[^a-zA-Z0-9-_ ]', '', self.anime.get("media").get("title").get("romaji"))
+                            title = re.sub(r'[^a-zA-Z0-9-_ ]', '', self.my_func(self.anime.get("media").get("title").get("romaji")))
                             # title = relation.get("node").get("title").get("romaji").replace("\'", "").replace("\"", "").replace(",", "")
                             related_data = relation.get("node", {}).get("relations", {}).get("edges", [])
                             episodes = 0
@@ -101,8 +101,8 @@ class AnimeStuff:
                                 if related.get("relationType") == "ADAPTATION" and node.get("format") == "TV" and node.get("seasonInt") < self.anime.get('media').get('seasonInt'):
                                     episodes += related.get("node", {}).get("episodes")
                             if episodes == 0:
-                                syn.append(re.sub(r'[^a-zA-Z0-9-_ ]', '', self.anime.get("media").get("title").get("romaji")))
-                            self.anime["notes"] = f"""{{'lastdl': {self.anime.get("progress")}, 'syn': {syn}, 'epoffset': {episodes}, 'synoffset': ["{re.sub(r'[^a-zA-Z0-9-_ ]', '', title)}"] }}"""
+                                syn.append(re.sub(r'[^a-zA-Z0-9-_ ]', '', self.my_func(self.anime.get("media").get("title").get("romaji"))))
+                            self.anime["notes"] = f"""{{'lastdl': {self.anime.get("progress")}, 'syn': {syn}, 'epoffset': {episodes}, 'synoffset': ["{self.my_func(re.sub(r'[^a-zA-Z0-9-_ ]', '', title))}"] }}"""
                             break
                     break
         if ( "ignore" in self.anime.get("notes").lower()) or (json.loads(self.anime.get("notes").replace("\'", "\"")).get("lastdl") > self.anime.get("progress") ):
@@ -131,9 +131,6 @@ class AnimeStuff:
         if self.anime.get("notes").get("syn"):
             search.extend(self.anime.get("notes").get("syn"))
         search.extend(self.anime.get("media").get("synonyms"))
-        patt = re.compile(r'(?<=[a-zA-Z])[^a-zA-Z0-9 ](?=[a-zA-Z])')
-        # Create an empty list to store the updated strings
-        updated_search = []
         # Iterate through each string in the original search list
         search.extend([my_func(s) for s in search])
         search = [ re.sub(r'[^a-zA-Z0-9-_ ]', '', s) for s in search if s and len(s) > 2 ] # and s.isascii() 
@@ -208,7 +205,7 @@ class AnimeStuff:
         r = await to_thread(requests.get, url=url)
         for x in sorted(parse(r.text).get("entries"), key = lambda v: int(v.get("nyaa_seeders")), reverse=True):
             x = dict(x)
-            if any(title.lower() in re.sub(r'[^a-zA-Z0-9-_ ]', '', x.get("title").lower()) for title in searchlist) and any(ep.lower() in re.sub(r'[^a-zA-Z0-9-_ ]', '', x.get("title").lower()) for ep in episodesearch):
+            if any(title.lower() in re.sub(r'[^a-zA-Z0-9-_ ]', '', self.my_func(x.get("title").lower())) for title in searchlist) and any(ep.lower() in re.sub(r'[^a-zA-Z0-9-_ ]', '', self.my_func(x.get("title").lower())) for ep in episodesearch):
                 with requests.Session() as s:
                     url = self.host
                     headers = {'content-type': 'application/json'}
