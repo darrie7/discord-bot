@@ -114,23 +114,27 @@ class Torrent:
         with requests.Session() as s:
             if "magnet" in found_torrent.get('magnet'):
                 para = f"{'&'.join([ part for part in found_torrent.get('magnet').split('&') if not part.startswith('tr=') ])}&tr={await self.get_trackers()}"
-                meth = "core.add_torrent_magnet"
             else:
-                para = found_torrent.get('magnet')
-                meth = "core.add_torrent_magnet"
-            await self.bot.get_channel(793878235066400809).send(f"""```{meth}, {para}```""")
+                try: 
+                    magneturi = await to_thread(s.get, url=found_torrent.get('magnet'))
+                except requests.exceptions.RequestException as e:# This is the correct syntax
+                    matches = re.findall(r"'(.*?)'", e)
+                    if not matches or not "magnet" in matches[0]:
+                        await self.bot.get_channel(self.bot._test_channelid).send(f"""```{e}```""")
+                        return True
+                    para = f"{'&'.join([ part for part in matches[0].split('&') if not part.startswith('tr=') ])}&tr={await self.get_trackers()}"
             url = self.global_var.host
             headers = {'content-type': 'application/json'}
-            for data in [{"method": "auth.login", "params": [self.global_var.deluge_passwd]}, {"method": "web.connect", "params": ["58de378ad2f643d78c3e1ea72cbbc719"]}, {"method": "web.connected", "params": []}, {"method": meth, "params": [ para, {"download_location": medium}]}]:
+            for data in [{"method": "auth.login", "params": [self.global_var.deluge_passwd]}, {"method": "web.connect", "params": ["58de378ad2f643d78c3e1ea72cbbc719"]}, {"method": "web.connected", "params": []}, {"method": "core.add_torrent_magnet", "params": [ para, {"download_location": medium}]}]:
                 payload = {
                     'method': data.get("method"),
                     'params': data.get("params"),
                     'id': 1
                 }
-                response = s.post(url, data=json.dumps(payload), headers=headers)
+                response = await to_thread(s.post, url=url, data=json.dumps(payload), headers=headers)
                 if response.json().get("error"):
                     await self.bot.get_channel(self.bot._test_channelid).send(f"""```{response.json().get("error")}```""")
-                    return
+                    return True
         return
     
 
