@@ -117,7 +117,7 @@ class Torrent:
                 meth = "core.add_torrent_magnet"
             else:
                 para = found_torrent.get('magnet')
-                meth = "core.add_torrent_url"
+                meth = "core.add_torrent_magnet"
             await self.bot.get_channel(793878235066400809).send(f"""```{meth}, {para}```""")
             url = self.global_var.host
             headers = {'content-type': 'application/json'}
