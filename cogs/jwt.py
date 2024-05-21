@@ -118,7 +118,7 @@ class Torrent:
                 try: 
                     magneturi = await to_thread(s.get, url=found_torrent.get('magnet'))
                 except requests.exceptions.RequestException as e:# This is the correct syntax
-                    matches = re.findall(r"'(.*?)'", e)
+                    matches = re.findall(r"'(.*?)'", str(e))
                     if not matches or not "magnet" in matches[0]:
                         await self.bot.get_channel(self.bot._test_channelid).send(f"""```{e}```""")
                         return True
