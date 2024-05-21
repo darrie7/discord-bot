@@ -70,7 +70,7 @@ class Torrent:
                 continue
             root = ET.fromstring(data.text)
             #title_magnet = [{'title': item.find('title').text, 'magnet': item.find(".//{http://torznab.com/schemas/2015/feed}attr[@name='magneturl']").attrib['value']} for item in root.findall('.//item') if (item.find(".//{http://torznab.com/schemas/2015/feed}attr[@name='magneturl']") and item.find(".//{http://torznab.com/schemas/2015/feed}attr[@name='seeders']") and not any(word in item.find('title').text.lower() for word in ['hdrip', 'camrip', 'hdcam', 'hdts']) and int(item.find(".//{http://torznab.com/schemas/2015/feed}attr[@name='seeders']").attrib['value']) > 2 and guessit(item.find('title').text).get('title').strip().lower() in self.db_entry.get('title').lower() )]
-            title_magnet = [{'title': item.find('title').text, 'magnet': item.find('link').text} for item in root.findall('.//item') if (item.find('link') and item.find(".//{http://torznab.com/schemas/2015/feed}attr[@name='seeders']") and not any(word in item.find('title').text.lower() for word in ['hdrip', 'camrip', 'hdcam', 'hdts']) and int(item.find(".//{http://torznab.com/schemas/2015/feed}attr[@name='seeders']").attrib['value']) > 2 and guessit(item.find('title').text).get('title').lower() in self.db_entry.get('title').lower() )]
+            title_magnet = [{'title': item.find('title').text, 'magnet': item.find('link').text} for item in root.findall('.//item') if (not any(word in item.find('title').text.lower() for word in ['hdrip', 'camrip', 'hdcam', 'hdts']) and int(item.find(".//{http://torznab.com/schemas/2015/feed}attr[@name='seeders']").attrib['value']) > 2 and guessit(item.find('title').text).get('title').lower() in self.db_entry.get('title').lower() )]
             await self.bot.get_channel(793878235066400809).send(f"""```{title_magnet}```""")
             return title_magnet if title_magnet else []
         return []
@@ -112,9 +112,15 @@ class Torrent:
         if not found_torrent:
             found_torrent = torrents[0]
         with requests.Session() as s:
+            if "magnet" in found_torrent.get('magnet'):
+                para = f"{'&'.join([ part for part in found_torrent.get('magnet').split('&') if not part.startswith('tr=') ])}&tr={await self.get_trackers()}"
+                meth = "core.add_torrent_magnet"
+            else:
+                para = found_torrent.get('magnet')
+                meth = "core.add_torrent_url"
             url = self.global_var.host
             headers = {'content-type': 'application/json'}
-            for data in [{"method": "auth.login", "params": [self.global_var.deluge_passwd]}, {"method": "web.connect", "params": ["58de378ad2f643d78c3e1ea72cbbc719"]}, {"method": "web.connected", "params": []}, {"method": "core.add_torrent_magnet", "params": [f"{'&'.join([ part for part in found_torrent.get('magnet').split('&') if not part.startswith('tr=') ])}&tr={await self.get_trackers()}", {"download_location": medium}]}]:
+            for data in [{"method": "auth.login", "params": [self.global_var.deluge_passwd]}, {"method": "web.connect", "params": ["58de378ad2f643d78c3e1ea72cbbc719"]}, {"method": "web.connected", "params": []}, {"method": meth, "params": [ para, {"download_location": medium}]}]:
                 payload = {
                     'method': data.get("method"),
                     'params': data.get("params"),
