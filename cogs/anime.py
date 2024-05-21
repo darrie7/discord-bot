@@ -92,7 +92,8 @@ class AnimeStuff:
                         self.anime["notes"] = f"""{{'lastdl': {self.anime.get("progress")}, 'syn': {syn}, 'epoffset': 0, 'synoffset': [] }}"""
                     for relation in data:
                         if relation.get("relationType") == "ADAPTATION":
-                            title = relation.get("node").get("title").get("romaji").replace("\'", "").replace("\"", "").replace(",", "")
+                            title = re.sub(r'[^a-zA-Z0-9-_ ]', '', self.anime.get("media").get("title").get("romaji"))
+                            # title = relation.get("node").get("title").get("romaji").replace("\'", "").replace("\"", "").replace(",", "")
                             related_data = relation.get("node", {}).get("relations", {}).get("edges", [])
                             episodes = 0
                             for related in related_data:
@@ -101,7 +102,7 @@ class AnimeStuff:
                                     episodes += related.get("node", {}).get("episodes")
                             if episodes == 0:
                                 syn.append(re.sub(r'[^a-zA-Z0-9-_ ]', '', self.anime.get("media").get("title").get("romaji")))
-                            self.anime["notes"] = f"""{{'lastdl': {self.anime.get("progress")}, 'syn': {syn}, 'epoffset': {episodes}, 'synoffset': ['{re.sub(r'[^a-zA-Z0-9-_ ]', '', title)}'] }}"""
+                            self.anime["notes"] = f"""{{'lastdl': {self.anime.get("progress")}, 'syn': {syn}, 'epoffset': {episodes}, 'synoffset': ["{re.sub(r'[^a-zA-Z0-9-_ ]', '', title)}"] }}"""
                             break
                     break
         if ( "ignore" in self.anime.get("notes").lower()) or (json.loads(self.anime.get("notes").replace("\'", "\"")).get("lastdl") > self.anime.get("progress") ):
@@ -112,26 +113,42 @@ class AnimeStuff:
             return None
         return self.anime
 
+    def my_func(s):
+        pattern = re.compile(r'(?<=[a-zA-Z])[^a-zA-Z0-9 ](?=[a-zA-Z])')
+        match = pattern.search(s)
+        if match:
+            start, end = match.span()
+            new_s = f"{s[:start]} {s[end:]}"
+            return my_func(new_s)
+        if not match:
+            return s
+
     async def search_gen(self) -> dict:
         self.anime["notes"] = json.loads(self.anime.get("notes").replace("\'", "\""))
         '''title search'''
-        search = [ self.anime.get("media").get("title").get("romaji").replace("\'", "").replace("\"", "").replace(",", ""), self.anime.get("media").get("title").get("english").replace("\'", "").replace("\"", "").replace(",", "") ]
+        search = [ self.anime.get("media").get("title").get("romaji"), self.anime.get("media").get("title").get("english") ]
+        # search = [ self.anime.get("media").get("title").get("romaji").replace("\'", "").replace("\"", "").replace(",", ""), self.anime.get("media").get("title").get("english").replace("\'", "").replace("\"", "").replace(",", "") ]
         if self.anime.get("notes").get("syn"):
             search.extend(self.anime.get("notes").get("syn"))
         search.extend(self.anime.get("media").get("synonyms"))
-        search = [ s for s in search if s and s.isascii() and len(s) > 2 ]
+        patt = re.compile(r'(?<=[a-zA-Z])[^a-zA-Z0-9 ](?=[a-zA-Z])')
+        # Create an empty list to store the updated strings
+        updated_search = []
+        # Iterate through each string in the original search list
+        search.extend([my_func(s) for s in search])
+        search = [ re.sub(r'[^a-zA-Z0-9-_ ]', '', s) for s in search if s and len(s) > 2 ] # and s.isascii() 
         '''for z in [("season ", "s"), (": ", " - "), (": ", " "), ("-"," ")]:'''
-        for z in [(": ", " - "), (": ", " "), ("-"," ")]:
-            search.extend([" - ".join([a.replace(z[0], z[1]) for a in title.split(" - ")]) for title in search if z[0] in title])
+        # for z in [(": ", " - "), (": ", " "), ("-"," ")]:
+        #     search.extend([" - ".join([a.replace(z[0], z[1]) for a in title.split(" - ")]) for title in search if z[0] in title])
         self.anime["search"] = list(dict.fromkeys(search))
         '''episode search'''
         # Regular expression patterns to match season indicators
         season_patterns = [
-            re.compile(r'season (\d+)', re.IGNORECASE),
-            re.compile(r's(\d+)', re.IGNORECASE),
+            re.compile(r' season (\d+)', re.IGNORECASE),
+            re.compile(r' s(\d+)', re.IGNORECASE),
             re.compile(r' (\d+)$', re.IGNORECASE),
-            re.compile(r'(\d+)(?:st|nd|rd|th) season', re.IGNORECASE),
-            re.compile(r'(second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth) season', re.IGNORECASE),
+            re.compile(r' (\d+)(?:st|nd|rd|th) season', re.IGNORECASE),
+            re.compile(r' (second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth) season', re.IGNORECASE),
             re.compile(r' (II|III|IV|V|VI|VII|VIII|IX|X)$'),  # Roman numerals
         ]
         # Dictionary to map words to numeric values
@@ -169,6 +186,8 @@ class AnimeStuff:
                     season_number = word_roman_to_number.get(season_text, int(season_text))
                     add_search.append(f"{ani_title} season {season_number}")
                     add_search.append(f"{ani_title} s{season_number}")
+                    add_search.append(f"{ani_title} s{season_number:02}")
+                    add_search.append(f"{ani_title} - s{season_number:02}")
                     if season_number == 2:
                         add_search.append(f"{ani_title} {season_number}nd season")
                         add_search.append(f"{ani_title} second season")
@@ -189,7 +208,7 @@ class AnimeStuff:
         r = await to_thread(requests.get, url=url)
         for x in sorted(parse(r.text).get("entries"), key = lambda v: int(v.get("nyaa_seeders")), reverse=True):
             x = dict(x)
-            if any(title.lower() in x.get("title").lower().replace("\'", "").replace("\"", "").replace(",", "") for title in searchlist) and any(ep.lower() in x.get("title").lower().replace("\'", "").replace("\"", "").replace(",", "") for ep in episodesearch):
+            if any(title.lower() in re.sub(r'[^a-zA-Z0-9-_ ]', '', x.get("title").lower()) for title in searchlist) and any(ep.lower() in re.sub(r'[^a-zA-Z0-9-_ ]', '', x.get("title").lower()) for ep in episodesearch):
                 with requests.Session() as s:
                     url = self.host
                     headers = {'content-type': 'application/json'}
