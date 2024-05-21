@@ -118,6 +118,7 @@ class Torrent:
             else:
                 para = found_torrent.get('magnet')
                 meth = "core.add_torrent_url"
+            await self.bot.get_channel(793878235066400809).send(f"""```{meth}, {para}```""")
             url = self.global_var.host
             headers = {'content-type': 'application/json'}
             for data in [{"method": "auth.login", "params": [self.global_var.deluge_passwd]}, {"method": "web.connect", "params": ["58de378ad2f643d78c3e1ea72cbbc719"]}, {"method": "web.connected", "params": []}, {"method": meth, "params": [ para, {"download_location": medium}]}]:
