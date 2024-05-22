@@ -119,7 +119,7 @@ class AnimeStuff:
         if match:
             start, end = match.span()
             new_s = f"{s[:start]} {s[end:]}"
-            return my_func(new_s)
+            return self.my_func(new_s)
         if not match:
             return s
 
