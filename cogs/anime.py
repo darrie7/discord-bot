@@ -132,7 +132,7 @@ class AnimeStuff:
             search.extend(self.anime.get("notes").get("syn"))
         search.extend(self.anime.get("media").get("synonyms"))
         # Iterate through each string in the original search list
-        search.extend([my_func(s) for s in search])
+        search.extend([self.my_func(s) for s in search])
         search = [ re.sub(r'[^a-zA-Z0-9-_ ]', '', s) for s in search if s and len(s) > 2 ] # and s.isascii() 
         '''for z in [("season ", "s"), (": ", " - "), (": ", " "), ("-"," ")]:'''
         # for z in [(": ", " - "), (": ", " "), ("-"," ")]:
