@@ -175,33 +175,49 @@ class AnimeStuff:
         add_search = []
         season_search = []
         for s in self.anime.get("search"):
-            for pattern in season_patterns:
-                match = pattern.search(s)
-                if not match:
-                    add_search.append(s)
-                if match:
-                    start, end = match.span()
-                    ani_title = s[:start].strip() + s[end:].strip()
-                    season_text = match.group(1).lower()
-                    season_number = word_roman_to_number.get(season_text, int(season_text))
-                    add_search.append(ani_title)
-                    season_search.extend([f" season {season_number}", f" s{season_number}", f" s{season_number:02}", f" - s{season_number:02}", f" {season_number} "])
-                    # add_search.append(f"{ani_title} season {season_number}")
-                    # add_search.append(f"{ani_title} s{season_number}")
-                    # add_search.append(f"{ani_title} s{season_number:02}")
-                    # add_search.append(f"{ani_title} - s{season_number:02}")
-                    if season_number == 2:
-                        season_search.extend([f" {season_number}nd season", f" second season"])
-                        # add_search.append(f"{ani_title} {season_number}nd season")
-                        # add_search.append(f"{ani_title} second season")
-                    elif season_number == 3:
-                        season_search.extend([f" {season_number}rd season", f" third season"])
-                        # add_search.append(f"{ani_title} {season_number}rd season")
-                        # add_search.append(f"{ani_title} third season")
-                    else:
-                        season_search.extend([f" {season_number}th season", f" {season_text} season"])
-                        # add_search.append(f"{ani_title} {season_number}th season")
-                        # add_search.append(f"{ani_title} {season_text} season")
+            match = next((x.search(s) for x in season_patterns if x.search(s)), None)
+            if match:
+                start, end = match.span()
+                ani_title = s[:start].strip() + s[end:].strip()
+                season_text = match.group(1).lower()
+                season_number = word_roman_to_number.get(season_text, int(season_text))
+                add_search.append(ani_title)
+                season_search.extend([f" season {season_number}", f" s{season_number}", f" s{season_number:02}", f" - s{season_number:02}", f" {season_number} "])
+                if season_number == 2:
+                    season_search.extend([f" {season_number}nd season", f" second season"])
+                elif season_number == 3:
+                    season_search.extend([f" {season_number}rd season", f" third season"])
+                else:
+                    season_search.extend([f" {season_number}th season", f" {season_text} season"])
+                continue
+            add_search.append(s)
+            # for pattern in season_patterns:
+            #     match = pattern.search(s)
+            #     if not match:
+            #         add_search.append(s)
+            #     if match:
+            #         start, end = match.span()
+            #         ani_title = s[:start].strip() + s[end:].strip()
+            #         season_text = match.group(1).lower()
+            #         season_number = word_roman_to_number.get(season_text, int(season_text))
+            #         add_search.append(ani_title)
+            #         season_search.extend([f" season {season_number}", f" s{season_number}", f" s{season_number:02}", f" - s{season_number:02}", f" {season_number} "])
+            #         # add_search.append(f"{ani_title} season {season_number}")
+            #         # add_search.append(f"{ani_title} s{season_number}")
+            #         # add_search.append(f"{ani_title} s{season_number:02}")
+            #         # add_search.append(f"{ani_title} - s{season_number:02}")
+            #         if season_number == 2:
+            #             season_search.extend([f" {season_number}nd season", f" second season"])
+            #             # add_search.append(f"{ani_title} {season_number}nd season")
+            #             # add_search.append(f"{ani_title} second season")
+            #         elif season_number == 3:
+            #             season_search.extend([f" {season_number}rd season", f" third season"])
+            #             # add_search.append(f"{ani_title} {season_number}rd season")
+            #             # add_search.append(f"{ani_title} third season")
+            #         else:
+            #             season_search.extend([f" {season_number}th season", f" {season_text} season"])
+            #             # add_search.append(f"{ani_title} {season_number}th season")
+            #             # add_search.append(f"{ani_title} {season_text} season")
 
         # self.anime.get("search").extend(add_search)
         searches = list(dict.fromkeys(add_search))
