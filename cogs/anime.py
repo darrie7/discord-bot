@@ -196,9 +196,10 @@ class AnimeStuff:
                         add_search.append(f"{ani_title} {season_text} season")
 
         self.anime.get("search").extend(add_search)
-        self.anime["search"] = list(dict.fromkeys(self.anime.get("search")))
+        searches = list(dict.fromkeys(self.anime.get("search")))
+        self.anime["search"] = [ s for s in searches if s ] # and s.isascii() 
         season_number = int(season_number)
-        self.anime["episodesearch"] = [f""" - {self.anime.get("progress")+1:02} """, f""" - {self.anime.get("progress")+1:02}v""", f"""S{season_number:02}E{self.anime.get("progress")+1:02}"""]
+        self.anime["episodesearch"] = [f""" - {self.anime.get("progress")+1:03} """, f""" - {self.anime.get("progress")+1:02} """, f""" - {self.anime.get("progress")+1:03}v""", f""" - {self.anime.get("progress")+1:02}v""", f"""S{season_number:02}E{self.anime.get("progress")+1:03}""", f"""S{season_number:02}E{self.anime.get("progress")+1:02}"""]
         return self.anime
 
     async def fetch(self, url: str, searchlist: list[str], episodesearch: list[str]) -> str:
