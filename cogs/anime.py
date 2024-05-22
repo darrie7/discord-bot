@@ -113,7 +113,7 @@ class AnimeStuff:
             return None
         return self.anime
 
-    def my_func(s):
+    def my_func(self, s):
         pattern = re.compile(r'(?<=[a-zA-Z])[^a-zA-Z0-9 ](?=[a-zA-Z])')
         match = pattern.search(s)
         if match:
