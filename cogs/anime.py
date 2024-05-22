@@ -197,7 +197,7 @@ class AnimeStuff:
 
         self.anime.get("search").extend(add_search)
         searches = list(dict.fromkeys(self.anime.get("search")))
-        self.anime["search"] = [ s for s in searches if s ] # and s.isascii() 
+        self.anime["search"] = [ s for s in searches if s and s.strip()] # and s.isascii() 
         season_number = int(season_number)
         self.anime["episodesearch"] = [f""" - {self.anime.get("progress")+1:03} """, f""" - {self.anime.get("progress")+1:02} """, f""" - {self.anime.get("progress")+1:03}v""", f""" - {self.anime.get("progress")+1:02}v""", f"""S{season_number:02}E{self.anime.get("progress")+1:03}""", f"""S{season_number:02}E{self.anime.get("progress")+1:02}"""]
         return self.anime
