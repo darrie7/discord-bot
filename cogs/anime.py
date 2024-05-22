@@ -134,7 +134,7 @@ class AnimeStuff:
         search.extend([ syn.replace("\'", "").replace("\"", "") for syn in self.anime.get("media").get("synonyms") ])
         # Iterate through each string in the original search list
         search.extend([ self.my_func(r'(?<=[a-zA-Z])[^a-zA-Z0-9 ](?=[a-zA-Z])', s) for s in search if s.strip() ])
-        search.extend( [ re.sub(r'[^a-zA-Z0-9-_ ]', '', self.my_func(r'  ', self.my_func(r'-', s))) for s in search if s and len(s.strip()) > 2 and not s.strip().isdigit() ] )# and s.isascii() 
+        search.extend( [ re.sub(r'[^a-zA-Z0-9-_ ]', '', self.my_func(r'  ', self.my_func(r'-', s))).strip() for s in search if s and len(s.strip()) > 2 and not s.strip().isdigit() ] )# and s.isascii() 
         '''for z in [("season ", "s"), (": ", " - "), (": ", " "), ("-"," ")]:'''
         # for z in [(": ", " - "), (": ", " "), ("-"," ")]:
         #     search.extend([" - ".join([a.replace(z[0], z[1]) for a in title.split(" - ")]) for title in search if z[0] in title])
@@ -207,7 +207,7 @@ class AnimeStuff:
         searches = list(dict.fromkeys(add_search))
         self.anime["search"] = [ s for s in searches if s and s.strip() and len(s.strip()) > 2 and not s.strip().isdigit() ] # and s.isascii() 
         season_number = int(season_number)
-        self.anime["seasonsearch"] = season_search
+        self.anime["seasonsearch"] = list(dict.fromkeys(season_search))
         self.anime["episodesearch"] = [f""" - {self.anime.get("progress")+1:03} """, f""" - {self.anime.get("progress")+1:02} """, f""" - {self.anime.get("progress")+1:03}v""", f""" - {self.anime.get("progress")+1:02}v""", f"""S{season_number:02}E{self.anime.get("progress")+1:03}""", f"""S{season_number:02}E{self.anime.get("progress")+1:02}"""]
         return self.anime
 
