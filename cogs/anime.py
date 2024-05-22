@@ -90,6 +90,7 @@ class AnimeStuff:
                     if data == []:
                         syn.append(re.sub(r'[^a-zA-Z0-9-_ ]', '', self.my_func(self.anime.get("media").get("title").get("romaji"))))
                         self.anime["notes"] = f"""{{'lastdl': {self.anime.get("progress")}, 'syn': {syn}, 'epoffset': 0, 'synoffset': [] }}"""
+                        break
                     for relation in data:
                         if relation.get("relationType") == "ADAPTATION":
                             title = re.sub(r'[^a-zA-Z0-9-_ ]', '', self.my_func(self.anime.get("media").get("title").get("romaji")))
