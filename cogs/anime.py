@@ -198,7 +198,7 @@ class AnimeStuff:
         self.anime.get("search").extend(add_search)
         self.anime["search"] = list(dict.fromkeys(self.anime.get("search")))
         season_number = int(season_number)
-        self.anime["episodesearch"] = [f"""- {self.anime.get("progress")+1:02} """, f"""- {self.anime.get("progress")+1:02}v""", f"""S{season_number:02}E{self.anime.get("progress")+1:02}"""]
+        self.anime["episodesearch"] = [f""" - {self.anime.get("progress")+1:02} """, f""" - {self.anime.get("progress")+1:02}v""", f"""S{season_number:02}E{self.anime.get("progress")+1:02}"""]
         return self.anime
 
     async def fetch(self, url: str, searchlist: list[str], episodesearch: list[str]) -> str:
@@ -207,7 +207,7 @@ class AnimeStuff:
             x = dict(x)
             if any(title.lower() in re.sub(r'[^a-zA-Z0-9-_ ]', '', self.my_func(x.get("title").lower())) for title in searchlist) and any(ep.lower() in re.sub(r'[^a-zA-Z0-9-_ ]', '', self.my_func(x.get("title").lower())) for ep in episodesearch):
                 with requests.Session() as s:
-                    url = self.host
+                    uri = self.host
                     headers = {'content-type': 'application/json'}
                     for data in [{"method": "auth.login", "params": [self.deluge_passwd]}, {"method": "web.connect", "params": ["58de378ad2f643d78c3e1ea72cbbc719"]}, {"method": "web.connected", "params": []}, {"method": "core.add_torrent_magnet", "params": [f"magnet:?xt=urn:btih:{x.get('nyaa_infohash')}", {"download_location": '/downloads/'}]}]:
                         payload = {
@@ -215,15 +215,11 @@ class AnimeStuff:
                             'params': data.get("params"),
                             'id': 1
                         }
-                        response = s.post(url, data=json.dumps(payload), headers=headers)
+                        response = s.post(uri, data=json.dumps(payload), headers=headers)
                         if response.json().get("error"):
                             await self.bot.get_channel(self.bot._test_channelid).send(f"""```{response.json().get("error")}```""")
                             return
-                # with DelugeRPCClient(self.host, 58846, self.deluge_user, self.deluge_passwd) as client:
-                #     try:
-                #         client.core.add_torrent_magnet(f"magnet:?xt=urn:btih:{x.get('nyaa_infohash')}", options={"download_location": "/downloads/"})
-                #     except Exception as e:
-                #         await self.bot.get_channel(self.bot._test_channelid).send(f"""```{e}```""")
+
                 embed = disnake.Embed(title = x.get("title"))
                 embed.set_thumbnail(url=self.anime.get("media").get("coverImage").get("extraLarge"))
                 await self.bot.get_channel(679029957728665628).send(await self.url_shortener(f"magnet:?xt=urn:btih:{x['nyaa_infohash']}"))
