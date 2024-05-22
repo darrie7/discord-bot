@@ -93,7 +93,7 @@ class AnimeStuff:
                         break
                     for relation in data:
                         if relation.get("relationType") == "ADAPTATION":
-                            title = re.sub(r'[^a-zA-Z0-9-_ ]', '', self.my_func(relation.get("node").get("title").get("romaji")))
+                            title = re.sub(r'[^a-zA-Z0-9-_ ]', '', self.my_func(r'(?<=[a-zA-Z])[^a-zA-Z0-9 ](?=[a-zA-Z])', relation.get("node").get("title").get("romaji")))
                             # title = relation.get("node").get("title").get("romaji").replace("\'", "").replace("\"", "").replace(",", "")
                             related_data = relation.get("node", {}).get("relations", {}).get("edges", [])
                             episodes = 0
@@ -114,15 +114,15 @@ class AnimeStuff:
             return None
         return self.anime
 
-    def my_func(self, s):
-        pattern = re.compile(r'(?<=[a-zA-Z])[^a-zA-Z0-9 ](?=[a-zA-Z])')
+    def my_func(self, regex, s):
+        pattern = re.compile(regex)
         match = pattern.search(s)
         if match:
             start, end = match.span()
             new_s = f"{s[:start]} {s[end:]}"
-            return self.my_func(new_s)
+            return self.my_func(regex, new_s)
         if not match:
-            return s
+            return s.strip()
 
     async def search_gen(self) -> dict:
         self.anime["notes"] = json.loads(self.anime.get("notes").replace("\'", "\""))
@@ -133,8 +133,8 @@ class AnimeStuff:
             search.extend(self.anime.get("notes").get("syn"))
         search.extend([ syn.replace("\'", "").replace("\"", "") for syn in self.anime.get("media").get("synonyms") ])
         # Iterate through each string in the original search list
-        search.extend([ self.my_func(s) for s in search if s.strip() ])
-        search.extend( [ re.sub(r'[^a-zA-Z0-9-_ ]', '', s) for s in search if s and len(s.strip()) > 2 and not s.strip().isdigit() ] )# and s.isascii() 
+        search.extend([ self.my_func(r'(?<=[a-zA-Z])[^a-zA-Z0-9 ](?=[a-zA-Z])', s) for s in search if s.strip() ])
+        search.extend( [ re.sub(r'[^a-zA-Z0-9-_ ]', '', self.my_func(r'  ', self.my_func(r'-', s))) for s in search if s and len(s.strip()) > 2 and not s.strip().isdigit() ] )# and s.isascii() 
         '''for z in [("season ", "s"), (": ", " - "), (": ", " "), ("-"," ")]:'''
         # for z in [(": ", " - "), (": ", " "), ("-"," ")]:
         #     search.extend([" - ".join([a.replace(z[0], z[1]) for a in title.split(" - ")]) for title in search if z[0] in title])
@@ -151,7 +151,6 @@ class AnimeStuff:
         ]
         # Dictionary to map words to numeric values
         word_roman_to_number = {
-            'first': 1,
             'second': 2,
             'third': 3,
             'fourth': 4,
@@ -174,32 +173,41 @@ class AnimeStuff:
         # Iterate through patterns and check for matches
         season_number = 1
         add_search = []
+        season_search = []
         for s in self.anime.get("search"):
             for pattern in season_patterns:
                 match = pattern.search(s)
+                if not match:
+                    add_search.append(s)
                 if match:
                     start, end = match.span()
                     ani_title = s[:start].strip() + s[end:].strip()
                     season_text = match.group(1).lower()
                     season_number = word_roman_to_number.get(season_text, int(season_text))
-                    add_search.append(f"{ani_title} season {season_number}")
-                    add_search.append(f"{ani_title} s{season_number}")
-                    add_search.append(f"{ani_title} s{season_number:02}")
-                    add_search.append(f"{ani_title} - s{season_number:02}")
+                    add_search.append(ani_title)
+                    season_search.extend([f" season {season_number}", f" s{season_number}", f" s{season_number:02}", f" - s{season_number:02}", f" {season_number} "])
+                    # add_search.append(f"{ani_title} season {season_number}")
+                    # add_search.append(f"{ani_title} s{season_number}")
+                    # add_search.append(f"{ani_title} s{season_number:02}")
+                    # add_search.append(f"{ani_title} - s{season_number:02}")
                     if season_number == 2:
-                        add_search.append(f"{ani_title} {season_number}nd season")
-                        add_search.append(f"{ani_title} second season")
+                        season_search.extend([f" {season_number}nd season", f" second season"])
+                        # add_search.append(f"{ani_title} {season_number}nd season")
+                        # add_search.append(f"{ani_title} second season")
                     elif season_number == 3:
-                        add_search.append(f"{ani_title} {season_number}rd season")
-                        add_search.append(f"{ani_title} third season")
+                        season_search.extend([f" {season_number}rd season", f" third season"])
+                        # add_search.append(f"{ani_title} {season_number}rd season")
+                        # add_search.append(f"{ani_title} third season")
                     else:
-                        add_search.append(f"{ani_title} {season_number}th season")
-                        add_search.append(f"{ani_title} {season_text} season")
+                        season_search.extend([f" {season_number}th season", f" {season_text} season"])
+                        # add_search.append(f"{ani_title} {season_number}th season")
+                        # add_search.append(f"{ani_title} {season_text} season")
 
-        self.anime.get("search").extend(add_search)
-        searches = list(dict.fromkeys(self.anime.get("search")))
+        # self.anime.get("search").extend(add_search)
+        searches = list(dict.fromkeys(add_search))
         self.anime["search"] = [ s for s in searches if s and s.strip() and len(s.strip()) > 2 and not s.strip().isdigit() ] # and s.isascii() 
         season_number = int(season_number)
+        self.anime["seasonsearch"] = season_search
         self.anime["episodesearch"] = [f""" - {self.anime.get("progress")+1:03} """, f""" - {self.anime.get("progress")+1:02} """, f""" - {self.anime.get("progress")+1:03}v""", f""" - {self.anime.get("progress")+1:02}v""", f"""S{season_number:02}E{self.anime.get("progress")+1:03}""", f"""S{season_number:02}E{self.anime.get("progress")+1:02}"""]
         return self.anime
 
@@ -207,7 +215,7 @@ class AnimeStuff:
         r = await to_thread(requests.get, url=url)
         for x in sorted(parse(r.text).get("entries"), key = lambda v: int(v.get("nyaa_seeders")), reverse=True):
             x = dict(x)
-            if any(title.lower() in re.sub(r'[^a-zA-Z0-9-_ ]', '', self.my_func(x.get("title").lower())) for title in searchlist) and any(ep.lower() in re.sub(r'[^a-zA-Z0-9-_ ]', '', self.my_func(x.get("title").lower())) for ep in episodesearch):
+            if any(title.lower() in re.sub(r'[^a-zA-Z0-9-_ ]', '', self.my_func(r'(?<=[a-zA-Z])[^a-zA-Z0-9 ](?=[a-zA-Z])', x.get("title").lower())) for title in searchlist) and any(ep.lower() in re.sub(r'[^a-zA-Z0-9-_ ]', '', self.my_func(r'(?<=[a-zA-Z])[^a-zA-Z0-9 ](?=[a-zA-Z])', x.get("title").lower())) for ep in episodesearch):
                 with requests.Session() as s:
                     uri = self.host
                     headers = {'content-type': 'application/json'}
@@ -236,11 +244,11 @@ class AnimeStuff:
     async def torrentsearch(self) -> list[str]:
         base_url = "https://nyaa.si/?page=rss&s=seeders&o=desc&c=1_2&f=0&q=-Raze+-60fps+-120fps+-144fps+-480p+-720p+-540p+"
         if self.anime.get("notes").get("epoffset") > 0 and self.anime.get("notes").get("synoffset"):
-            responses = await gather(*[ self.fetch(f"""{base_url}({"|".join(f'"{word}"' for word in self.anime.get("episodesearch"))})+{"|".join(f'"{word.replace("&", "%26")}"' for word in self.anime.get("search"))}""", self.anime.get("search"), self.anime.get("episodesearch")),
+            responses = await gather(*[ self.fetch(f"""{base_url}{"|".join(f'"{word.replace("&", "%26")}"' for word in self.anime.get("search"))}+{"|".join(f'"{word}"' for word in self.anime.get("seasonsearch"))}+{"|".join(f'"{word}"' for word in self.anime.get("episodesearch"))}""", self.anime.get("search"), self.anime.get("episodesearch")),
                                         self.fetch(f"""{base_url}(- {self.anime.get("progress")+self.anime.get("notes").get("epoffset")+1:02})+{"|".join(f'"{word.replace("&", "%26")}"' for word in self.anime.get("notes").get("synoffset"))}""" , self.anime.get("notes").get("synoffset"), [f"""- {self.anime.get("progress")+self.anime.get("notes").get("epoffset")+1:02}"""])
             ] )
         else:
-            responses = await gather(*[ self.fetch(f"""{base_url}({"|".join(f'"{word}"' for word in self.anime.get("episodesearch"))})+{"|".join(f'"{word.replace("&", "%26")}"' for word in self.anime.get("search"))}""", self.anime.get("search"), self.anime.get("episodesearch"))])
+            responses = await gather(*[ self.fetch(f"""{base_url}{"|".join(f'"{word.replace("&", "%26")}"' for word in self.anime.get("search"))}+{"|".join(f'"{word}"' for word in self.anime.get("seasonsearch"))}+{"|".join(f'"{word}"' for word in self.anime.get("episodesearch"))}""", self.anime.get("search"), self.anime.get("episodesearch"))])
         return [ resp for resp in responses if resp ]
 
     async def subfunc(self) -> Optional[list[str]]:
