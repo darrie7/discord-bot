@@ -126,14 +126,14 @@ class AnimeStuff:
     async def search_gen(self) -> dict:
         self.anime["notes"] = json.loads(self.anime.get("notes").replace("\'", "\""))
         '''title search'''
-        search = [ self.anime.get("media").get("title").get("romaji"), self.anime.get("media").get("title").get("english") ]
-        # search = [ self.anime.get("media").get("title").get("romaji").replace("\'", "").replace("\"", "").replace(",", ""), self.anime.get("media").get("title").get("english").replace("\'", "").replace("\"", "").replace(",", "") ]
+        # search = [ self.anime.get("media").get("title").get("romaji"), self.anime.get("media").get("title").get("english") ]
+        search = [ self.anime.get("media").get("title").get("romaji").replace("\'", "").replace("\"", ""), self.anime.get("media").get("title").get("english").replace("\'", "").replace("\"", "") ]
         if self.anime.get("notes").get("syn"):
             search.extend(self.anime.get("notes").get("syn"))
-        search.extend(self.anime.get("media").get("synonyms"))
+        search.extend([ syn.replace("\'", "").replace("\"", "") for syn in self.anime.get("media").get("synonyms") ])
         # Iterate through each string in the original search list
-        search.extend([self.my_func(s) for s in search])
-        search = [ re.sub(r'[^a-zA-Z0-9-_ ]', '', s) for s in search if s and len(s.strip()) > 2 and not s.strip().isdigit() ] # and s.isascii() 
+        search.extend([self.my_func(s) for s in search if s and s.strip()])
+        search.extend( [ re.sub(r'[^a-zA-Z0-9-_ ]', '', s) for s in search if s and len(s.strip()) > 2 and not s.strip().isdigit() ] )# and s.isascii() 
         '''for z in [("season ", "s"), (": ", " - "), (": ", " "), ("-"," ")]:'''
         # for z in [(": ", " - "), (": ", " "), ("-"," ")]:
         #     search.extend([" - ".join([a.replace(z[0], z[1]) for a in title.split(" - ")]) for title in search if z[0] in title])
