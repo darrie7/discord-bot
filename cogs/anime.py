@@ -131,7 +131,7 @@ class AnimeStuff:
         search = [ self.anime.get("media").get("title").get("romaji").replace("\'", "").replace("\"", ""), self.anime.get("media").get("title").get("english").replace("\'", "").replace("\"", "") ]
         if self.anime.get("notes").get("syn"):
             search.extend(self.anime.get("notes").get("syn"))
-        search.extend([ syn.replace("\'", "").replace("\"", "") for syn in self.anime.get("media").get("synonyms") ])
+        search.extend([ syn.replace("\'", "").replace("\"", "") for syn in self.anime.get("media").get("synonyms") if syn.replace("\'", "").replace("\"", "")[0].isascii()])
         # Iterate through each string in the original search list
         search.extend([ self.my_func(r'(?<=[a-zA-Z])[^a-zA-Z0-9 ](?=[a-zA-Z])', s) for s in search if s.strip() ])
         search.extend( [ re.sub(r'[^a-zA-Z0-9-_ ]', '', self.my_func(r'  ', self.my_func(r'-', s))).strip() for s in search if s and len(s.strip()) > 2 and not s.strip().isdigit() ] )# and s.isascii() 
