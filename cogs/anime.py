@@ -93,7 +93,7 @@ class AnimeStuff:
                         break
                     for relation in data:
                         if relation.get("relationType") == "ADAPTATION":
-                            title = re.sub(r'[^a-zA-Z0-9-_ ]', '', self.my_func(self.anime.get("media").get("title").get("romaji")))
+                            title = re.sub(r'[^a-zA-Z0-9-_ ]', '', self.my_func(relation.get("node").get("title").get("romaji")))
                             # title = relation.get("node").get("title").get("romaji").replace("\'", "").replace("\"", "").replace(",", "")
                             related_data = relation.get("node", {}).get("relations", {}).get("edges", [])
                             episodes = 0
@@ -102,8 +102,9 @@ class AnimeStuff:
                                 if related.get("relationType") == "ADAPTATION" and node.get("format") == "TV" and node.get("seasonInt") < self.anime.get('media').get('seasonInt'):
                                     episodes += related.get("node", {}).get("episodes")
                             if episodes == 0:
-                                syn.append(re.sub(r'[^a-zA-Z0-9-_ ]', '', self.my_func(self.anime.get("media").get("title").get("romaji"))))
-                            self.anime["notes"] = f"""{{'lastdl': {self.anime.get("progress")}, 'syn': {syn}, 'epoffset': {episodes}, 'synoffset': ["{self.my_func(re.sub(r'[^a-zA-Z0-9-_ ]', '', title))}"] }}"""
+                                pass
+                                # syn.append(re.sub(r'[^a-zA-Z0-9-_ ]', '', self.my_func(self.anime.get("media").get("title").get("romaji"))))
+                            self.anime["notes"] = f"""{{'lastdl': {self.anime.get("progress")}, 'syn': {syn}, 'epoffset': {episodes}, 'synoffset': ["{title}"] }}"""
                             break
                     break
         if ( "ignore" in self.anime.get("notes").lower()) or (json.loads(self.anime.get("notes").replace("\'", "\"")).get("lastdl") > self.anime.get("progress") ):
