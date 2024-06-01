@@ -323,7 +323,7 @@ class justwatchCog(commands.Cog):
             data = response.json()
             [ self.bot._db3.insert(x) for x in data if not self.bot._db3.search(self.bot._query["_id"] == x.get("_id")) ]
             await to_thread(requests.put, url=update_check_url, headers=headers_new_update, json={"update": False})
-        await gather(*[ Torrent(self, x).download_torrent() for x in self.bot._db3 if ( x.get('found') is False and not (x.get('newest_season') == x.get('progress_season') and x.get('newest_episode') == x.get('progress_episode')) and (datetime.datetime.utcnow() - datetime.timedelta(minutes=15)) > datetime.datetime.strptime(x.get('_changed').split('.')[0], '%Y-%m-%dT%H:%M:%S') or x.get('_changed') == x.get('_created'))])
+        await gather(*[ Torrent(self, x).download_torrent() for x in self.bot._db3 if ( not x.get('found') and not (x.get('newest_season') == x.get('progress_season') and x.get('newest_episode') == x.get('progress_episode')) and ((datetime.datetime.utcnow() - datetime.timedelta(minutes=15)) > datetime.datetime.strptime(x.get('_changed').split('.')[0], '%Y-%m-%dT%H:%M:%S') or x.get('_changed') == x.get('_created')))])
         return
 
 
