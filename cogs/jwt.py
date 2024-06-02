@@ -110,11 +110,11 @@ class Torrent:
                 if "10bit" in tor_info.get("title"):
                     found_torrent = tor_info
                     break
+        if not found_torrent:
+            found_torrent = torrents[0]
         if "10bit" not in found_torrent.get("title") and self.db_entry.get('h26510_cycle') < 4:
             await self.update_db({"_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": self.db_entry.get('h26510_cycle')+1}, restdb = False)
             return True
-        if not found_torrent:
-            found_torrent = torrents[0]
         with requests.Session() as s:
             if "magnet" in found_torrent.get('magnet'):
                 para = f"{'&'.join([ part for part in found_torrent.get('magnet').split('&') if not part.startswith('tr=') ])}&tr={await self.get_trackers()}"
