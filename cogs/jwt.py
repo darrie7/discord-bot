@@ -149,7 +149,7 @@ class Torrent:
             if t_info == []:
                 await self.update_db({"_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z'}, restdb = False)
                 return
-            mag2del = await self.magnet2deluge(t_info, "/movies/")
+            mag2del = await self.magnet2deluge(t_info, f"/movies/{self.db_entry.get('title').replace(' ', '_')}_{self.db_entry.get('year')}/")
             if mag2del:
                 return
             ## update
