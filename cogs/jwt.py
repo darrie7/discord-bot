@@ -15,6 +15,7 @@ from pathlib import Path
 import json
 import xml.etree.ElementTree as ET
 from guessit import guessit
+from fake_useragent import UserAgent
 
 VIDEO_EXTENSIONS = [
     ".avi", ".mp4", ".mkv", ".mpg",
@@ -52,7 +53,9 @@ class Torrent:
 
     async def update_show(self) -> None:
         url: str = self.db_entry.get('url')
-        r = await to_thread(requests.get, url)
+        ua = UserAgent()
+        headers = {'User-Agent': ua.random}
+        r = await to_thread(requests.get, url=url, headers=headers)
         dom = html.fromstring(r.text)
         season_episode = dom.cssselect('.episodes-item span')[0].text_content().split(" ")
         if season_episode[0] not in self.db_entry.get('newest_season') or season_episode[1] not in self.db_entry.get('newest_episode'):
@@ -66,8 +69,10 @@ class Torrent:
     async def media_scraper(self):
         n: int = 0
         uri = f"{self.global_var.jkt}{self.search_term}+1080p"
+        ua = UserAgent()
+        headers = {'User-Agent': ua.random}
         while n < 2:
-            data = await to_thread(requests.get, uri)
+            data = await to_thread(requests.get, url=uri, headers=headers)
             if not data.ok:
                 await sleep(random.randint(2, 15))
                 n += 1
@@ -94,7 +99,9 @@ class Torrent:
 
 
     async def get_trackers(self):
-        trackers = await to_thread(requests.get, url="https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all.txt")
+        ua = UserAgent()
+        headers = {'User-Agent': ua.random}
+        trackers = await to_thread(requests.get, url="https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all.txt", headers=headers)
         content_list = trackers.text.splitlines()
         trackers_list = [content for content in content_list if content]
         tracker_string = "&tr=".join(trackers_list)
