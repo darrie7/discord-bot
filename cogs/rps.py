@@ -22,21 +22,29 @@ class rpsCog(commands.Cog):
         self.loopcount1.cancel()
         self.loopcount2.cancel()
 
-    @tasks.loop(minutes=5)
-    async def loopcount1(self):
-        await sleep(30)
-        await self.bot.get_channel(793878235066400809).send(f'loopcount1: {self.testing.current_loop}')
-        return
-
-    @tasks.loop(minutes=5)
+    @tasks.loop(minutes=2)
     async def testing(self):
-        await self.bot.get_channel(793878235066400809).send(f'testing: {self.testing.current_loop}')
+        if self.testing.current_loop+1 == 0:
+            await self.bot.get_channel(793878235066400809).send(f'loops at zero')
+            return
+        if self.testing.current_loop+1 == self.loopcount1.current_loop+1:
+            await self.bot.get_channel(793878235066400809).send(f'testing: {self.testing.current_loop+1}, loopcount1: {self.loopcount1.current_loop+1}')
+        else:
+            await self.bot.get_channel(793878235066400809).send(f'loopcount1 failed')
+        if self.testing.current_loop <= self.loopcount2.current_loop*3 == 0:
+            await self.bot.get_channel(793878235066400809).send(f'testing: {self.testing.current_loop+1}, loopcount2: {self.loopcount2.current_loop+1}')
+        else:
+            await self.bot.get_channel(793878235066400809).send(f'loopcount2 failed')
         return
 
-    @tasks.loop(minutes=5)
+    @tasks.loop(minutes=1)
+    async def loopcount1(self):
+        await self.bot.get_channel(793878235066400809).send(f'loopcount1: {self.loopcount1.current_loop+1}')
+        return
+
+    @tasks.loop(minutes=3)
     async def loopcount2(self):
-        await self.bot.get_channel(793878235066400809).send(f'loopcount2: {self.testing.current_loop}')
-        await self.bot.get_channel(793878235066400809).send(f'loopcount2 for 5 delay: {self.loopcount1.current_loop}')
+        await self.bot.get_channel(793878235066400809).send(f'loopcount2: {self.loopcount2.current_loop+1}')
         return
 
 
