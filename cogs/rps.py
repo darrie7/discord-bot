@@ -40,6 +40,8 @@ class rpsCog(commands.Cog):
     @tasks.loop(minutes=1)
     async def loopcount1(self):
         await self.bot.get_channel(793878235066400809).send(f'loopcount1: {self.loopcount1.current_loop+1}')
+        if self.loopcount1.current_loop+1 = 4:
+            err = int("bdhjsjf")
         return
 
     @tasks.loop(minutes=3)
