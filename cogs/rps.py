@@ -22,7 +22,7 @@ class rpsCog(commands.Cog):
         self.loopcount1.cancel()
         self.loopcount2.cancel()
 
-    @tasks.loop(minutes=2)
+    @tasks.loop(minutes=1)
     async def testing(self):
         if self.testing.current_loop+1 == 1:
             await self.bot.get_channel(793878235066400809).send(f'loops started')
