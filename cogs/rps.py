@@ -24,17 +24,17 @@ class rpsCog(commands.Cog):
 
     @tasks.loop(minutes=5)
     async def loopcount1(self):
-        await self.bot.get_channel(793878235066400809).send(self.testing.current_loop)
+        await self.bot.get_channel(793878235066400809).send(f'loopcount1: {self.testing.current_loop}')
         return
 
     @tasks.loop(minutes=5)
     async def testing(self):
-        await self.bot.get_channel(793878235066400809).send(self.testing.current_loop)
+        await self.bot.get_channel(793878235066400809).send(f'self: {self.testing.current_loop}')
         return
 
     @tasks.loop(minutes=5)
     async def loopcount2(self):
-        await self.bot.get_channel(793878235066400809).send(self.testing.current_loop)
+        await self.bot.get_channel(793878235066400809).send(f'loopcount2: {self.testing.current_loop}')
         return
 
 
