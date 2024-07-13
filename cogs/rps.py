@@ -31,7 +31,7 @@ class rpsCog(commands.Cog):
             await self.bot.get_channel(793878235066400809).send(f'testing: {self.testing.current_loop+1}, loopcount1: {self.loopcount1.current_loop+1}')
         else:
             await self.bot.get_channel(793878235066400809).send(f'loopcount1 failed')
-        if self.testing.current_loop+1 <= (self.loopcount2.current_loop+1)*3 == 0:
+        if self.testing.current_loop+1 <= (self.loopcount2.current_loop+1)*3:
             await self.bot.get_channel(793878235066400809).send(f'testing: {self.testing.current_loop+1}, loopcount2: {self.loopcount2.current_loop+1}')
         else:
             await self.bot.get_channel(793878235066400809).send(f'loopcount2 failed')
