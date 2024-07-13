@@ -29,7 +29,7 @@ class rpsCog(commands.Cog):
 
     @tasks.loop(minutes=5)
     async def testing(self):
-        await self.bot.get_channel(793878235066400809).send(f'self: {self.testing.current_loop}')
+        await self.bot.get_channel(793878235066400809).send(f'self: 1')
         return
 
     @tasks.loop(minutes=5)
