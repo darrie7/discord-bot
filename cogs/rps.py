@@ -12,31 +12,30 @@ from cryptography.fernet import Fernet
 class rpsCog(commands.Cog):
     def __init__(self, bot) -> None:
         self.bot = bot
+        self.loopcount1.start()
         self.testing.start()
-        self.nterm = 1
+        self.loopcount2.start()
         
 
     def cog_unload(self) -> None:
         self.testing.cancel()
+        self.loopcount1.cancel()
+        self.loopcount2.cancel()
 
-    @tasks.loop(minutes=8)
+    @tasks.loop(minutes=5)
+    async def loopcount1(self):
+        await self.bot.get_channel(793878235066400809).send(self.testing.current_loop)
+        return
+
+    @tasks.loop(minutes=5)
     async def testing(self):
-        if self.nterm == 0:
-            await self.bot.get_channel(793878235066400809).send("n = 0")
-            self.nterm = 1
-            return
-        if self.nterm == 1:
-            await self.bot.get_channel(793878235066400809).send("n = 1")
-            self.nterm = 0
-            respon = await to_thread(requests.get, url="https://raw.githubusercontent.com/darrie7/discord-bot/main/cogs/rps2.py")
-            try:
-                self.bot.load_extension(respon.text)
-            except Exception as e:
-                await self.bot.get_channel(793878235066400809).send(f'**`ERROR:`** {type(e).__name__} - {e}')
-            else:
-                await self.bot.get_channel(793878235066400809).send('**`SUCCESS`**')
-                self.bot.unload_extension(respon.text)
-            return
+        await self.bot.get_channel(793878235066400809).send(self.testing.current_loop)
+        return
+
+    @tasks.loop(minutes=5)
+    async def loopcount2(self):
+        await self.bot.get_channel(793878235066400809).send(self.testing.current_loop)
+        return
 
 
     @commands.slash_command(guild_ids=[self.bot._guildid])
