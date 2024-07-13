@@ -110,11 +110,11 @@ class rpsCog(commands.Cog):
     #             )
     #     await inter.response.send_message(f"""```{output}```""")
 
-    @rps.error
-    @rpsleaderboard.error
-    async def cog_error_handler(self, error):
-        if isinstance(error, commands.CheckFailure):
-            pass
+    # @rps.error
+    # @rpsleaderboard.error
+    # async def cog_error_handler(self, error):
+    #     if isinstance(error, commands.CheckFailure):
+    #         pass
 
 def setup(bot):
     bot.add_cog(rpsCog(bot))
