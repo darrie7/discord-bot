@@ -2,7 +2,7 @@ from disnake.ext import commands, tasks
 import disnake
 import random
 from table2ascii import table2ascii as t2a, PresetStyle
-from asyncio import to_thread
+from asyncio import to_thread, sleep
 import requests
 import json
 import math
@@ -24,7 +24,7 @@ class rpsCog(commands.Cog):
 
     @tasks.loop(minutes=5)
     async def loopcount1(self):
-        await asyncio.sleep(5)
+        await sleep(30)
         await self.bot.get_channel(793878235066400809).send(f'loopcount1: {self.testing.current_loop}')
         return
 
