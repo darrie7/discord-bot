@@ -24,8 +24,8 @@ class rpsCog(commands.Cog):
 
     @tasks.loop(minutes=2)
     async def testing(self):
-        if self.testing.current_loop+1 == 0:
-            await self.bot.get_channel(793878235066400809).send(f'loops at zero')
+        if self.testing.current_loop+1 == 1:
+            await self.bot.get_channel(793878235066400809).send(f'loops started')
             return
         if self.testing.current_loop+1 == self.loopcount1.current_loop+1:
             await self.bot.get_channel(793878235066400809).send(f'testing: {self.testing.current_loop+1}, loopcount1: {self.loopcount1.current_loop+1}')
