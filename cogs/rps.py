@@ -24,19 +24,9 @@ class rpsCog(commands.Cog):
 
     @tasks.loop(minutes=1)
     async def testing(self):
-        if self.testing.current_loop+1 == 1:
-            await self.bot.get_channel(793878235066400809).send(f'loops started')
-            return
-        if self.testing.current_loop+1 == self.loopcount1.current_loop+1:
-            await self.bot.get_channel(793878235066400809).send(f'testing: {self.testing.current_loop+1}, loopcount1: {self.loopcount1.current_loop+1}')
-        else:
-            await self.bot.get_channel(793878235066400809).send(f'loopcount1 failed')
-            self.loopcount1.current_loop = self.testing.current_loop
-        if self.testing.current_loop+1 <= (self.loopcount2.current_loop+1)*3:
-            await self.bot.get_channel(793878235066400809).send(f'testing: {self.testing.current_loop+1}, loopcount2: {self.loopcount2.current_loop+1}')
-        else:
-            await self.bot.get_channel(793878235066400809).send(f'loopcount2 failed')
-        return
+        await self.bot.get_channel(793878235066400809).send(f'testing: {self.testing.next_iteration}')
+        await self.bot.get_channel(793878235066400809).send(f'loopcount1: {self.loopcount1.next_iteration}')
+        await self.bot.get_channel(793878235066400809).send(f'loopcount2: {self.loopcount2.next_iteration}')
 
     @tasks.loop(minutes=1)
     async def loopcount1(self):
