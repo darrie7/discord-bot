@@ -402,19 +402,29 @@ class MyCommandsCog(commands.Cog):
 
     @tasks.loop(minutes=5)
     async def restart_failed(self) -> None:
+        errors = []
         if not self.task_five.next_iteration:
             self.task_five.cancel()
             self.task_five.start()
+            errors.append("task 5")
         if not self.task_four.next_iteration:
             self.task_four.cancel()
             self.task_four.start()
+            errors.append("task 4")
         if not self.task_three.next_iteration:
             self.task_three.cancel()
             self.task_three.start()
+            errors.append("task 3")
         if not self.task_two.next_iteration:
             self.task_two.cancel()
             self.task_two.start()
-        pass
+            errors.append("task 2")
+        for x in range(10):
+            try:
+                await self.bot.get_channel(793878235066400809).send(f"{', '.join(errors)} errored, hopefully reloading")
+                return
+            except Exception as e:
+                pass
 
     @restart_failed.error
     async def restart_failed_error_handler(self, error) -> None:
