@@ -419,12 +419,13 @@ class MyCommandsCog(commands.Cog):
             self.task_two.cancel()
             self.task_two.start()
             errors.append("task 2")
-        for _ in range(10):
-            try:
-                await self.bot.get_channel(793878235066400809).send(f"{', '.join(errors)} errored, hopefully reloading")
-                return
-            except Exception as e:
-                pass
+        if errors:
+            for _ in range(10):
+                try:
+                    await self.bot.get_channel(793878235066400809).send(f"{', '.join(errors)} errored, hopefully reloading")
+                    return
+                except Exception as e:
+                    pass
 
     @restart_failed.error
     async def restart_failed_error_handler(self, error) -> None:
