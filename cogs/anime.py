@@ -402,14 +402,18 @@ class MyCommandsCog(commands.Cog):
 
     @tasks.loop(minutes=5)
     async def restart_failed(self) -> None:
-        if self.task_five.failed() or not self.task_five.is_running():
-            self.task_five.restart()
-        if self.task_four.failed() or not self.task_four.is_running():
-            self.task_four.restart()
-        if self.task_three.failed() or not self.task_three.is_running():
-            self.task_three.restart()
-        if self.task_two.failed() or not self.task_two.is_running():
-            self.task_two.restart()
+        if self.task_five.failed() or not self.task_five.is_running() or self.task_five.is_being_cancelled():
+            self.task_five.cancel()
+            self.task_five.start()
+        if self.task_four.failed() or not self.task_four.is_running() or self.task_four.is_being_cancelled():
+            self.task_four.cancel()
+            self.task_four.start()
+        if self.task_three.failed() or not self.task_three.is_running() or self.task_three.is_being_cancelled():
+            self.task_three.cancel()
+            self.task_three.start()
+        if self.task_two.failed() or not self.task_two.is_running() or self.task_two.is_being_cancelled():
+            self.task_two.cancel()
+            self.task_two.start()
         pass
 
     @restart_failed.error
