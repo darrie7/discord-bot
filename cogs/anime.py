@@ -419,7 +419,7 @@ class MyCommandsCog(commands.Cog):
             self.task_two.cancel()
             self.task_two.start()
             errors.append("task 2")
-        for x in range(10):
+        for _ in range(10):
             try:
                 await self.bot.get_channel(793878235066400809).send(f"{', '.join(errors)} errored, hopefully reloading")
                 return
@@ -429,31 +429,36 @@ class MyCommandsCog(commands.Cog):
     @restart_failed.error
     async def restart_failed_error_handler(self, error) -> None:
         await self.bot.get_channel(793878235066400809).send(f"""```{"".join(traceback.format_exception(type(error), error, error.__traceback__))[-1500:]}```""")
-        self.restart_failed.restart()
+        self.restart_failed.cancel()
+        self.restart_failed.start()
         pass
     
     @task_two.error
     async def task_two_error_handler(self, error) -> None:
         await self.bot.get_channel(self.bot._test_channelid).send(f"""```{"".join(traceback.format_exception(type(error), error, error.__traceback__))}```""")
-        self.task_two.restart()
+        self.task_two.cancel()
+        self.task_two.start()
         pass
 
     @task_three.error
     async def task_three_error_handler(self, error) -> None:
         await self.bot.get_channel(self.bot._test_channelid).send(f"""```{"".join(traceback.format_exception(type(error), error, error.__traceback__))}```""")
-        self.task_three.restart()
+        self.task_three.cancel()
+        self.task_three.start()
         pass
 
     @task_four.error
     async def task_four_error_handler(self, error) -> None:
         await self.bot.get_channel(self.bot._test_channelid).send(f"""```{"".join(traceback.format_exception(type(error), error, error.__traceback__))}```""")
-        self.task_four.restart()
+        self.task_four.cancel()
+        self.task_four.start()
         pass
 
     @task_five.error
     async def task_five_error_handler(self, error) -> None:
         await self.bot.get_channel(self.bot._test_channelid).send(f"""```{"".join(traceback.format_exception(type(error), error, error.__traceback__))}```""")
-        self.task_five.restart()
+        self.task_five.cancel()
+        self.task_five.start()
         pass
 
 
