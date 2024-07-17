@@ -9,6 +9,7 @@ from table2ascii import table2ascii as t2a, PresetStyle
 import traceback
 import requests
 from lxml import html
+from fake_useragent import UserAgent
 
 
 class PeppernewsCog(commands.Cog):
@@ -88,7 +89,9 @@ class PeppernewsCog(commands.Cog):
 
 
     async def pepperasync(self, url: str, pricelimit: int, timedelt: int) -> None:
-        r = await to_thread(requests.get, url = url)
+        ua = UserAgent()
+        headers = {'User-Agent': ua.random}
+        r = await to_thread(requests.get, url=url, headers=headers)
         for f in parse(r.text).get("entries"):
             if not (datetime.strptime(f.get("published"), "%a, %d %b %Y %H:%M:%S %z") > (datetime.utcnow().replace(tzinfo=pytz.utc).astimezone(pytz.timezone("Europe/Amsterdam")) - timedelta(seconds = timedelt))):
                 break
