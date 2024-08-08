@@ -133,7 +133,7 @@ class PeppernewsCog(commands.Cog):
     @tasks.loop(minutes=5)
     async def restart_failed(self) -> None:
         errors = []
-        if not self.task_five.next_iteration:
+        if not self.task_one.next_iteration:
             self.task_one.cancel()
             self.task_one.start()
             errors.append("task 2")
