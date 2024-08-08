@@ -15,6 +15,7 @@ from fake_useragent import UserAgent
 class PeppernewsCog(commands.Cog):
     def __init__(self, bot: object) -> None:
         self.bot = bot
+        self.restart_failed.start()
         self.task_one.start()
         self.task_two.start()
         
@@ -22,6 +23,7 @@ class PeppernewsCog(commands.Cog):
     def cog_unload(self) -> None:
         self.task_one.cancel()
         self.task_two.cancel()
+        self.restart_failed.cancel()
 
 
     @commands.slash_command()
@@ -128,11 +130,42 @@ class PeppernewsCog(commands.Cog):
                 )
         return await self.bot.get_channel(933858887533232218).send(f"""```{output}```""")
 
-    @task_one.error
-    @task_two.error
-    async def cog_error_handler(self, error) -> None:
-        await self.bot.get_channel(self.bot._test_channelid).send(f"""```{"".join(traceback.format_exception(type(error), error, error.__traceback__))}```""")
+    @tasks.loop(minutes=5)
+    async def restart_failed(self) -> None:
+        errors = []
+        if not self.task_five.next_iteration:
+            self.task_one.cancel()
+            self.task_one.start()
+            errors.append("task 2")
+        if errors:
+            for _ in range(10):
+                try:
+                    await self.bot.get_channel(793878235066400809).send(f"{', '.join(errors)} errored, hopefully reloading")
+                    return
+                except Exception as e:
+                    pass
+
+    @restart_failed.error
+    async def restart_failed_error_handler(self, error) -> None:
+        await self.bot.get_channel(793878235066400809).send(f"""```{"".join(traceback.format_exception(type(error), error, error.__traceback__))[-1500:]}```""")
+        self.restart_failed.cancel()
+        self.restart_failed.start()
         pass
+
+    @task_one.error
+    async def task_one_error_handler(self, error) -> None:
+        await self.bot.get_channel(self.bot._test_channelid).send(f"""```{"".join(traceback.format_exception(type(error), error, error.__traceback__))}```""")
+        self.task_one.cancel()
+        self.task_one.start()
+        pass
+
+    @task_two.error
+    async def task_two_error_handler(self, error) -> None:
+        await self.bot.get_channel(self.bot._test_channelid).send(f"""```{"".join(traceback.format_exception(type(error), error, error.__traceback__))}```""")
+        self.task_two.cancel()
+        self.task_two.start()
+        pass
+
 
 
 def setup(bot):
