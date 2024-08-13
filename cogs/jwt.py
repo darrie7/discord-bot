@@ -57,7 +57,7 @@ class Torrent:
         headers = {'User-Agent': ua.random}
         r = await to_thread(requests.get, url=url, headers=headers)
         dom = html.fromstring(r.text)
-        season_episode = dom.cssselect('.episodes-item span')[0].text_content().split(" ")
+        season_episode = dom.cssselect('.episodes-item span')[0].text_content().split(" ") if dom.cssselect('.episodes-item span') else return
         if season_episode[0] not in self.db_entry.get('newest_season') or season_episode[1] not in self.db_entry.get('newest_episode'):
             await self.update_db({ "newest_season": season_episode[0], "newest_episode": season_episode[1], "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z' })
 
