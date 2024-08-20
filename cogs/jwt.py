@@ -136,6 +136,9 @@ class Torrent:
                         await self.bot.get_channel(self.bot._test_channelid).send(f"""```{e}```""")
                         return True
                     para = f"{'&'.join([ part for part in matches[0].split('&') if not part.startswith('tr=') ])}&tr={await self.get_trackers()}"
+                except Exception as e:
+                    await self.bot.get_channel(self.bot._test_channelid).send(f"""```{e}```""")
+                    return True
             url = self.global_var.host
             headers = {'content-type': 'application/json'}
             for data in [{"method": "auth.login", "params": [self.global_var.deluge_passwd]}, {"method": "web.connect", "params": ["58de378ad2f643d78c3e1ea72cbbc719"]}, {"method": "web.connected", "params": []}, {"method": "core.add_torrent_magnet", "params": [ para, {"download_location": medium}]}]:
