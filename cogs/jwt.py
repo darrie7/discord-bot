@@ -125,6 +125,7 @@ class Torrent:
             await self.update_db({"_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": self.db_entry.get('h26510_cycle')+1}, restdb = False)
             return True
         with requests.Session() as s:
+            para  = None
             if "magnet" in found_torrent.get('magnet'):
                 para = f"{'&'.join([ part for part in found_torrent.get('magnet').split('&') if not part.startswith('tr=') ])}&tr={await self.get_trackers()}"
             else:
@@ -136,9 +137,8 @@ class Torrent:
                         await self.bot.get_channel(self.bot._test_channelid).send(f"""```{e}```""")
                         return True
                     para = f"{'&'.join([ part for part in matches[0].split('&') if not part.startswith('tr=') ])}&tr={await self.get_trackers()}"
-                except Exception as e:
-                    await self.bot.get_channel(self.bot._test_channelid).send(f"""```{e}```""")
-                    return True
+            if not para:
+                return True
             url = self.global_var.host
             headers = {'content-type': 'application/json'}
             for data in [{"method": "auth.login", "params": [self.global_var.deluge_passwd]}, {"method": "web.connect", "params": ["58de378ad2f643d78c3e1ea72cbbc719"]}, {"method": "web.connected", "params": []}, {"method": "core.add_torrent_magnet", "params": [ para, {"download_location": medium}]}]:
