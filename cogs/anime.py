@@ -128,10 +128,7 @@ class AnimeStuff:
         self.anime["notes"] = json.loads(self.anime.get("notes", "").replace("\'", "\""))
         '''title search'''
         # search = [ self.anime.get("media").get("title").get("romaji"), self.anime.get("media").get("title").get("english") ]
-        search = [
-            self.anime.get("media", {}).get("title", {}).get("romaji", "").replace("'", "").replace('"', ""),
-            self.anime.get("media", {}).get("title", {}).get("english", "").replace("'", "").replace('"', "")
-        ]
+        search = [ x.replace("'", "").replace('"', "") for x in [self.anime.get("media", {}).get("title", {}).get("romaji", ""), self.anime.get("media", {}).get("title", {}).get("english", "") ] if x ]
         if self.anime.get("notes", {}).get("syn"):
             search.extend(self.anime.get("notes").get("syn"))
         search.extend([ syn.replace("\'", "").replace("\"", "") for syn in self.anime.get("media").get("synonyms") if syn.replace("\'", "").replace("\"", "")[0].isascii()])
