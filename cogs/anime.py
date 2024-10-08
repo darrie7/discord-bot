@@ -147,7 +147,7 @@ class AnimeStuff:
             re.compile(r' (\d+)$', re.IGNORECASE),
             re.compile(r' (\d+)(?:st|nd|rd|th) season', re.IGNORECASE),
             re.compile(r' (second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth) season', re.IGNORECASE),
-            re.compile(r' (II|III|IV|V|VI|VII|VIII|IX)$'),  # Roman numerals
+            re.compile(r' (II|III|IV|V|VI|VII|VIII|IX|X)$'),  # Roman numerals
         ]
         # Dictionary to map words to numeric values
         word_roman_to_number = {
@@ -168,6 +168,7 @@ class AnimeStuff:
             'vii': 7,
             'viii': 8,
             'ix': 9,
+            'x': 10
         }
         # Iterate through patterns and check for matches
         season_number = 1
@@ -179,7 +180,7 @@ class AnimeStuff:
                 start, end = match.span()
                 ani_title = s[:start].strip() + s[end:].strip()
                 season_text = match.group(1).lower()
-                season_number = word_roman_to_number.get(season_text, int(season_text))
+                season_number = word_roman_to_number.get(season_text, '') if word_roman_to_number.get(season_text, '') else int(season_text)
                 add_search.append(ani_title)
                 season_search.extend([f" season {season_number}", f" s{season_number}", f" s{season_number:02}", f" - s{season_number:02}", f" {season_number} "])
                 if season_number == 2:
