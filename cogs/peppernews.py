@@ -108,7 +108,7 @@ class PeppernewsCog(commands.Cog):
                 title_pep = f.get("title")
             await self.bot.get_channel(679029900299993113).send(embed=disnake.Embed(title = title_pep, description = f"""{html.fromstring(f.get("description")).text_content()[:1500]}...""", url = f.get("link")))
 
-    @tasks.loop(time=[time(hour=16, minute=35)])
+    @tasks.loop(time=[time(hour=16, minute=45)])
     async def marktplaatssync(self) -> None:
         ua = UserAgent()
         headers = {'User-Agent': ua.random}
@@ -118,7 +118,7 @@ class PeppernewsCog(commands.Cog):
             # Parse the JSON data directly from the response
             data = r.json()
             for x in data.get('listings'):
-                embedded = disnake.Embed(title = x.get("title"), description = f"""{x.get("description")}\n\n{x.get("location").get("distanceMeters")}""", url = f"""https://marktplaats.nl{f.get("vipUrl")}""")
+                embedded = disnake.Embed(title = x.get("title"), description = f"""{x.get("description")}\n\n{x.get("location").get("distanceMeters")}""", url = f"""https://marktplaats.nl{x.get("vipUrl")}""")
                 embedded.set_image(url=x.get("pictures").get("extraExtraLargeUrl"))
                 await self.bot.get_channel(679029900299993113).send(embed=embedded)
         
