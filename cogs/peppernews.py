@@ -112,15 +112,22 @@ class PeppernewsCog(commands.Cog):
     async def marktplaatssync(self) -> None:
         ua = UserAgent()
         headers = {'User-Agent': ua.random}
-        url = "https://www.marktplaats.nl/lrp/api/search?attributeRanges[]=PriceCents%3Anull%3A0&attributesByKey[]=offeredSince%3AVandaag&distanceMeters=15000&limit=30&offset=0&postcode=7009GE&query=tafel&searchInTitleAndDescription=true&sortBy=SORT_INDEX&sortOrder=DECREASING&viewOptions=list-view"
-        r = await to_thread(requests.get, url=url, headers=headers)
-        if r.status_code == 200:
-            # Parse the JSON data directly from the response
-            data = r.json()
-            for x in data.get('listings'):
-                embedded = disnake.Embed(title = x.get("title"), description = f"""{x.get("description")}\n\nDistance: {x.get("location").get("distanceMeters") meter}""", url = f"""https://marktplaats.nl{x.get("vipUrl")}""")
-                embedded.set_image(url=x.get("pictures")[0].get("extraExtraLargeUrl"))
-                await self.bot.get_channel(679029900299993113).send(embed=embedded)
+        url = ["https://www.marktplaats.nl/lrp/api/search?attributeRanges[]=PriceCents%3Anull%3A0&attributesByKey[]=offeredSince%3AVandaag&distanceMeters=15000&limit=30&offset=0&postcode=7009GE&query=tafel&searchInTitleAndDescription=true&sortBy=SORT_INDEX&sortOrder=DECREASING&viewOptions=list-view", "https://www.marktplaats.nl/lrp/api/search?attributeRanges[]=PriceCents%3Anull%3A0&attributesByKey[]=offeredSince%3AVandaag&distanceMeters=10000&limit=30&offset=0&postcode=7326DC&query=tafel&searchInTitleAndDescription=true&sortBy=SORT_INDEX&sortOrder=DECREASING&viewOptions=list-view" ]
+        for url in urls: 
+            retry = 0
+            while retry < 3:
+                r = await to_thread(requests.get, url=url, headers=headers)
+                if r.status_code == 200:
+                    # Parse the JSON data directly from the response
+                    data = r.json()
+                    for x in data.get('listings'):
+                        embedded = disnake.Embed(title = x.get("title"), description = f"""{x.get("description")}\n\nDistance: {x.get("location").get("distanceMeters") meter}""", url = f"""https://marktplaats.nl{x.get("vipUrl")}""")
+                        embedded.set_image(url=x.get("pictures")[0].get("extraExtraLargeUrl"))
+                        await self.bot.get_channel(679029900299993113).send(embed=embedded)
+                    break
+                retry += 1
+            else:
+                continue
         
    
         
