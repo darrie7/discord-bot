@@ -111,11 +111,11 @@ class PeppernewsCog(commands.Cog):
     @tasks.loop(time=[time(hour=21, minute=55)])
     async def marktplaatssync(self) -> None:
         ua = UserAgent()
-        headers = {'User-Agent': ua.random}
         url = ["https://www.marktplaats.nl/lrp/api/search?attributeRanges[]=PriceCents%3Anull%3A0&attributesByKey[]=offeredSince%3AVandaag&distanceMeters=15000&limit=30&offset=0&postcode=7009GE&query=tafel&searchInTitleAndDescription=true&sortBy=SORT_INDEX&sortOrder=DECREASING&viewOptions=list-view", "https://www.marktplaats.nl/lrp/api/search?attributeRanges[]=PriceCents%3Anull%3A0&attributesByKey[]=offeredSince%3AVandaag&distanceMeters=10000&limit=30&offset=0&postcode=7326DC&query=tafel&searchInTitleAndDescription=true&sortBy=SORT_INDEX&sortOrder=DECREASING&viewOptions=list-view" ]
         for url in urls: 
             retry = 0
             while retry < 3:
+                headers = {'User-Agent': ua.random}
                 r = await to_thread(requests.get, url=url, headers=headers)
                 if r.status_code == 200:
                     # Parse the JSON data directly from the response
