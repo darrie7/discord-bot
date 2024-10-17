@@ -18,11 +18,13 @@ class PeppernewsCog(commands.Cog):
         self.restart_failed.start()
         self.task_one.start()
         self.task_two.start()
+        self.marktplaatssync.start()
         
         
     def cog_unload(self) -> None:
         self.task_one.cancel()
         self.task_two.cancel()
+        self.marktplaatssync.cancel()
         self.restart_failed.cancel()
 
 
@@ -105,6 +107,21 @@ class PeppernewsCog(commands.Cog):
             else:
                 title_pep = f.get("title")
             await self.bot.get_channel(679029900299993113).send(embed=disnake.Embed(title = title_pep, description = f"""{html.fromstring(f.get("description")).text_content()[:1500]}...""", url = f.get("link")))
+
+    @tasks.loop(time=[time(hour=23)])
+    async def marktplaatssync(self) -> None:
+        ua = UserAgent()
+        headers = {'User-Agent': ua.random}
+        url = "https://www.marktplaats.nl/lrp/api/search?attributeRanges[]=PriceCents%3Anull%3A0&attributesByKey[]=offeredSince%3AGisteren&distanceMeters=15000&limit=30&offset=0&postcode=7009GE&query=tafel&searchInTitleAndDescription=true&sortBy=SORT_INDEX&sortOrder=DECREASING&viewOptions=list-view"
+        r = await to_thread(requests.get, url=url, headers=headers)
+        if r.status_code == 200:
+            # Parse the JSON data directly from the response
+            data = r.json()
+            for x in data.get('listings'):
+                embedded = disnake.Embed(title = x.get("title"), description = f"""{x.get("description")}\n\n{x.get("location").get("distanceMeters")}""", url = f"""https://marktplaats.nl{f.get("vipUrl")}""")
+                embedded.set_image(url=x.get("pictures").get("extraExtraLargeUrl"))
+                await self.bot.get_channel(679029900299993113).send(embed=embedded)
+        
    
         
     @tasks.loop(minutes=15.0)
@@ -164,6 +181,13 @@ class PeppernewsCog(commands.Cog):
         await self.bot.get_channel(self.bot._test_channelid).send(f"""```{"".join(traceback.format_exception(type(error), error, error.__traceback__))}```""")
         self.task_two.cancel()
         self.task_two.start()
+        pass
+
+    @marktplaatssync.error
+    async def marktplaatssync_error_handler(self, error) -> None:
+        await self.bot.get_channel(self.bot._test_channelid).send(f"""```{"".join(traceback.format_exception(type(error), error, error.__traceback__))}```""")
+        self.marktplaatssync.cancel()
+        self.marktplaatssync.start()
         pass
 
 
