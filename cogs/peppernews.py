@@ -121,7 +121,7 @@ class PeppernewsCog(commands.Cog):
                     # Parse the JSON data directly from the response
                     data = r.json()
                     for x in data.get('listings'):
-                        embedded = disnake.Embed(title = x.get("title"), description = f"""{x.get("description")}\n\nDistance: {x.get("location").get("distanceMeters") meter}""", url = f"""https://marktplaats.nl{x.get("vipUrl")}""")
+                        embedded = disnake.Embed(title = x.get("title"), description = f"""{x.get("description")}\n\nDistance: {x.get("location").get("distanceMeters")} meter""", url = f"""https://marktplaats.nl{x.get("vipUrl")}""")
                         embedded.set_image(url=x.get("pictures")[0].get("extraExtraLargeUrl"))
                         await self.bot.get_channel(679029900299993113).send(embed=embedded)
                     break
