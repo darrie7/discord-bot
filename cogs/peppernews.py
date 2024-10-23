@@ -130,7 +130,7 @@ class PeppernewsCog(commands.Cog):
                     data = r.json()
                     for x in data.get('listings'):
                         embedded = disnake.Embed(title = x.get("title"), description = f"""{x.get("description")}\n\nDistance: {x.get("location").get("distanceMeters")} meter""", url = f"""https://marktplaats.nl{x.get("vipUrl")}""")
-                        if x.get("pictures", [])[0].get("extraExtraLargeUrl", ""):
+                        if x.get("pictures", [{'data': None}])[0].get("extraExtraLargeUrl", ""):
                             embedded.set_image(url=x.get("pictures")[0].get("extraExtraLargeUrl"))
                         await self.bot.get_channel(679029900299993113).send(embed=embedded)
                     break
