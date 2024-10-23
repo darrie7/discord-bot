@@ -108,7 +108,7 @@ class PeppernewsCog(commands.Cog):
                 title_pep = f.get("title")
             await self.bot.get_channel(679029900299993113).send(embed=disnake.Embed(title = title_pep, description = f"""{html.fromstring(f.get("description")).text_content()[:1500]}...""", url = f.get("link")))
 
-    @tasks.loop(time=[time(hour=22, minute=35)])
+    @tasks.loop(time=[time(hour=22, minute=50)])
     async def marktplaatssync(self) -> None:
         ua = UserAgent()
         url_params = [ {'minPrice': 'null', 'maxPrice': '0', 'distance': '10000', 'postcode': '7001KG', 'query': 'tafel'},
@@ -130,7 +130,8 @@ class PeppernewsCog(commands.Cog):
                     data = r.json()
                     for x in data.get('listings'):
                         embedded = disnake.Embed(title = x.get("title"), description = f"""{x.get("description")}\n\nDistance: {x.get("location").get("distanceMeters")} meter""", url = f"""https://marktplaats.nl{x.get("vipUrl")}""")
-                        embedded.set_image(url=x.get("pictures")[0].get("extraExtraLargeUrl"))
+                        if x.get("pictures", [])[0].get("extraExtraLargeUrl", ""):
+                            embedded.set_image(url=x.get("pictures")[0].get("extraExtraLargeUrl"))
                         await self.bot.get_channel(679029900299993113).send(embed=embedded)
                     break
                 retry += 1
