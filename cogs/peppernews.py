@@ -108,7 +108,7 @@ class PeppernewsCog(commands.Cog):
                 title_pep = f.get("title")
             await self.bot.get_channel(679029900299993113).send(embed=disnake.Embed(title = title_pep, description = f"""{html.fromstring(f.get("description")).text_content()[:1500]}...""", url = f.get("link")))
 
-    @tasks.loop(time=[time(hour=22, minute=50)])
+    @tasks.loop(time=[time(hour=22, minute=53)])
     async def marktplaatssync(self) -> None:
         ua = UserAgent()
         url_params = [ {'minPrice': 'null', 'maxPrice': '0', 'distance': '10000', 'postcode': '7001KG', 'query': 'tafel'},
