@@ -111,13 +111,13 @@ class PeppernewsCog(commands.Cog):
     @tasks.loop(time=[time(hour=22, minute=1)])
     async def marktplaatssync(self) -> None:
         ua = UserAgent()
-        url_params = [ {'minPrice': 'null', 'maxPrice': '0', 'distance': '10000', 'postcode': '7001KG', 'query': 'tafel'},
-                        {'minPrice': 'null', 'maxPrice': '0', 'distance': '10000', 'postcode': '7001KG', 'query': 'bureau'},
-                        {'minPrice': 'null', 'maxPrice': '1200', 'distance': '10000', 'postcode': '7001KG', 'query': 'boormachine'},
-                        {'minPrice': 'null', 'maxPrice': '0', 'distance': '10000', 'postcode': '7001KG', 'category': '239' },
-                        {'minPrice': 'null', 'maxPrice': '0', 'distance': '10000', 'postcode': '7001KG', 'category': '1099' },
-                        {'minPrice': 'null', 'maxPrice': '0', 'distance': '10000', 'postcode': '7001KG', 'category': '784' },
-                        {'minPrice': 'null', 'maxPrice': '0', 'distance': '10000', 'postcode': '7001KG', 'category': '504' }
+        url_params = [ {'minPrice': 'null', 'maxPrice': '0', 'distance': '15000', 'postcode': '7001KG', 'query': 'tafel'},
+                        {'minPrice': 'null', 'maxPrice': '0', 'distance': '15000', 'postcode': '7001KG', 'query': 'bureau'},
+                        {'minPrice': 'null', 'maxPrice': '1200', 'distance': '15000', 'postcode': '7001KG', 'query': 'boormachine'},
+                        {'minPrice': 'null', 'maxPrice': '0', 'distance': '15000', 'postcode': '7001KG', 'category': '239' },
+                        {'minPrice': 'null', 'maxPrice': '0', 'distance': '15000', 'postcode': '7001KG', 'category': '1099' },
+                        {'minPrice': 'null', 'maxPrice': '0', 'distance': '15000', 'postcode': '7001KG', 'category': '784' },
+                        {'minPrice': 'null', 'maxPrice': '0', 'distance': '15000', 'postcode': '7001KG', 'category': '504' }
                     ]
         for url in url_params: 
             comp_url = f"https://www.marktplaats.nl/lrp/api/search?attributeRanges[]=PriceCents%3A{url.get('minPrice', '')}%3A{url.get('maxPrice', '')}&attributesByKey[]=offeredSince%3AGisteren&distanceMeters={url.get('distance', '')}&limit=50&offset=0&postcode={url.get('postcode', '')}&l1CategoryId={url.get('category', '')}&query={url.get('query', '')}&searchInTitleAndDescription=true&sortBy=SORT_INDEX&sortOrder=DECREASING"
