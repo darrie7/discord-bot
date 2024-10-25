@@ -111,13 +111,13 @@ class PeppernewsCog(commands.Cog):
     @tasks.loop(time=[time(hour=22, minute=1)])
     async def marktplaatssync(self) -> None:
         ua = UserAgent()
-        url_params = [ {'minPrice': 'null', 'maxPrice': '0', 'distance': '15000', 'postcode': '7001KG', 'query': 'tafel'},
-                        {'minPrice': 'null', 'maxPrice': '0', 'distance': '15000', 'postcode': '7001KG', 'query': 'bureau'},
-                        {'minPrice': 'null', 'maxPrice': '1200', 'distance': '15000', 'postcode': '7001KG', 'query': 'boormachine'},
-                        {'minPrice': 'null', 'maxPrice': '0', 'distance': '15000', 'postcode': '7001KG', 'category': '239' },
-                        {'minPrice': 'null', 'maxPrice': '0', 'distance': '15000', 'postcode': '7001KG', 'category': '1099' },
-                        {'minPrice': 'null', 'maxPrice': '0', 'distance': '15000', 'postcode': '7001KG', 'category': '784' },
-                        {'minPrice': 'null', 'maxPrice': '0', 'distance': '15000', 'postcode': '7001KG', 'category': '504' }
+        url_params = [ {'minPrice': 'null', 'maxPrice': '0', 'distance': '13000', 'postcode': '7001KG', 'query': 'tafel'},
+                        {'minPrice': 'null', 'maxPrice': '0', 'distance': '13000', 'postcode': '7001KG', 'query': 'bureau'},
+                        {'minPrice': 'null', 'maxPrice': '1200', 'distance': '13000', 'postcode': '7001KG', 'query': 'boormachine'},
+                        {'minPrice': 'null', 'maxPrice': '0', 'distance': '13000', 'postcode': '7001KG', 'category': '239' },
+                        {'minPrice': 'null', 'maxPrice': '0', 'distance': '13000', 'postcode': '7001KG', 'category': '1099' },
+                        {'minPrice': 'null', 'maxPrice': '0', 'distance': '13000', 'postcode': '7001KG', 'category': '784' },
+                        {'minPrice': 'null', 'maxPrice': '0', 'distance': '13000', 'postcode': '7001KG', 'category': '504' }
                     ]
         for url in url_params: 
             comp_url = f"https://www.marktplaats.nl/lrp/api/search?attributeRanges[]=PriceCents%3A{url.get('minPrice', '')}%3A{url.get('maxPrice', '')}&attributesByKey[]=offeredSince%3AGisteren&distanceMeters={url.get('distance', '')}&limit=50&offset=0&postcode={url.get('postcode', '')}&l1CategoryId={url.get('category', '')}&query={url.get('query', '')}&searchInTitleAndDescription=true&sortBy=SORT_INDEX&sortOrder=DECREASING"
@@ -129,7 +129,7 @@ class PeppernewsCog(commands.Cog):
                     # Parse the JSON data directly from the response
                     data = r.json()
                     for x in data.get('listings'):
-                        embedded = disnake.Embed(title = x.get("title"), description = f"""{x.get("description")}\n\nDistance: {x.get("location").get("distanceMeters")} meter""", url = f"""https://marktplaats.nl{x.get("vipUrl")}""")
+                        embedded = disnake.Embed(title = x.get("title"), description = f"""{x.get("description")}\n\nLocation:{x.get("location").get("cityName", "")}\nDistance: {x.get("location").get("distanceMeters")} meter""", url = f"""https://marktplaats.nl{x.get("vipUrl")}""")
                         if x.get("pictures", [{'data': None}])[0].get("extraExtraLargeUrl", ""):
                             embedded.set_image(url=x.get("pictures")[0].get("extraExtraLargeUrl"))
                         await self.bot.get_channel(679029900299993113).send(embed=embedded)
