@@ -50,7 +50,7 @@ class PeppernewsCog(commands.Cog):
         if self.bot._db4.get(self.bot._query.category == category.lower()):
             await inter.response.send_message("This category is already added", ephemeral=True)
             return
-        self.bot._db4.insert({"category": category.lower(), "max_price": max_price})
+        self.bot._db4.insert({"category": category.lower(), "max_price": max_price, "api_point": "pepper"})
         await inter.response.send_message(f"{category.title()} has been added", ephemeral=True)
 
     
@@ -73,6 +73,24 @@ class PeppernewsCog(commands.Cog):
         self.bot._db4.remove(doc_ids=[media.doc_id])
         await inter.response.send_message(f"{category.title()} has been removed", ephemeral=True)
 
+    @pepper.sub_command()
+    async def update(self,
+                       inter: disnake.ApplicationCommandInteraction
+                       ) -> None:
+        """
+        Remove an entry
+
+        Parameters
+        ----------
+        """
+        self.bot._db4.update({"api_point": "pepper"})                   
+        # if  not self.bot._db4.get(self.bot._query.category == category.lower()):
+        #     await inter.response.send_message("This category is not in the database", ephemeral=True)
+        #     return
+        # media = self.bot._db4.get(self.bot._query.category == category.lower())
+        # self.bot._db4.remove(doc_ids=[media.doc_id])
+        await inter.response.send_message(f"db has been updated", ephemeral=True)
+
 
     @pepper.sub_command()
     async def database(self,
@@ -86,7 +104,7 @@ class PeppernewsCog(commands.Cog):
         """
         output = t2a(
                 header=["category", "max_price"],
-                body=[ [ x.get("category").title(), x.get("max_price") ] for x in self.bot._db4 ],
+                body=[ [ x.get("category").title(), x.get("max_price") ] for x in self.bot._db4 if x.get("api_point") == "pepper" ],
                 style=PresetStyle.ascii_borderless
                 )
         await inter.response.send_message(f"""```{output}```""", ephemeral=True)
@@ -129,7 +147,7 @@ class PeppernewsCog(commands.Cog):
                     # Parse the JSON data directly from the response
                     data = r.json()
                     for x in data.get('listings'):
-                        embedded = disnake.Embed(title = x.get("title"), description = f"""{x.get("description")}\n\nLocation:{x.get("location").get("cityName", "")}\nDistance: {x.get("location").get("distanceMeters")} meter""", url = f"""https://marktplaats.nl{x.get("vipUrl")}""")
+                        embedded = disnake.Embed(title = x.get("title"), description = f"""{x.get("categorySpecificDescription")}\n\nLocation:{x.get("location").get("cityName", "")}\nDistance: {x.get("location").get("distanceMeters")} meter""", url = f"""https://marktplaats.nl{x.get("vipUrl")}""")
                         if x.get("pictures", [{'data': None}])[0].get("extraExtraLargeUrl", ""):
                             embedded.set_image(url=x.get("pictures")[0].get("extraExtraLargeUrl"))
                         await self.bot.get_channel(679029900299993113).send(embed=embedded)
@@ -142,7 +160,7 @@ class PeppernewsCog(commands.Cog):
         
     @tasks.loop(minutes=15.0)
     async def task_one(self) -> None:
-        list_pepper = [ (x.get("category"), x.get("max_price")) for x in self.bot._db4 ]
+        list_pepper = [ (x.get("category"), x.get("max_price")) for x in self.bot._db4 if x.get("api_point") == "pepper" ]
         await gather(*[self.pepperasync(f"""https://nl.pepper.com/rss/groep/{x[0]}""", x[1], 915) for x in list_pepper])
 
 
