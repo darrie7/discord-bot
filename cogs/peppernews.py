@@ -32,6 +32,36 @@ class PeppernewsCog(commands.Cog):
     async def pepper(self, inter: disnake.ApplicationCommandInteraction) -> None:
         pass
 
+    @commands.slash_command()
+    async def marktplaats(self, inter: disnake.ApplicationCommandInteraction) -> None:
+        pass
+
+    @marktplaats.sub_command()
+    async def add(self,
+                    inter: disnake.ApplicationCommandInteraction,
+                    max_price: str, 
+                    postcode: str,
+                    distance: str, 
+                    query: str = "",
+                    category: str = "",
+                    ) -> None:
+        """
+        Add category to database
+
+        Parameters
+        ----------
+        postcode: postcode
+        max_price: maximum price to filter for
+        distance: maximum distance from postcode
+        query: search term
+        category: category id on marktplaats
+        """
+        if self.bot._db4.get(self.bot._query.category == category.lower()):
+            await inter.response.send_message("This category is already added", ephemeral=True)
+            return
+        self.bot._db4.insert({'minPrice': 'null', 'maxPrice': max_price, 'distance': distance, 'postcode': postcode, 'query': query, 'category': category, 'api_point': 'marktplaats'})
+        await inter.response.send_message(f"{category.title()} has been added", ephemeral=True)
+
     
     @pepper.sub_command()
     async def add(self,
