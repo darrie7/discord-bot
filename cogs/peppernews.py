@@ -65,7 +65,7 @@ class PeppernewsCog(commands.Cog):
             except Exception as ex:
                 await inter.send(f"connection failed {db_path}", ephemeral=True)
             cur.execute('CREATE TABLE IF NOT EXISTS marktplaats (max_price TEXT, postcode TEXT, distance TEXT, query TEXT, category_id TEXT)')
-            cur.execute('INSERT INTO marktplaats VALUES(?, ?, ?, ?, ?)', (str(max_price), postcode, str(distance), query, category_id))
+            cur.execute('INSERT INTO marktplaats (max_price, postcode, distance, query, category_id) VALUES (?, ?, ?, ?, ?)', (str(max_price), postcode, str(distance), query, category_id))
             conn.commit()
         await inter.send(f"query/category has been added", ephemeral=True)
 
