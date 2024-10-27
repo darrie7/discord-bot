@@ -55,9 +55,9 @@ class PeppernewsCog(commands.Cog):
         max_price: maximum price to filter for
         distance: maximum distance from postcode
         query: search term
-        category: category id on marktplaats
+        category_id: category id on marktplaats
         """
-        await inter.response.defer(with_message=True, ephemeral=False)
+        await inter.send(f"path:{self.bot._sqlitedb_dir}")
         with sqlite3.connect(self.bot._sqlitedb_dir) as conn:
             try:
                 cur = conn.cursor()
