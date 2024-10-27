@@ -220,14 +220,6 @@ class PeppernewsCog(commands.Cog):
             except Exception as ex:
                 await self.bot.get_channel(679029900299993113).send(f"connection failed {db_path}", ephemeral=True)
             data = cur.execute('SELECT max_price, postcode, distance, query, category_id FROM marktplaats')
-        url_params = [ {'minPrice': 'null', 'maxPrice': '0', 'distance': '13000', 'postcode': '7001KG', 'query': 'tafel'},
-                        {'minPrice': 'null', 'maxPrice': '0', 'distance': '13000', 'postcode': '7001KG', 'query': 'bureau'},
-                        {'minPrice': 'null', 'maxPrice': '1200', 'distance': '13000', 'postcode': '7001KG', 'query': 'boormachine'},
-                        {'minPrice': 'null', 'maxPrice': '0', 'distance': '13000', 'postcode': '7001KG', 'category': '239' },
-                        {'minPrice': 'null', 'maxPrice': '0', 'distance': '13000', 'postcode': '7001KG', 'category': '1099' },
-                        {'minPrice': 'null', 'maxPrice': '0', 'distance': '13000', 'postcode': '7001KG', 'category': '784' },
-                        {'minPrice': 'null', 'maxPrice': '0', 'distance': '13000', 'postcode': '7001KG', 'category': '504' }
-                    ]
         for x in data: 
             comp_url = f"https://www.marktplaats.nl/lrp/api/search?attributeRanges[]=PriceCents%3Anull%3A{x.get('max_price')}&attributesByKey[]=offeredSince%3AGisteren&distanceMeters={x.get('distance')}&limit=50&offset=0&postcode={x.get('postcode')}&l1CategoryId={x.get('category_id')}&query={x.get('kindred')}&searchInTitleAndDescription=true&sortBy=SORT_INDEX&sortOrder=DECREASING"
             retry = 0
