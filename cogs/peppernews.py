@@ -214,7 +214,7 @@ class PeppernewsCog(commands.Cog):
         ua = UserAgent()
         db_path = '/home/darrie7/Scripts/pythonvenvs/discordbot/discordbot_scripts/sqlite3.db'
         with sqlite3.ect(db_path) as conn:
-            conn.row_factory = sqlite3.Row
+            conn.row_factory = dict_factory
             try:
                 cur = conn.cursor()
             except Exception as ex:
