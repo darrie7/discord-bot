@@ -16,6 +16,7 @@ import sqlite3
 class PeppernewsCog(commands.Cog):
     def __init__(self, bot: object) -> None:
         self.bot = bot
+        self.db_path = '/home/darrie7/Scripts/pythonvenvs/discordbot/discordbot_scripts/sqlite3.db'
         self.restart_failed.start()
         self.task_one.start()
         self.task_two.start()
@@ -57,13 +58,13 @@ class PeppernewsCog(commands.Cog):
         query: search term
         category_id: category id on marktplaats
         """
-        await inter.send(f"path:{self.bot._guildid}")
-        with sqlite3.connect(self.bot._sqlitedb_dir) as conn:
+        db_path = '/home/darrie7/Scripts/pythonvenvs/discordbot/discordbot_scripts/sqlite3.db'
+        with sqlite3.connect(db_path) as conn:
             try:
                 cur = conn.cursor()
-                await inter.send(f"connected")
+                #await inter.send(f"connected", ephemeral=True)
             except Exception as ex:
-                await inter.send(f"connection failed {self.bot._sqlitedb_dir}")
+                await inter.send(f"connection failed {db_path}", ephemeral=True)
             #cur = conn.cursor()
             cur.execute('CREATE TABLE IF NOT EXISTS marktplaats (max_price TEXT, postcode TEXT, distance TEXT, query TEXT, category_id TEXT)')
             cur.execute('INSERT INTO marktplaats VALUES(?, ?, ?, ?, ?)', (str(max_price), postcode, str(distance), query, category_id))
@@ -72,7 +73,34 @@ class PeppernewsCog(commands.Cog):
         #     await inter.response.send_message("This category/query is already added", ephemeral=True)
         #     return
         # self.bot._db4.insert({"minPrice": "null", "maxPrice": str(max_price), "distance": str(distance), "postcode": postcode, "query": query, "api_point": 'marktplaats'})
-        await inter.send(f"query/category has been added")
+        await inter.send(f"query/category has been added", ephemeral=True)
+
+    @marktplaats.sub_command()
+    async def database(self,
+                       inter: disnake.ApplicationCommandInteraction
+                        ) -> None:
+        """
+        Show all entries in database
+
+        Parameters
+        ----------
+        """
+        db_path = '/home/darrie7/Scripts/pythonvenvs/discordbot/discordbot_scripts/sqlite3.db'
+        with sqlite3.connect(db_path) as conn:
+            try:
+                cur = conn.cursor()
+                #await inter.send(f"connected", ephemeral=True)
+            except Exception as ex:
+                await inter.send(f"connection failed {db_path}", ephemeral=True)
+            #cur = conn.cursor()
+            data = cur.execute('SELECT max_price, postcode, distance, query, category_id FROM marktplaats')
+        output = t2a(
+                header=["max_price", "postcode", "distance", "query", "category_id"],
+                body=[ [ x[0], x[1],x[2],x[3],x[4] ] for x in data ],
+                style=PresetStyle.ascii_borderless
+                )
+        await inter.send(f"""```{output}```""", ephemeral=True)
+
 
     
     @pepper.sub_command()
@@ -171,6 +199,15 @@ class PeppernewsCog(commands.Cog):
     @tasks.loop(time=[time(hour=22, minute=1)])
     async def marktplaatssync(self) -> None:
         ua = UserAgent()
+        db_path = '/home/darrie7/Scripts/pythonvenvs/discordbot/discordbot_scripts/sqlite3.db'
+        with sqlite3.connect(db_path) as conn:
+            try:
+                cur = conn.cursor()
+                #await self.bot.get_channel(679029900299993113).send(f"connected", ephemeral=True)
+            except Exception as ex:
+                await self.bot.get_channel(679029900299993113).send(f"connection failed {db_path}", ephemeral=True)
+            #cur = conn.cursor()
+            data = cur.execute('SELECT max_price, postcode, distance, query, category_id FROM marktplaats')
         url_params = [ {'minPrice': 'null', 'maxPrice': '0', 'distance': '13000', 'postcode': '7001KG', 'query': 'tafel'},
                         {'minPrice': 'null', 'maxPrice': '0', 'distance': '13000', 'postcode': '7001KG', 'query': 'bureau'},
                         {'minPrice': 'null', 'maxPrice': '1200', 'distance': '13000', 'postcode': '7001KG', 'query': 'boormachine'},
@@ -179,8 +216,8 @@ class PeppernewsCog(commands.Cog):
                         {'minPrice': 'null', 'maxPrice': '0', 'distance': '13000', 'postcode': '7001KG', 'category': '784' },
                         {'minPrice': 'null', 'maxPrice': '0', 'distance': '13000', 'postcode': '7001KG', 'category': '504' }
                     ]
-        for url in url_params: 
-            comp_url = f"https://www.marktplaats.nl/lrp/api/search?attributeRanges[]=PriceCents%3A{url.get('minPrice', '')}%3A{url.get('maxPrice', '')}&attributesByKey[]=offeredSince%3AGisteren&distanceMeters={url.get('distance', '')}&limit=50&offset=0&postcode={url.get('postcode', '')}&l1CategoryId={url.get('category', '')}&query={url.get('query', '')}&searchInTitleAndDescription=true&sortBy=SORT_INDEX&sortOrder=DECREASING"
+        for x in data: 
+            comp_url = f"https://www.marktplaats.nl/lrp/api/search?attributeRanges[]=PriceCents%3Anull%3A{x[0]}&attributesByKey[]=offeredSince%3AGisteren&distanceMeters={x[2]}&limit=50&offset=0&postcode={x[1]}&l1CategoryId={x[4]}&query={x[3]}&searchInTitleAndDescription=true&sortBy=SORT_INDEX&sortOrder=DECREASING"
             retry = 0
             while retry < 3:
                 headers = {'User-Agent': ua.random}
@@ -267,7 +304,5 @@ class PeppernewsCog(commands.Cog):
         pass
 
 
-
 def setup(bot):
     bot.add_cog(PeppernewsCog(bot))
-
