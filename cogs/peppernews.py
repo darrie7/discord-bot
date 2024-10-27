@@ -39,9 +39,9 @@ class PeppernewsCog(commands.Cog):
     @marktplaats.sub_command()
     async def add(self,
                     inter: disnake.ApplicationCommandInteraction,
-                    max_price: str, 
+                    max_price: int, 
                     postcode: str,
-                    distance: str, 
+                    distance: int, 
                     query: str = "",
                     category_id: str = "",
                     ) -> None:
