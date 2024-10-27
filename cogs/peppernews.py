@@ -81,6 +81,7 @@ class PeppernewsCog(commands.Cog):
         """
         db_path = '/home/darrie7/Scripts/pythonvenvs/discordbot/discordbot_scripts/sqlite3.db'
         with sqlite3.connect(db_path) as conn:
+            conn.row_factory = sqlite3.Row
             try:
                 cur = conn.cursor()
             except Exception as ex:
@@ -88,7 +89,7 @@ class PeppernewsCog(commands.Cog):
             data = cur.execute('SELECT max_price, postcode, distance, query, category_id FROM marktplaats')
         output = t2a(
                 header=["max_price", "postcode", "distance", "query", "category_id"],
-                body=[ [ x[0], x[1],x[2],x[3],x[4] ] for x in data ],
+                body=[ [ x.get("max_price"), x.get("postcode"), x.get("distance"), x.get("query"), x.get("category_id") ] for x in data ],
                 style=PresetStyle.ascii_borderless
                 )
         await inter.send(f"""```{output}```""", ephemeral=True)
@@ -187,7 +188,8 @@ class PeppernewsCog(commands.Cog):
     async def marktplaatssync(self) -> None:
         ua = UserAgent()
         db_path = '/home/darrie7/Scripts/pythonvenvs/discordbot/discordbot_scripts/sqlite3.db'
-        with sqlite3.connect(db_path) as conn:
+        with sqlite3.ect(db_path) as conn:
+            conn.row_factory = sqlite3.Row
             try:
                 cur = conn.cursor()
             except Exception as ex:
@@ -202,7 +204,7 @@ class PeppernewsCog(commands.Cog):
                         {'minPrice': 'null', 'maxPrice': '0', 'distance': '13000', 'postcode': '7001KG', 'category': '504' }
                     ]
         for x in data: 
-            comp_url = f"https://www.marktplaats.nl/lrp/api/search?attributeRanges[]=PriceCents%3Anull%3A{x[0]}&attributesByKey[]=offeredSince%3AGisteren&distanceMeters={x[2]}&limit=50&offset=0&postcode={x[1]}&l1CategoryId={x[4]}&query={x[3]}&searchInTitleAndDescription=true&sortBy=SORT_INDEX&sortOrder=DECREASING"
+            comp_url = f"https://www.marktplaats.nl/lrp/api/search?attributeRanges[]=PriceCents%3Anull%3A{x.get('max_price')}&attributesByKey[]=offeredSince%3AGisteren&distanceMeters={x.get('distance')}&limit=50&offset=0&postcode={x.get('postcode')}&l1CategoryId={x.get('category_id')}&query={x.get('kindred')}&searchInTitleAndDescription=true&sortBy=SORT_INDEX&sortOrder=DECREASING"
             retry = 0
             while retry < 3:
                 headers = {'User-Agent': ua.random}
