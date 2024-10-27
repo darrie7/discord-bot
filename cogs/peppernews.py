@@ -92,7 +92,7 @@ class PeppernewsCog(commands.Cog):
                 body=[ [ x.get("id"), x.get("max_price"), x.get("postcode"), x.get("distance"), x.get("query"), x.get("category_id") ] for x in data ],
                 style=PresetStyle.ascii_borderless
                 )
-        await inter.send(f"""```{output}```""", ephemeral=True)
+        await inter.send(f"""```{str(data)}```""", ephemeral=True)
 
     @marktplaats.sub_command()
     async def remove_db(self,
@@ -113,7 +113,7 @@ class PeppernewsCog(commands.Cog):
                 await inter.send(f"connection failed {db_path}", ephemeral=True)
             cur.execute('DROP TABLE IF EXISTS marktplaats')
             conn.commit() 
-        await inter.send(f"""```{output}```""", ephemeral=True)
+        await inter.send(f"""```db removed```""", ephemeral=True)
 
 
     
