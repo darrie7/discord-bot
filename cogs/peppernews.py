@@ -12,6 +12,10 @@ from lxml import html
 from fake_useragent import UserAgent
 import sqlite3
 
+def dict_factory(cursor, row):
+    fields = [column[0] for column in cursor.description]
+    return {key: value for key, value in zip(fields, row)}
+
 
 class PeppernewsCog(commands.Cog):
     def __init__(self, bot: object) -> None:
@@ -81,7 +85,7 @@ class PeppernewsCog(commands.Cog):
         """
         db_path = '/home/darrie7/Scripts/pythonvenvs/discordbot/discordbot_scripts/sqlite3.db'
         with sqlite3.connect(db_path) as conn:
-            conn.row_factory = sqlite3.Row
+            conn.row_factory = dict_factory
             try:
                 cur = conn.cursor()
             except Exception as ex:
@@ -106,7 +110,7 @@ class PeppernewsCog(commands.Cog):
         """
         db_path = '/home/darrie7/Scripts/pythonvenvs/discordbot/discordbot_scripts/sqlite3.db'
         with sqlite3.connect(db_path) as conn:
-            conn.row_factory = sqlite3.Row
+            conn.row_factory = dict_factory
             try:
                 cur = conn.cursor()
             except Exception as ex:
