@@ -62,8 +62,8 @@ class PeppernewsCog(commands.Cog):
             try:
                 cur = conn.cursor()
                 await inter.send(f"connected")
-             except Exception as ex:
-                await inter.send(f"connection failed")
+            except Exception as ex:
+                await inter.send(f"connection failed {self.bot._sqlitedb_dir}")
             #cur = conn.cursor()
             cur.execute('CREATE TABLE IF NOT EXISTS marktplaats (max_price TEXT, postcode TEXT, distance TEXT, query TEXT, category_id TEXT)')
             cur.execute('INSERT INTO marktplaats VALUES(?, ?, ?, ?, ?)', (str(max_price), postcode, str(distance), query, category_id))
