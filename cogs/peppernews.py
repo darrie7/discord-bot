@@ -56,11 +56,11 @@ class PeppernewsCog(commands.Cog):
         query: search term
         category: category id on marktplaats
         """
-        if self.bot._db4.get(self.bot._query.category == category.lower()):
-            await inter.response.send_message("This category is already added", ephemeral=True)
+        if (self.bot._db4.get(self.bot._query.query == query.lower()) and query != "" ) or (self.bot._db4.get(self.bot._query.category == category.lower()) and category != "" ):
+            await inter.response.send_message("This category/query is already added", ephemeral=True)
             return
         self.bot._db4.insert({'minPrice': 'null', 'maxPrice': max_price, 'distance': distance, 'postcode': postcode, 'query': query, 'category': category, 'api_point': 'marktplaats'})
-        await inter.response.send_message(f"{category.title()} has been added", ephemeral=True)
+        await inter.response.send_message(f"query/category has been added", ephemeral=True)
 
     
     @pepper.sub_command()
