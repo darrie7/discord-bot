@@ -64,7 +64,7 @@ class PeppernewsCog(commands.Cog):
                 cur = conn.cursor()
             except Exception as ex:
                 await inter.send(f"connection failed {db_path}", ephemeral=True)
-            cur.execute('CREATE TABLE IF NOT EXISTS marktplaats (max_price TEXT, postcode TEXT, distance TEXT, query TEXT, category_id TEXT)')
+            cur.execute('CREATE TABLE IF NOT EXISTS marktplaats (id INTEGER PRIMARY KEY AUTOINCREMENT, max_price TEXT, postcode TEXT, distance TEXT, query TEXT, category_id TEXT)')
             cur.execute('INSERT INTO marktplaats (max_price, postcode, distance, query, category_id) VALUES (?, ?, ?, ?, ?)', (str(max_price), postcode, str(distance), query, category_id))
             conn.commit()
         await inter.send(f"query/category has been added", ephemeral=True)
@@ -86,12 +86,33 @@ class PeppernewsCog(commands.Cog):
                 cur = conn.cursor()
             except Exception as ex:
                 await inter.send(f"connection failed {db_path}", ephemeral=True)
-            data = cur.execute('SELECT max_price, postcode, distance, query, category_id FROM marktplaats')
+            data = cur.execute('SELECT id, max_price, postcode, distance, query, category_id FROM marktplaats')
         output = t2a(
-                header=["max_price", "postcode", "distance", "query", "category_id"],
-                body=[ [ x.get("max_price"), x.get("postcode"), x.get("distance"), x.get("query"), x.get("category_id") ] for x in data ],
+                header=["id", "max_price", "postcode", "distance", "query", "category_id"],
+                body=[ [ x.get("id"), x.get("max_price"), x.get("postcode"), x.get("distance"), x.get("query"), x.get("category_id") ] for x in data ],
                 style=PresetStyle.ascii_borderless
                 )
+        await inter.send(f"""```{output}```""", ephemeral=True)
+
+    @marktplaats.sub_command()
+    async def remove_db(self,
+                       inter: disnake.ApplicationCommandInteraction
+                        ) -> None:
+        """
+        Show all entries in database
+
+        Parameters
+        ----------
+        """
+        db_path = '/home/darrie7/Scripts/pythonvenvs/discordbot/discordbot_scripts/sqlite3.db'
+        with sqlite3.connect(db_path) as conn:
+            conn.row_factory = sqlite3.Row
+            try:
+                cur = conn.cursor()
+            except Exception as ex:
+                await inter.send(f"connection failed {db_path}", ephemeral=True)
+            cur.execute('DROP TABLE IF EXISTS marktplaats')
+            conn.commit() 
         await inter.send(f"""```{output}```""", ephemeral=True)
 
 
