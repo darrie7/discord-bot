@@ -61,6 +61,7 @@ class PeppernewsCog(commands.Cog):
         conn = sqlite3.connect(self.bot._sqlitedb_dir)
         cur = conn.cursor()
         cur.execute('CREATE TABLE IF NOT EXISTS marktplaats (max_price TEXT, postcode TEXT, distance TEXT, query TEXT, category_id TEXT)')
+        cur.commit()
         cur.execute('INSERT INTO marktplaats VALUES(?, ?, ?, ?, ?)', ((str(max_price), postcode, str(distance), query, category_id)))
         cur.commit()
         conn.close()
@@ -68,7 +69,7 @@ class PeppernewsCog(commands.Cog):
         #     await inter.response.send_message("This category/query is already added", ephemeral=True)
         #     return
         # self.bot._db4.insert({"minPrice": "null", "maxPrice": str(max_price), "distance": str(distance), "postcode": postcode, "query": query, "api_point": 'marktplaats'})
-        await inter.response.send_message(f"query/category has been added", ephemeral=True)
+        await inter.send(f"query/category has been added", ephemeral=True)
 
     
     @pepper.sub_command()
