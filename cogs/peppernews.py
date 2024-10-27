@@ -62,17 +62,11 @@ class PeppernewsCog(commands.Cog):
         with sqlite3.connect(db_path) as conn:
             try:
                 cur = conn.cursor()
-                #await inter.send(f"connected", ephemeral=True)
             except Exception as ex:
                 await inter.send(f"connection failed {db_path}", ephemeral=True)
-            #cur = conn.cursor()
             cur.execute('CREATE TABLE IF NOT EXISTS marktplaats (max_price TEXT, postcode TEXT, distance TEXT, query TEXT, category_id TEXT)')
             cur.execute('INSERT INTO marktplaats VALUES(?, ?, ?, ?, ?)', (str(max_price), postcode, str(distance), query, category_id))
             conn.commit()
-        # if (self.bot._db4.get(self.bot._query["query"] == query.lower()) and query != "" ) or (self.bot._db4.get(self.bot._query.category_id == category_id.lower()) and category_id != "" ):
-        #     await inter.response.send_message("This category/query is already added", ephemeral=True)
-        #     return
-        # self.bot._db4.insert({"minPrice": "null", "maxPrice": str(max_price), "distance": str(distance), "postcode": postcode, "query": query, "api_point": 'marktplaats'})
         await inter.send(f"query/category has been added", ephemeral=True)
 
     @marktplaats.sub_command()
@@ -89,10 +83,8 @@ class PeppernewsCog(commands.Cog):
         with sqlite3.connect(db_path) as conn:
             try:
                 cur = conn.cursor()
-                #await inter.send(f"connected", ephemeral=True)
             except Exception as ex:
                 await inter.send(f"connection failed {db_path}", ephemeral=True)
-            #cur = conn.cursor()
             data = cur.execute('SELECT max_price, postcode, distance, query, category_id FROM marktplaats')
         output = t2a(
                 header=["max_price", "postcode", "distance", "query", "category_id"],
@@ -154,11 +146,6 @@ class PeppernewsCog(commands.Cog):
         ----------
         """
         self.bot._db4.update({"api_point": "pepper"})                   
-        # if  not self.bot._db4.get(self.bot._query.category == category.lower()):
-        #     await inter.response.send_message("This category is not in the database", ephemeral=True)
-        #     return
-        # media = self.bot._db4.get(self.bot._query.category == category.lower())
-        # self.bot._db4.remove(doc_ids=[media.doc_id])
         await inter.response.send_message(f"db has been updated", ephemeral=True)
 
 
@@ -196,17 +183,15 @@ class PeppernewsCog(commands.Cog):
                 title_pep = f.get("title")
             await self.bot.get_channel(679029900299993113).send(embed=disnake.Embed(title = title_pep, description = f"""{html.fromstring(f.get("description")).text_content()[:1500]}...""", url = f.get("link")))
 
-    @tasks.loop(time=[time(hour=22, minute=1)])
+    @tasks.loop(time=[time(hour=23, minute=1)])
     async def marktplaatssync(self) -> None:
         ua = UserAgent()
         db_path = '/home/darrie7/Scripts/pythonvenvs/discordbot/discordbot_scripts/sqlite3.db'
         with sqlite3.connect(db_path) as conn:
             try:
                 cur = conn.cursor()
-                #await self.bot.get_channel(679029900299993113).send(f"connected", ephemeral=True)
             except Exception as ex:
                 await self.bot.get_channel(679029900299993113).send(f"connection failed {db_path}", ephemeral=True)
-            #cur = conn.cursor()
             data = cur.execute('SELECT max_price, postcode, distance, query, category_id FROM marktplaats')
         url_params = [ {'minPrice': 'null', 'maxPrice': '0', 'distance': '13000', 'postcode': '7001KG', 'query': 'tafel'},
                         {'minPrice': 'null', 'maxPrice': '0', 'distance': '13000', 'postcode': '7001KG', 'query': 'bureau'},
