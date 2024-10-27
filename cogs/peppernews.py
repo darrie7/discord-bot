@@ -57,6 +57,7 @@ class PeppernewsCog(commands.Cog):
         query: search term
         category: category id on marktplaats
         """
+        await inter.response.defer(with_message=True, ephemeral=False)
         conn = sqlite3.connect(self.bot._sqlitedb_dir)
         cur = conn.cursor()
         cur.execute('CREATE TABLE IF NOT EXISTS marktplaats (max_price TEXT, postcode TEXT, distance TEXT, query TEXT, category_id TEXT)')
