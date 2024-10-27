@@ -58,13 +58,11 @@ class PeppernewsCog(commands.Cog):
         category: category id on marktplaats
         """
         await inter.response.defer(with_message=True, ephemeral=False)
-        conn = sqlite3.connect(self.bot._sqlitedb_dir)
-        cur = conn.cursor()
-        cur.execute('CREATE TABLE IF NOT EXISTS marktplaats (max_price TEXT, postcode TEXT, distance TEXT, query TEXT, category_id TEXT)')
-        cur.commit()
-        cur.execute('INSERT INTO marktplaats VALUES(?, ?, ?, ?, ?)', ((str(max_price), postcode, str(distance), query, category_id)))
-        cur.commit()
-        conn.close()
+        with sqlite3.connect(self.bot._sqlitedb_dir) as conn:
+            cur = conn.cursor()
+            cur.execute('CREATE TABLE IF NOT EXISTS marktplaats (max_price TEXT, postcode TEXT, distance TEXT, query TEXT, category_id TEXT)')
+            cur.execute('INSERT INTO marktplaats VALUES(?, ?, ?, ?, ?)', ((str(max_price), postcode, str(distance), query, category_id)))
+            conn.commit()
         # if (self.bot._db4.get(self.bot._query["query"] == query.lower()) and query != "" ) or (self.bot._db4.get(self.bot._query.category_id == category_id.lower()) and category_id != "" ):
         #     await inter.response.send_message("This category/query is already added", ephemeral=True)
         #     return
