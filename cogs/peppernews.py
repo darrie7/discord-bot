@@ -96,7 +96,7 @@ class PeppernewsCog(commands.Cog):
                 body=[ [ x.get("id"), x.get("max_price"), x.get("postcode"), x.get("distance"), x.get("query"), x.get("category_id") ] for x in data ],
                 style=PresetStyle.ascii_borderless
                 )
-        await inter.send(f"""```{str(data)}```""", ephemeral=True)
+        await inter.send(f"""```{output}```""", ephemeral=True)
 
     @marktplaats.sub_command()
     async def remove_db(self,
