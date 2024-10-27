@@ -59,7 +59,7 @@ class PeppernewsCog(commands.Cog):
         if (self.bot._db4.get(self.bot._query["query"] == query.lower()) and query != "" ) or (self.bot._db4.get(self.bot._query.category_id == category_id.lower()) and category_id != "" ):
             await inter.response.send_message("This category/query is already added", ephemeral=True)
             return
-        self.bot._db4.insert({'minPrice': 'null', 'maxPrice': max_price, 'distance': distance, 'postcode': postcode, 'query': query, 'category_id': category_id, 'api_point': 'marktplaats'})
+        self.bot._db4.insert({'minPrice': 'null', 'maxPrice': max_price, 'distance': distance, 'postcode': postcode, 'query': query, 'api_point': 'marktplaats'})
         await inter.response.send_message(f"query/category has been added", ephemeral=True)
 
     
