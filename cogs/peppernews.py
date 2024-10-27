@@ -10,6 +10,7 @@ import traceback
 import requests
 from lxml import html
 from fake_useragent import UserAgent
+import sqlite3
 
 
 class PeppernewsCog(commands.Cog):
@@ -56,10 +57,16 @@ class PeppernewsCog(commands.Cog):
         query: search term
         category: category id on marktplaats
         """
-        if (self.bot._db4.get(self.bot._query["query"] == query.lower()) and query != "" ) or (self.bot._db4.get(self.bot._query.category_id == category_id.lower()) and category_id != "" ):
-            await inter.response.send_message("This category/query is already added", ephemeral=True)
-            return
-        self.bot._db4.insert({"minPrice": "null", "maxPrice": str(max_price), "distance": str(distance), "postcode": postcode, "query": query, "api_point": 'marktplaats'})
+        conn = sqlite3.connect(self.bot._sqlitedb_dir)
+        cur = conn.cursor()
+        cur.execute('CREATE TABLE IF NOT EXISTS marktplaats (max_price TEXT, postcode TEXT, distance TEXT, query TEXT, category_id TEXT)')
+        cur.execute('INSERT INTO marktplaats VALUES(?, ?, ?, ?, ?)', ((str(max_price), postcode, str(distance), query, category_id)))
+        cur.commit()
+        conn.close()
+        # if (self.bot._db4.get(self.bot._query["query"] == query.lower()) and query != "" ) or (self.bot._db4.get(self.bot._query.category_id == category_id.lower()) and category_id != "" ):
+        #     await inter.response.send_message("This category/query is already added", ephemeral=True)
+        #     return
+        # self.bot._db4.insert({"minPrice": "null", "maxPrice": str(max_price), "distance": str(distance), "postcode": postcode, "query": query, "api_point": 'marktplaats'})
         await inter.response.send_message(f"query/category has been added", ephemeral=True)
 
     
