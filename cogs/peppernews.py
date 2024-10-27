@@ -57,7 +57,7 @@ class PeppernewsCog(commands.Cog):
         query: search term
         category_id: category id on marktplaats
         """
-        await inter.send(f"path:{self.bot._sqlitedb_dir}")
+        await inter.send(f"path:{self.bot._guildid}")
         with sqlite3.connect(self.bot._sqlitedb_dir) as conn:
             try:
                 cur = conn.cursor()
