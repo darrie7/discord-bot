@@ -50,6 +50,7 @@ class PeppernewsCog(commands.Cog):
                     distance: int, 
                     query: str = "",
                     category_id: str = "",
+                    subcategory_id: str = ""
                     ) -> None:
         """
         Add category to database
@@ -68,8 +69,8 @@ class PeppernewsCog(commands.Cog):
                 cur = conn.cursor()
             except Exception as ex:
                 await inter.send(f"connection failed {db_path}", ephemeral=True)
-            cur.execute('CREATE TABLE IF NOT EXISTS marktplaats (id INTEGER PRIMARY KEY AUTOINCREMENT, max_price TEXT, postcode TEXT, distance TEXT, query TEXT, category_id TEXT)')
-            cur.execute('INSERT INTO marktplaats (max_price, postcode, distance, query, category_id) VALUES (?, ?, ?, ?, ?)', (str(max_price), postcode, str(distance), query, category_id))
+            cur.execute('CREATE TABLE IF NOT EXISTS marktplaats (id INTEGER PRIMARY KEY AUTOINCREMENT, max_price TEXT, postcode TEXT, distance TEXT, query TEXT, category_id TEXT, subcategory_id TEXT)')
+            cur.execute('INSERT INTO marktplaats (max_price, postcode, distance, query, category_id, subcategory_id) VALUES (?, ?, ?, ?, ?, ?)', (str(max_price), postcode, str(distance), query, category_id, subcategory_id))
             conn.commit()
         await inter.send(f"query/category has been added", ephemeral=True)
 
@@ -90,10 +91,10 @@ class PeppernewsCog(commands.Cog):
                 cur = conn.cursor()
             except Exception as ex:
                 await inter.send(f"connection failed {db_path}", ephemeral=True)
-            data = cur.execute('SELECT id, max_price, postcode, distance, query, category_id FROM marktplaats')
+            data = cur.execute('SELECT id, max_price, postcode, distance, query, category_id, subcategory_id FROM marktplaats')
         output = t2a(
-                header=["id", "max_price", "postcode", "distance", "query", "category_id"],
-                body=[ [ x.get("id"), x.get("max_price"), x.get("postcode"), x.get("distance"), x.get("query"), x.get("category_id") ] for x in data ],
+                header=["id", "max_price", "postcode", "distance", "query", "category_id", "subcategory_id"],
+                body=[ [ x.get("id"), x.get("max_price"), x.get("postcode"), x.get("distance"), x.get("query"), x.get("category_id"), x.get("subcategory_id") ] for x in data ],
                 style=PresetStyle.ascii_borderless
                 )
         await inter.send(f"""```{output}```""", ephemeral=True)
@@ -219,9 +220,9 @@ class PeppernewsCog(commands.Cog):
                 cur = conn.cursor()
             except Exception as ex:
                 await self.bot.get_channel(679029900299993113).send(f"connection failed {db_path}", ephemeral=True)
-            data = cur.execute('SELECT max_price, postcode, distance, query, category_id FROM marktplaats')
+            data = cur.execute('SELECT max_price, postcode, distance, query, category_id, subcategory_id FROM marktplaats')
         for x in data: 
-            comp_url = f"https://www.marktplaats.nl/lrp/api/search?attributeRanges[]=PriceCents%3Anull%3A{x.get('max_price','')}&attributesByKey[]=offeredSince%3AGisteren&distanceMeters={x.get('distance','')}&limit=50&offset=0&postcode={x.get('postcode','')}&l1CategoryId={x.get('category_id','')}&query={x.get('query','')}&searchInTitleAndDescription=true&sortBy=SORT_INDEX&sortOrder=DECREASING"
+            comp_url = f"https://www.marktplaats.nl/lrp/api/search?attributeRanges[]=PriceCents%3Anull%3A{x.get('max_price','')}&attributesByKey[]=offeredSince%3AGisteren&distanceMeters={x.get('distance','')}&limit=50&offset=0&postcode={x.get('postcode','')}&l1CategoryId={x.get('category_id','')}&l2CategoryId={x.get('subcategory_id','')}&query={x.get('query','')}&searchInTitleAndDescription=true&sortBy=SORT_INDEX&sortOrder=DECREASING"
             retry = 0
             while retry < 3:
                 headers = {'User-Agent': ua.random}
