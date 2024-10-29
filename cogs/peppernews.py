@@ -210,37 +210,38 @@ class PeppernewsCog(commands.Cog):
                 title_pep = f.get("title")
             await self.bot.get_channel(679029900299993113).send(embed=disnake.Embed(title = title_pep, description = f"""{html.fromstring(f.get("description")).text_content()[:1500]}...""", url = f.get("link")))
 
-    @tasks.loop(time=[time(hour=0, minute=1, tzinfo=timezone(datetime.now(pytz.timezone("Europe/Amsterdam")).utcoffset()))])
+    @tasks.loop(time=[time(hour=0, minute=59, tzinfo=timezone(datetime.now(pytz.timezone("Europe/Amsterdam")).utcoffset()))])
     async def marktplaatssync(self) -> None:
         ua = UserAgent()
         db_path = '/home/darrie7/Scripts/pythonvenvs/discordbot/discordbot_scripts/sqlite3.db'
-        with sqlite3.connect(db_path) as conn:
-            conn.row_factory = dict_factory
-            try:
+        try:
+            with sqlite3.connect(db_path) as conn:
+                conn.row_factory = dict_factory
                 cur = conn.cursor()
-            except Exception as ex:
-                await self.bot.get_channel(679029900299993113).send(f"connection failed {db_path}", ephemeral=True)
-            data = cur.execute('SELECT max_price, postcode, distance, query, category_id, subcategory_id FROM marktplaats')
+                data = cur.execute('SELECT max_price, postcode, distance, query, category_id, subcategory_id FROM marktplaats')
+        except Exception as ex:
+            await self.bot.get_channel(679029900299993113).send(f"connection failed {db_path}", ephemeral=True)
+            return
+
+        listings = []
         for x in data: 
             comp_url = f"https://www.marktplaats.nl/lrp/api/search?attributeRanges[]=PriceCents%3Anull%3A{x.get('max_price','')}&attributesByKey[]=offeredSince%3AGisteren&distanceMeters={x.get('distance','')}&limit=50&offset=0&postcode={x.get('postcode','')}&l1CategoryId={x.get('category_id','')}&l2CategoryId={x.get('subcategory_id','')}&query={x.get('query','')}&searchInTitleAndDescription=true&sortBy=SORT_INDEX&sortOrder=DECREASING"
-            retry = 0
-            while retry < 3:
+            for retry in range(3):
                 headers = {'User-Agent': ua.random}
                 r = await to_thread(requests.get, url=comp_url, headers=headers)
                 if r.status_code == 200:
                     # Parse the JSON data directly from the response
-                    data = r.json()
-                    for x in data.get('listings'):
-                        embedded = disnake.Embed(title = x.get("title"), description = f"""{x.get("categorySpecificDescription")}\n\nLocation:{x.get("location").get("cityName", "")}\nDistance: {x.get("location").get("distanceMeters")} meter""", url = f"""https://marktplaats.nl{x.get("vipUrl")}""")
-                        if x.get("pictures", [{'data': None}])[0].get("extraExtraLargeUrl", ""):
-                            embedded.set_image(url=x.get("pictures")[0].get("extraExtraLargeUrl"))
-                        await self.bot.get_channel(679029900299993113).send(embed=embedded)
+                    data_response = r.json()
+                    listings.extend(data_response.get('listings', []))
                     break
-                retry += 1
-            else:
-                continue
-        
-   
+        unique_listings_id = set()
+        unique listings = [x for x in listings if not (x['itemId'] in unique_listings_id or unique_listings_id.add(x['itemId']))]
+        for listing in unique_listings:
+            embedded = disnake.Embed(title = x.get("title"), description = f"""{x.get("categorySpecificDescription")}\n\nLocation:{x.get("location").get("cityName", "")}\nDistance: {x.get("location").get("distanceMeters")} meter""", url = f"""https://marktplaats.nl{x.get("vipUrl")}""")
+            if x.get("pictures", [{'data': None}])[0].get("extraExtraLargeUrl", ""):
+                embedded.set_image(url=x.get("pictures")[0].get("extraExtraLargeUrl"))
+            await self.bot.get_channel(679029900299993113).send(embed=embedded)
+            
         
     @tasks.loop(minutes=15.0)
     async def task_one(self) -> None:
