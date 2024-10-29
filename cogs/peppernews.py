@@ -4,7 +4,7 @@ from asyncio import gather, to_thread
 import pytz
 from feedparser import parse
 import json
-from datetime import datetime, timedelta, time
+from datetime import datetime, timedelta, time, timezone
 from table2ascii import table2ascii as t2a, PresetStyle
 import traceback
 import requests
@@ -209,7 +209,7 @@ class PeppernewsCog(commands.Cog):
                 title_pep = f.get("title")
             await self.bot.get_channel(679029900299993113).send(embed=disnake.Embed(title = title_pep, description = f"""{html.fromstring(f.get("description")).text_content()[:1500]}...""", url = f.get("link")))
 
-    @tasks.loop(time=[time(hour=0, minute=1, tzinfo=pytz.timezone("Europe/Amsterdam"))])
+    @tasks.loop(time=[time(hour=0, minute=1, tzinfo=timezone(datetime.now(pytz.timezone("Europe/Amsterdam")).utcoffset()))])
     async def marktplaatssync(self) -> None:
         ua = UserAgent()
         db_path = '/home/darrie7/Scripts/pythonvenvs/discordbot/discordbot_scripts/sqlite3.db'
@@ -247,7 +247,7 @@ class PeppernewsCog(commands.Cog):
         await gather(*[self.pepperasync(f"""https://nl.pepper.com/rss/groep/{x[0]}""", x[1], 915) for x in list_pepper])
 
 
-    @tasks.loop(time=[time(hour=12, tzinfo=pytz.timezone("Europe/Amsterdam"))])
+    @tasks.loop(time=[time(hour=12, tzinfo=timezone(datetime.now(pytz.timezone("Europe/Amsterdam")).utcoffset()))])
     async def task_two(self) -> None:
         r = await to_thread(requests.get, 
                             url = "https://nfs.faireconomy.media/ff_calendar_thisweek.json?version=3e6fc15a391103cb8eec35d93d70eab2",
