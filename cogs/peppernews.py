@@ -210,7 +210,7 @@ class PeppernewsCog(commands.Cog):
                 title_pep = f.get("title")
             await self.bot.get_channel(679029900299993113).send(embed=disnake.Embed(title = title_pep, description = f"""{html.fromstring(f.get("description")).text_content()[:1500]}...""", url = f.get("link")))
 
-    @tasks.loop(time=[time(hour=1, minute=11, tzinfo=timezone(datetime.now(pytz.timezone("Europe/Amsterdam")).utcoffset()))])
+    @tasks.loop(time=[time(hour=1, minute=1, tzinfo=timezone(datetime.now(pytz.timezone("Europe/Amsterdam")).utcoffset()))])
     async def marktplaatssync(self) -> None:
         ua = UserAgent()
         db_path = '/home/darrie7/Scripts/pythonvenvs/discordbot/discordbot_scripts/sqlite3.db'
@@ -226,7 +226,7 @@ class PeppernewsCog(commands.Cog):
         listings = []
         for x in data: 
             comp_url = f"https://www.marktplaats.nl/lrp/api/search?attributeRanges[]=PriceCents%3Anull%3A{x.get('max_price','')}&attributesByKey[]=offeredSince%3AGisteren&distanceMeters={x.get('distance','')}&limit=50&offset=0&postcode={x.get('postcode','')}&l1CategoryId={x.get('category_id','')}&l2CategoryId={x.get('subcategory_id','')}&query={x.get('query','')}&searchInTitleAndDescription=true&sortBy=SORT_INDEX&sortOrder=DECREASING"
-            for retry in range(3):
+            for _ in range(3):
                 headers = {'User-Agent': ua.random}
                 r = await to_thread(requests.get, url=comp_url, headers=headers)
                 if r.status_code == 200:
@@ -237,9 +237,9 @@ class PeppernewsCog(commands.Cog):
         unique_listings_id = set()
         unique_listings = [x for x in listings if not (x['itemId'] in unique_listings_id or unique_listings_id.add(x['itemId']))]
         for listing in unique_listings:
-            embedded = disnake.Embed(title = x.get("title"), description = f"""{x.get("categorySpecificDescription")}\n\nLocation:{x.get("location").get("cityName", "")}\nDistance: {x.get("location").get("distanceMeters")} meter""", url = f"""https://marktplaats.nl{x.get("vipUrl")}""")
-            if x.get("pictures", [{'data': None}])[0].get("extraExtraLargeUrl", ""):
-                embedded.set_image(url=x.get("pictures")[0].get("extraExtraLargeUrl"))
+            embedded = disnake.Embed(title = listing.get("title"), description = f"""{listing.get("categorySpecificDescription")}\n\nLocation:{listing.get("location").get("cityName", "")}\nDistance: {listing.get("location").get("distanceMeters")} meter""", url = f"""https://marktplaats.nl{listing.get("vipUrl")}""")
+            if listing.get("pictures", [{'data': None}])[0].get("extraExtraLargeUrl", ""):
+                embedded.set_image(url=listing.get("pictures")[0].get("extraExtraLargeUrl"))
             await self.bot.get_channel(679029900299993113).send(embed=embedded)
             
         
