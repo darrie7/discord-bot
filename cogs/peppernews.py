@@ -210,7 +210,7 @@ class PeppernewsCog(commands.Cog):
                 title_pep = f.get("title")
             await self.bot.get_channel(679029900299993113).send(embed=disnake.Embed(title = title_pep, description = f"""{html.fromstring(f.get("description")).text_content()[:1500]}...""", url = f.get("link")))
 
-    @tasks.loop(time=[time(hour=0, minute=59, tzinfo=timezone(datetime.now(pytz.timezone("Europe/Amsterdam")).utcoffset()))])
+    @tasks.loop(time=[time(hour=1, minute=06, tzinfo=timezone(datetime.now(pytz.timezone("Europe/Amsterdam")).utcoffset()))])
     async def marktplaatssync(self) -> None:
         ua = UserAgent()
         db_path = '/home/darrie7/Scripts/pythonvenvs/discordbot/discordbot_scripts/sqlite3.db'
@@ -235,7 +235,7 @@ class PeppernewsCog(commands.Cog):
                     listings.extend(data_response.get('listings', []))
                     break
         unique_listings_id = set()
-        unique listings = [x for x in listings if not (x['itemId'] in unique_listings_id or unique_listings_id.add(x['itemId']))]
+        unique_listings = [x for x in listings if not (x['itemId'] in unique_listings_id or unique_listings_id.add(x['itemId']))]
         for listing in unique_listings:
             embedded = disnake.Embed(title = x.get("title"), description = f"""{x.get("categorySpecificDescription")}\n\nLocation:{x.get("location").get("cityName", "")}\nDistance: {x.get("location").get("distanceMeters")} meter""", url = f"""https://marktplaats.nl{x.get("vipUrl")}""")
             if x.get("pictures", [{'data': None}])[0].get("extraExtraLargeUrl", ""):
