@@ -194,21 +194,25 @@ class PeppernewsCog(commands.Cog):
         await inter.response.send_message(f"""```{output}```""", ephemeral=True)
 
 
-    async def pepperasync(self, url: str, pricelimit: int, timedelt: int) -> None:
+    async def pepperasync(self, url: str, pricelimit: int, timedelt: int) -> list():
+        entries = []
         ua = UserAgent()
         headers = {'User-Agent': ua.random}
         r = await to_thread(requests.get, url=url, headers=headers)
         for f in parse(r.text).get("entries"):
             if not (datetime.strptime(f.get("published"), "%a, %d %b %Y %H:%M:%S %z") > (datetime.utcnow().replace(tzinfo=pytz.utc).astimezone(pytz.timezone("Europe/Amsterdam")) - timedelta(seconds = timedelt))):
                 break
-            if "pepper_merchant" in f and "price" in f.get("pepper_merchant"):
-                if (float(f.get("pepper_merchant").get("price").replace("€", "").replace(".","").replace(",", ".")) < float(pricelimit)):
-                    title_pep = f"""{f.get("title")}, PRICE: {f.get("pepper_merchant").get("price")}"""
-                else:
-                    continue
-            else:
-                title_pep = f.get("title")
-            await self.bot.get_channel(679029900299993113).send(embed=disnake.Embed(title = title_pep, description = f"""{html.fromstring(f.get("description")).text_content()[:1500]}...""", url = f.get("link")))
+            if float(f.get("pepper_merchant", {"price": "€0"}).get("price", "€0").replace("€", "").replace(".","").replace(",", ".")) < float(pricelimit):
+                entries.append(f)
+        return entries
+            # if "pepper_merchant" in f and "price" in f.get("pepper_merchant"):
+            #     if (float(f.get("pepper_merchant").get("price").replace("€", "").replace(".","").replace(",", ".")) < float(pricelimit)):
+            #         title_pep = f"""{f.get("title")}, PRICE: {f.get("pepper_merchant").get("price")}"""
+            #     else:
+            #         continue
+            # else:
+            #     title_pep = f.get("title")
+            # await self.bot.get_channel(679029900299993113).send(embed=disnake.Embed(title = title_pep, description = f"""{html.fromstring(f.get("description")).text_content()[:1500]}...""", url = f.get("link")))
 
     @tasks.loop(time=[time(hour=1, minute=1, tzinfo=timezone(datetime.now(pytz.timezone("Europe/Amsterdam")).utcoffset()))])
     async def marktplaatssync(self) -> None:
@@ -245,9 +249,17 @@ class PeppernewsCog(commands.Cog):
         
     @tasks.loop(minutes=15.0)
     async def task_one(self) -> None:
+        listings = []
         list_pepper = [ (x.get("category"), x.get("max_price")) for x in self.bot._db4 if x.get("api_point") == "pepper" ]
-        await gather(*[self.pepperasync(f"""https://nl.pepper.com/rss/groep/{x[0]}""", x[1], 915) for x in list_pepper])
-
+        list_of_list_of_entries = await gather(*[self.pepperasync(f"""https://nl.pepper.com/rss/groep/{x[0]}""", x[1], 915) for x in list_pepper])
+        for list in list_of_list_of_entries:
+            listings.extend(list)
+        unique_listings_id = set()
+        unique_listings = [x for x in listings if not (x['guid'] in unique_listings_id or unique_listings_id.add(x['guid']))]
+        for listing in unique_listings:
+            title_pep = f"""{listing.get("title")}, PRICE: {listing.get("pepper_merchant", {"price": "???"}).get("price", "???")}"""
+            await self.bot.get_channel(679029900299993113).send(embed=disnake.Embed(title = title_pep, description = f"""{html.fromstring(listing.get("description")).text_content()[:1500]}...""", url = listing.get("link")))
+            
 
     @tasks.loop(time=[time(hour=12, tzinfo=timezone(datetime.now(pytz.timezone("Europe/Amsterdam")).utcoffset()))])
     async def task_two(self) -> None:
