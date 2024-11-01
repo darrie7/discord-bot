@@ -194,7 +194,7 @@ class PeppernewsCog(commands.Cog):
         await inter.response.send_message(f"""```{output}```""", ephemeral=True)
 
 
-    async def pepperasync(self, url: str, pricelimit: int, timedelt: int) -> list():
+    async def pepperasync(self, url: str, pricelimit: int, timedelt: int) -> list[dict]:
         entries = []
         ua = UserAgent()
         headers = {'User-Agent': ua.random}
