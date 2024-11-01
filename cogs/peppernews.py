@@ -251,8 +251,9 @@ class PeppernewsCog(commands.Cog):
     async def task_one(self) -> None:
         listings = []
         list_pepper = [ (x.get("category"), x.get("max_price")) for x in self.bot._db4 if x.get("api_point") == "pepper" ]
-        list_of_list_of_entries = await gather(*[self.pepperasync(f"""https://nl.pepper.com/rss/groep/{x[0]}""", x[1], 915) for x in list_pepper])
-        for list in list_of_list_of_entries:
+        list_of_list_of_entries = await gather(*[self.pepperasync(f"""https://nl.pepper.com/rss/groep/{x[0]}""", x[1], 915) for x in list_pepper], return_exceptions=True)
+        filtered_list_of_list_of_entries = list(filter(lambda x: not isinstance(x, Exception), list_of_list_of_entries))
+        for list in filtered_list_of_list_of_entries:
             listings.extend(list)
         unique_listings_id = set()
         unique_listings = [x for x in listings if not (x['guid'] in unique_listings_id or unique_listings_id.add(x['guid']))]
