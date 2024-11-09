@@ -101,7 +101,7 @@ class PeppernewsCog(commands.Cog):
                     max_price: int, 
                     postcode: str,
                     distance: int, 
-                    category: str = commands.Param(choices=[x.get("name") for x in MARKTPLAATS_CATEGORIES.get("categories"])
+                    category: str = commands.Param(choices=[x.get("name") for x in MARKTPLAATS_CATEGORIES.get("categories")]),
                     query: str = "",
                     subcategory_id: str = ""
                     ) -> None:
