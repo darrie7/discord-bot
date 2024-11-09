@@ -69,8 +69,8 @@ class PeppernewsCog(commands.Cog):
                     postcode: str,
                     distance: int, 
                     query: str = "",
-                    categories_1: str = commands.Param(choices=[z.get("name") for z in MARKTPLAATS_CATEGORIES.get("categories")[:20]], default=None ),
-                    categories_2: str = commands.Param(choices=[z.get("name") for z in MARKTPLAATS_CATEGORIES.get("categories")[20:]], default=None ),
+                    categories_1: str = commands.Param(choices=[z.get("name") for z in MARKTPLAATS_CATEGORIES.get("categories")[:20]], default="" ),
+                    categories_2: str = commands.Param(choices=[z.get("name") for z in MARKTPLAATS_CATEGORIES.get("categories")[20:]], default="" ),
                     subcategory_id: str = ""
                     ) -> None:
         """
