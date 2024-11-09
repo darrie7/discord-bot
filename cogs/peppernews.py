@@ -36,7 +36,6 @@ MARKTPLAATS_CATEGORIES = { "categories": [  {"name": "antiek-en-kunst", "id": 1}
                                           {"name": "witgoed-en-apparatuur", "id": 537}, {"name": "zakelijke-goederen", "id": 1085},
                                           {"name": "diversen", "id": 428}                                      
 ] }
-CATEGORIES = commands.option_enum([z.get("name") for z in MARKTPLAATS_CATEGORIES.get("categories")])
 
 class PeppernewsCog(commands.Cog):
     def __init__(self, bot: object) -> None:
@@ -64,13 +63,14 @@ class PeppernewsCog(commands.Cog):
         pass
 
     @marktplaats.sub_command()
-    async def add_query(self,
+    async def add(self,
                     inter: disnake.ApplicationCommandInteraction,
                     max_price: int, 
                     postcode: str,
                     distance: int, 
-                    query: str,
-                    category_id: str = "",
+                    query: str = "",
+                    categories_1: str = commands.Param(choices=[z.get("name") for z in MARKTPLAATS_CATEGORIES.get("categories")[:20]], default=None ),
+                    categories_2: str = commands.Param(choices=[z.get("name") for z in MARKTPLAATS_CATEGORIES.get("categories")[20:]], default=None ),
                     subcategory_id: str = ""
                     ) -> None:
         """
@@ -82,9 +82,11 @@ class PeppernewsCog(commands.Cog):
         max_price: maximum price to filter for
         distance: maximum distance from postcode
         query: search term
-        category_id: category id on marktplaats
+        categories_1: category on marktplaats
+        categories_2: category on marktplaats
         subcategory_id: subcategory id on marktplaats
         """
+        category_id = next((z.get("id") for z in MARKTPLAATS_CATEGORIES.get("categories") if z.get('name') in categories_1 or z.get('name') in categories_2), "")
         db_path = '/home/darrie7/Scripts/pythonvenvs/discordbot/discordbot_scripts/sqlite3.db'
         with sqlite3.connect(db_path) as conn:
             try:
@@ -93,40 +95,6 @@ class PeppernewsCog(commands.Cog):
                 await inter.send(f"connection failed {db_path}", ephemeral=True)
             cur.execute('CREATE TABLE IF NOT EXISTS marktplaats (id INTEGER PRIMARY KEY AUTOINCREMENT, max_price TEXT, postcode TEXT, distance TEXT, query TEXT, category_id TEXT, subcategory_id TEXT)')
             cur.execute('INSERT INTO marktplaats (max_price, postcode, distance, query, category_id, subcategory_id) VALUES (?, ?, ?, ?, ?, ?)', (str(max_price), postcode, str(distance), query, category_id, subcategory_id))
-            conn.commit()
-        await inter.send(f"query/category has been added", ephemeral=True)
-
-    @marktplaats.sub_command()
-    async def add_category(self,
-                    inter: disnake.ApplicationCommandInteraction,
-                    max_price: int, 
-                    postcode: str,
-                    distance: int, 
-                    category: CATEGORIES,
-                    query: str = "",
-                    subcategory_id: str = ""
-                    ) -> None:
-        """
-        Add category to database
-
-        Parameters
-        ----------
-        postcode: postcode
-        max_price: maximum price to filter for
-        distance: maximum distance from postcode
-        category: category on marktplaats
-        query: search term
-        subcategory_id: subcategory id on marktplaats
-        """
-        db_path = '/home/darrie7/Scripts/pythonvenvs/discordbot/discordbot_scripts/sqlite3.db'
-        category_id = next((z.get("id") for z in MARKTPLAATS_CATEGORIES.get("categories") if z.get('name') in category))
-        with sqlite3.connect(db_path) as conn:
-            try:
-                cur = conn.cursor()
-            except Exception as ex:
-                await inter.send(f"connection failed {db_path}", ephemeral=True)
-            cur.execute('CREATE TABLE IF NOT EXISTS marktplaats (id INTEGER PRIMARY KEY AUTOINCREMENT, max_price TEXT, postcode TEXT, distance TEXT, query TEXT, category_id TEXT, subcategory_id TEXT)')
-            cur.execute('INSERT INTO marktplaats (max_price, postcode, distance, query, category_id, subcategory_id) VALUES (?, ?, ?, ?, ?, ?)', (str(max_price), postcode, str(distance), query, str(category_id), subcategory_id))
             conn.commit()
         await inter.send(f"query/category has been added", ephemeral=True)
 
@@ -140,6 +108,7 @@ class PeppernewsCog(commands.Cog):
         Parameters
         ----------
         """
+        await inter.response.defer()
         db_path = '/home/darrie7/Scripts/pythonvenvs/discordbot/discordbot_scripts/sqlite3.db'
         with sqlite3.connect(db_path) as conn:
             conn.row_factory = dict_factory
@@ -150,7 +119,7 @@ class PeppernewsCog(commands.Cog):
             data = cur.execute('SELECT id, max_price, postcode, distance, query, category_id, subcategory_id FROM marktplaats')
         output = t2a(
                 header=["id", "max_price", "postcode", "distance", "query", "category_id", "category_name", "subcategory_id"],
-                body=[ [ x.get("id"), x.get("max_price"), x.get("postcode"), x.get("distance"), x.get("query"), x.get("category_id"), next((z.get("name") for z in MARKTPLAATS_CATEGORIES.get("categories") if z.get('id')==int(x.get("category_id")))), x.get("subcategory_id") ] for x in data ],
+                body=[ [ x.get("id"), x.get("max_price"), x.get("postcode"), x.get("distance"), x.get("query"), x.get("category_id"), next((z.get("name") for z in MARKTPLAATS_CATEGORIES.get("categories") if x.get("category_id") is not None and x.get("category_id").isdigit() and int(x.get("category_id")) == z.get("id")), None), x.get("subcategory_id") ] for x in data ],
                 style=PresetStyle.ascii_borderless
                 )
         await inter.send(f"""```{output}```""", ephemeral=True)
