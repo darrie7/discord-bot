@@ -37,6 +37,8 @@ MARKTPLAATS_CATEGORIES = { "categories": [  {"name": "antiek-en-kunst", "id": 1}
                                           {"name": "diversen", "id": 428}                                      
 ] }
 
+DB_PATH = '/home/darrie7/Scripts/pythonvenvs/discordbot/discordbot_scripts/sqlite3.db'
+
 class PeppernewsCog(commands.Cog):
     def __init__(self, bot: object) -> None:
         self.bot = bot
@@ -141,9 +143,34 @@ class PeppernewsCog(commands.Cog):
                 cur = conn.cursor()
             except Exception as ex:
                 await inter.send(f"connection failed {db_path}", ephemeral=True)
+                return
             cur.execute('DROP TABLE IF EXISTS marktplaats')
             conn.commit() 
         await inter.send(f"""```db removed```""", ephemeral=True)
+
+    @marktplaats.sub_command()
+    async def delete(self,
+                       inter: disnake.ApplicationCommandInteraction,
+                        id: int
+                        ) -> None:
+        """
+        Show all entries in database
+
+        Parameters
+        ----------
+        id: id of the database entry (not category id)
+        """
+        db_path = '/home/darrie7/Scripts/pythonvenvs/discordbot/discordbot_scripts/sqlite3.db'
+        with sqlite3.connect(DB_PATH) as conn:
+            conn.row_factory = dict_factory
+            try:
+                cur = conn.cursor()
+            except Exception as ex:
+                await inter.send(f"connection failed {DB_PATH}", ephemeral=True)
+                return
+            cur.execute('DELETE FROM marktplaats WHERE id = ?', (id,))
+            conn.commit() 
+        await inter.send(f"""```entry with id = {id} deleted```""", ephemeral=True)
 
 
     
