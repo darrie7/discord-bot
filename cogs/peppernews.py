@@ -36,6 +36,7 @@ MARKTPLAATS_CATEGORIES = { "categories": [  {"name": "antiek-en-kunst", "id": 1}
                                           {"name": "witgoed-en-apparatuur", "id": 537}, {"name": "zakelijke-goederen", "id": 1085},
                                           {"name": "diversen", "id": 428}                                      
 ] }
+CATEGORIES = commands.option_enum([z.get("name") for z in MARKTPLAATS_CATEGORIES.get("categories")])
 
 class PeppernewsCog(commands.Cog):
     def __init__(self, bot: object) -> None:
@@ -101,7 +102,7 @@ class PeppernewsCog(commands.Cog):
                     max_price: int, 
                     postcode: str,
                     distance: int, 
-                    category: str = commands.Param(choices=[x.get("name") for x in MARKTPLAATS_CATEGORIES.get("categories")]),
+                    category: CATEGORIES,
                     query: str = "",
                     subcategory_id: str = ""
                     ) -> None:
