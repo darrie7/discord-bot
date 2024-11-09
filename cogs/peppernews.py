@@ -16,6 +16,26 @@ def dict_factory(cursor, row):
     fields = [column[0] for column in cursor.description]
     return {key: value for key, value in zip(fields, row)}
 
+MARKTPLAATS_CATEGORIES = { "categories": [  {"name": "antiek-en-kunst", "id": 1},
+                                          {"name": "audio-tv-en-foto", "id": 31}, {"name": "auto-kopen", "id": 91},
+                                          {"name": "auto-onderdelen", "id": 2600}, {"name": "auto-diversen", "id": 48},
+                                          {"name": "boeken", "id": 201}, {"name": "caravans-en-kamperen", "id": 289},
+                                          {"name": "cd-s-en-dvd-s", "id": 1744}, {"name": "computers-en-software", "id": 322},
+                                          {"name": "contacten-en-berichten", "id": 378}, {"name": "diensten-en-vakmensen", "id": 1098},
+                                          {"name": "dieren-en-toebehoren", "id": 395}, {"name": "fietsen-en-brommers", "id": 445},
+                                          {"name": "doe-het-zelf-en-verbouw", "id": 239}, {"name": "hobby-en-vrije-tijd", "id": 1099},
+                                          {"name": "huis-en-inrichting", "id": 504}, {"name": "huizen-en-kamers", "id": 1032},
+                                          {"name": "kinderen-en-baby-s", "id": 565}, {"name": "kleding-dames", "id": 621},
+                                          {"name": "kleding-heren", "id": 1776}, {"name": "motoren", "id": 678}, 
+                                          {"name": "muziek-en-instrumenten", "id": 728}, {"name": "postzegels-en-munten", "id": 1784},
+                                          {"name": "sieraden-tassen-en-uiterlijk", "id": 1826}, {"name": "spelcomputers-en-games", "id": 356},
+                                          {"name": "sport-en-fitness", "id": 784}, {"name": "telecommunicatie", "id": 820},
+                                          {"name": "tickets-en-kaartjes", "id": 1984}, {"name": "tuin-en-terras", "id": 1847},
+                                          {"name": "vacatures", "id": 167}, {"name": "vakantie", "id": 856},
+                                          {"name": "verzamelen", "id": 895}, {"name": "watersport-en-boten", "id": 976},
+                                          {"name": "witgoed-en-apparatuur", "id": 537}, {"name": "zakelijke-goederen", "id": 1085},
+                                          {"name": "diversen", "id": 428}                                      
+] }
 
 class PeppernewsCog(commands.Cog):
     def __init__(self, bot: object) -> None:
@@ -43,12 +63,12 @@ class PeppernewsCog(commands.Cog):
         pass
 
     @marktplaats.sub_command()
-    async def add(self,
+    async def add_query(self,
                     inter: disnake.ApplicationCommandInteraction,
                     max_price: int, 
                     postcode: str,
                     distance: int, 
-                    query: str = "",
+                    query: str,
                     category_id: str = "",
                     subcategory_id: str = ""
                     ) -> None:
@@ -62,6 +82,7 @@ class PeppernewsCog(commands.Cog):
         distance: maximum distance from postcode
         query: search term
         category_id: category id on marktplaats
+        subcategory_id: subcategory id on marktplaats
         """
         db_path = '/home/darrie7/Scripts/pythonvenvs/discordbot/discordbot_scripts/sqlite3.db'
         with sqlite3.connect(db_path) as conn:
@@ -71,6 +92,40 @@ class PeppernewsCog(commands.Cog):
                 await inter.send(f"connection failed {db_path}", ephemeral=True)
             cur.execute('CREATE TABLE IF NOT EXISTS marktplaats (id INTEGER PRIMARY KEY AUTOINCREMENT, max_price TEXT, postcode TEXT, distance TEXT, query TEXT, category_id TEXT, subcategory_id TEXT)')
             cur.execute('INSERT INTO marktplaats (max_price, postcode, distance, query, category_id, subcategory_id) VALUES (?, ?, ?, ?, ?, ?)', (str(max_price), postcode, str(distance), query, category_id, subcategory_id))
+            conn.commit()
+        await inter.send(f"query/category has been added", ephemeral=True)
+
+    @marktplaats.sub_command()
+    async def add_category(self,
+                    inter: disnake.ApplicationCommandInteraction,
+                    max_price: int, 
+                    postcode: str,
+                    distance: int, 
+                    category: str = commands.Param(choices=[x.get("name") for x in MARKTPLAATS_CATEGORIES.get("categories"])
+                    query: str = "",
+                    subcategory_id: str = ""
+                    ) -> None:
+        """
+        Add category to database
+
+        Parameters
+        ----------
+        postcode: postcode
+        max_price: maximum price to filter for
+        distance: maximum distance from postcode
+        category: category on marktplaats
+        query: search term
+        subcategory_id: subcategory id on marktplaats
+        """
+        db_path = '/home/darrie7/Scripts/pythonvenvs/discordbot/discordbot_scripts/sqlite3.db'
+        category_id = next((z.get("id") for z in MARKTPLAATS_CATEGORIES.get("categories") if z.get('name') in category))
+        with sqlite3.connect(db_path) as conn:
+            try:
+                cur = conn.cursor()
+            except Exception as ex:
+                await inter.send(f"connection failed {db_path}", ephemeral=True)
+            cur.execute('CREATE TABLE IF NOT EXISTS marktplaats (id INTEGER PRIMARY KEY AUTOINCREMENT, max_price TEXT, postcode TEXT, distance TEXT, query TEXT, category_id TEXT, subcategory_id TEXT)')
+            cur.execute('INSERT INTO marktplaats (max_price, postcode, distance, query, category_id, subcategory_id) VALUES (?, ?, ?, ?, ?, ?)', (str(max_price), postcode, str(distance), query, str(category_id), subcategory_id))
             conn.commit()
         await inter.send(f"query/category has been added", ephemeral=True)
 
@@ -93,8 +148,8 @@ class PeppernewsCog(commands.Cog):
                 await inter.send(f"connection failed {db_path}", ephemeral=True)
             data = cur.execute('SELECT id, max_price, postcode, distance, query, category_id, subcategory_id FROM marktplaats')
         output = t2a(
-                header=["id", "max_price", "postcode", "distance", "query", "category_id", "subcategory_id"],
-                body=[ [ x.get("id"), x.get("max_price"), x.get("postcode"), x.get("distance"), x.get("query"), x.get("category_id"), x.get("subcategory_id") ] for x in data ],
+                header=["id", "max_price", "postcode", "distance", "query", "category_id", "category_name", "subcategory_id"],
+                body=[ [ x.get("id"), x.get("max_price"), x.get("postcode"), x.get("distance"), x.get("query"), x.get("category_id"), next((z.get("name") for z in MARKTPLAATS_CATEGORIES.get("categories") if z.get('id')==int(x.get("category_id")))), x.get("subcategory_id") ] for x in data ],
                 style=PresetStyle.ascii_borderless
                 )
         await inter.send(f"""```{output}```""", ephemeral=True)
