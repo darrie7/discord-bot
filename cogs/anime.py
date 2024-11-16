@@ -79,14 +79,14 @@ class AnimeStuff:
             i = 0
             while i < 5:
                 spanime = await send2graphql(query, self.token, True)
-                if not spanime and not spanime.get("data", {}) and not spanime.get("data", {}).get("Media", {}) and not spanime.get("data", {}).get("Media", {}).get("relations", {}) and not spanime.get("data", {}).get("Media", {}).get("relations", {}).get("edges", []):
+                if not spanime.get("data", {"Media": {}}).get("Media", {"relations": {}}).get("relations", {"edges": []}).get("edges", []):
                     i += 1
                     await sleep(2)
                     if i == 3:
                         break
                 else:     
                     syn = []
-                    data = spanime.get("data", {}).get("Media", {}).get("relations", {}).get("edges", [])
+                    data = spanime.get("data", {"Media": {}}).get("Media", {"relations": {}}).get("relations", {"edges": []}).get("edges", [])
                     if data == []:
                         # syn.append(re.sub(r'[^a-zA-Z0-9-_ ]', '', self.my_func(self.anime.get("media").get("title").get("romaji"))))
                         self.anime["notes"] = f"""{{'lastdl': {self.anime.get("progress")}, 'syn': {syn}, 'epoffset': 0, 'synoffset': [] }}"""
@@ -95,7 +95,7 @@ class AnimeStuff:
                         if relation.get("relationType") == "ADAPTATION":
                             title = re.sub(r'[^a-zA-Z0-9-_ ]', '', self.my_func(r'(?<=[a-zA-Z])[^a-zA-Z0-9 ](?=[a-zA-Z])', relation.get("node").get("title").get("romaji")))
                             # title = relation.get("node").get("title").get("romaji").replace("\'", "").replace("\"", "").replace(",", "")
-                            related_data = relation.get("node", {}).get("relations", {}).get("edges", [])
+                            related_data = relation.get("node", {"relations": {}}).get("relations", {"edges": []}).get("edges", [])
                             episodes = 0
                             for related in related_data:
                                 node = related.get("node", {})
