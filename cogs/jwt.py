@@ -65,8 +65,8 @@ class Torrent:
 
     def guess_media(self, item):
         guess_guess = guessit(item.find('title').text)
-        title = guess_guess.get('title')
-        source = guess_guess.get('source')
+        title = guess_guess.get('title', '')
+        source = guess_guess.get('source', '')
         filter_source = True if any(word in source for word in ['Camera', 'Telesync']) else False
         return {"title": title.lower(), "source": filter_source }
         
