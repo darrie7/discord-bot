@@ -11,6 +11,7 @@ import requests
 from lxml import html
 from fake_useragent import UserAgent
 import sqlite3
+from io import StringIO
 
 def dict_factory(cursor, row):
     fields = [column[0] for column in cursor.description]
@@ -124,7 +125,9 @@ class PeppernewsCog(commands.Cog):
                 body=[ [ x.get("id"), x.get("max_price"), x.get("postcode"), x.get("distance"), x.get("query"), x.get("category_id"), next((z.get("name") for z in MARKTPLAATS_CATEGORIES.get("categories") if x.get("category_id") is not None and x.get("category_id").isdigit() and int(x.get("category_id")) == z.get("id")), None), x.get("subcategory_id") ] for x in data ],
                 style=PresetStyle.ascii_borderless
                 )
-        await inter.send(f"""```{output}```""", ephemeral=True)
+        mystring = StringIO(output)
+        my_file = disnake.File(mystring, filename="db.txt")
+        await inter.send(file=my_file, ephemeral=True)
 
     @marktplaats.sub_command()
     async def remove_db(self,
