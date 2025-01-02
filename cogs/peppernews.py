@@ -119,7 +119,7 @@ class PeppernewsCog(commands.Cog):
                 cur = conn.cursor()
             except Exception as ex:
                 await inter.send(f"connection failed {db_path}", ephemeral=True)
-            data = cur.execute('SELECT id, max_price, postcode, distance, query, category_id, subcategory_id FROM IF EXISTS marktplaats')
+            data = cur.execute('SELECT id, max_price, postcode, distance, query, category_id, subcategory_id FROM marktplaats')
         output = t2a(
                 header=["id", "max_price", "postcode", "distance", "query", "category_id", "category_name", "subcategory_id"],
                 body=[ [ x.get("id"), x.get("max_price"), x.get("postcode"), x.get("distance"), x.get("query"), x.get("category_id"), next((z.get("name") for z in MARKTPLAATS_CATEGORIES.get("categories") if x.get("category_id") is not None and x.get("category_id").isdigit() and int(x.get("category_id")) == z.get("id")), None), x.get("subcategory_id") ] for x in data ],
@@ -171,7 +171,7 @@ class PeppernewsCog(commands.Cog):
             except Exception as ex:
                 await inter.send(f"connection failed {DB_PATH}", ephemeral=True)
                 return
-            cur.execute('DELETE FROM IF EXISTS marktplaats WHERE id = ?', (id,))
+            cur.execute('DELETE FROM marktplaats WHERE id = ?', (id,))
             conn.commit() 
         await inter.send(f"""```entry with id = {id} deleted```""", ephemeral=True)
 
@@ -230,7 +230,7 @@ class PeppernewsCog(commands.Cog):
             except Exception as ex:
                 await inter.send(f"connection failed {DB_PATH}", ephemeral=True)
                 return
-            cur.execute('DELETE FROM IF EXISTS pepper WHERE id = ?', (id,))
+            cur.execute('DELETE FROM pepper WHERE id = ?', (id,))
             conn.commit() 
         await inter.send(f"""```entry with id = {id} deleted```""", ephemeral=True)
                             
@@ -285,7 +285,7 @@ class PeppernewsCog(commands.Cog):
                 cur = conn.cursor()
             except Exception as ex:
                 await inter.send(f"connection failed {db_path}", ephemeral=True)
-            data = cur.execute('SELECT id, category, max_price FROM IF EXISTS pepper')
+            data = cur.execute('SELECT id, category, max_price FROM pepper')
         output = t2a(
                 header=["id", "category", "max_price"],
                 body=[ [ x.get("id"), x.get("category").title(), x.get("max_price")] for x in data ],
@@ -331,7 +331,7 @@ class PeppernewsCog(commands.Cog):
             with sqlite3.connect(db_path) as conn:
                 conn.row_factory = dict_factory
                 cur = conn.cursor()
-                data = cur.execute('SELECT max_price, postcode, distance, query, category_id, subcategory_id FROM IF EXISTS marktplaats')
+                data = cur.execute('SELECT max_price, postcode, distance, query, category_id, subcategory_id FROM marktplaats')
         except Exception as ex:
             await self.bot.get_channel(679029900299993113).send(f"connection failed {db_path}")
             return
@@ -364,7 +364,7 @@ class PeppernewsCog(commands.Cog):
             with sqlite3.connect(db_path) as conn:
                 conn.row_factory = dict_factory
                 cur = conn.cursor()
-                data = cur.execute('SELECT category, max_price FROM IF EXISTS pepper')
+                data = cur.execute('SELECT category, max_price FROM pepper')
         except Exception as ex:
             await self.bot.get_channel(679029900299993113).send(f"connection failed {db_path}")
             return
