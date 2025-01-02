@@ -191,44 +191,79 @@ class PeppernewsCog(commands.Cog):
         category: category name on pepper
         max_price: maximum price to filter for
         """
-        if self.bot._db4.get(self.bot._query.category == category.lower()):
-            await inter.response.send_message("This category is already added", ephemeral=True)
-            return
-        self.bot._db4.insert({"category": category.lower(), "max_price": max_price, "api_point": "pepper"})
-        await inter.response.send_message(f"{category.title()} has been added", ephemeral=True)
+
+        db_path = '/home/darrie7/Scripts/pythonvenvs/discordbot/discordbot_scripts/sqlite3.db'
+        with sqlite3.connect(db_path) as conn:
+            try:
+                cur = conn.cursor()
+            except Exception as ex:
+                await inter.send(f"connection failed {db_path}", ephemeral=True)
+            cur.execute('CREATE TABLE IF NOT EXISTS pepper (id INTEGER PRIMARY KEY AUTOINCREMENT, category TEXT, max_price TEXT)')
+            cur.execute('INSERT INTO marktplaats (category, max_price) VALUES (?, ?)', (category, str(max_price)))
+            conn.commit()
+        await inter.send(f"query/category has been added", ephemeral=True)
+                        
+        # if self.bot._db4.get(self.bot._query.category == category.lower()):
+        #     await inter.response.send_message("This category is already added", ephemeral=True)
+        #     return
+        # self.bot._db4.insert({"category": category.lower(), "max_price": max_price, "api_point": "pepper"})
+        # await inter.response.send_message(f"{category.title()} has been added", ephemeral=True)
 
     
     @pepper.sub_command()
-    async def remove(self,
+    async def delete(self,
                        inter: disnake.ApplicationCommandInteraction,
-                       category: str
-                       ) -> None:
+                        id: int
+                        ) -> None:
         """
-        Remove an entry
+        Show all entries in database
 
         Parameters
         ----------
-        category: category name on pepper
+        id: id of the database entry (not category id)
         """
-        if  not self.bot._db4.get(self.bot._query.category == category.lower()):
-            await inter.response.send_message("This category is not in the database", ephemeral=True)
-            return
-        media = self.bot._db4.get(self.bot._query.category == category.lower())
-        self.bot._db4.remove(doc_ids=[media.doc_id])
-        await inter.response.send_message(f"{category.title()} has been removed", ephemeral=True)
+        db_path = '/home/darrie7/Scripts/pythonvenvs/discordbot/discordbot_scripts/sqlite3.db'
+        with sqlite3.connect(DB_PATH) as conn:
+            conn.row_factory = dict_factory
+            try:
+                cur = conn.cursor()
+            except Exception as ex:
+                await inter.send(f"connection failed {DB_PATH}", ephemeral=True)
+                return
+            cur.execute('DELETE FROM pepper WHERE id = ?', (id,))
+            conn.commit() 
+        await inter.send(f"""```entry with id = {id} deleted```""", ephemeral=True)
+                            
+    # async def remove(self,
+    #                    inter: disnake.ApplicationCommandInteraction,
+    #                    category: str
+    #                    ) -> None:
+    #     """
+    #     Remove an entry
 
-    @pepper.sub_command()
-    async def update(self,
-                       inter: disnake.ApplicationCommandInteraction
-                       ) -> None:
-        """
-        Remove an entry
+    #     Parameters
+    #     ----------
+    #     category: category name on pepper
+    #     """
+    #     if  not self.bot._db4.get(self.bot._query.category == category.lower()):
+    #         await inter.response.send_message("This category is not in the database", ephemeral=True)
+    #         return
+    #     media = self.bot._db4.get(self.bot._query.category == category.lower())
+    #     self.bot._db4.remove(doc_ids=[media.doc_id])
+    #     await inter.response.send_message(f"{category.title()} has been removed", ephemeral=True)
 
-        Parameters
-        ----------
-        """
-        self.bot._db4.update({"api_point": "pepper"})                   
-        await inter.response.send_message(f"db has been updated", ephemeral=True)
+    # @pepper.sub_command()
+    # async def update(self,
+    #                    inter: disnake.ApplicationCommandInteraction
+    #                    ) -> None:
+    #     """
+    #     Remove an entry
+
+    #     Parameters
+    #     ----------
+    #     """
+    #     self.bot._db4.update({"api_point": "pepper"})                   
+    #     await inter.response.send_message(f"db has been updated", ephemeral=True)
 
 
     @pepper.sub_command()
@@ -241,12 +276,31 @@ class PeppernewsCog(commands.Cog):
         Parameters
         ----------
         """
+
+        await inter.response.defer()
+        db_path = '/home/darrie7/Scripts/pythonvenvs/discordbot/discordbot_scripts/sqlite3.db'
+        with sqlite3.connect(db_path) as conn:
+            conn.row_factory = dict_factory
+            try:
+                cur = conn.cursor()
+            except Exception as ex:
+                await inter.send(f"connection failed {db_path}", ephemeral=True)
+            data = cur.execute('SELECT id, category, max_price FROM pepper')
         output = t2a(
-                header=["category", "max_price"],
-                body=[ [ x.get("category").title(), x.get("max_price") ] for x in self.bot._db4 if x.get("api_point") == "pepper" ],
+                header=["id", "category", "max_price"],
+                body=[ [ x.get("id"), x.get("category").title(), x.get("max_price")] for x in data ],
                 style=PresetStyle.ascii_borderless
                 )
-        await inter.response.send_message(f"""```{output}```""", ephemeral=True)
+        mystring = StringIO(output)
+        my_file = disnake.File(mystring, filename="db.txt")
+        await inter.send(file=my_file, ephemeral=True)
+                            
+        # output = t2a(
+        #         header=["category", "max_price"],
+        #         body=[ [ x.get("category").title(), x.get("max_price") ] for x in self.bot._db4 if x.get("api_point") == "pepper" ],
+        #         style=PresetStyle.ascii_borderless
+        #         )
+        # await inter.response.send_message(f"""```{output}```""", ephemeral=True)
 
 
     async def pepperasync(self, url: str, pricelimit: int, timedelt: int) -> list[dict]:
@@ -304,9 +358,18 @@ class PeppernewsCog(commands.Cog):
         
     @tasks.loop(minutes=15.0)
     async def task_one(self) -> None:
+        ua = UserAgent()
+        db_path = '/home/darrie7/Scripts/pythonvenvs/discordbot/discordbot_scripts/sqlite3.db'
+        try:
+            with sqlite3.connect(db_path) as conn:
+                conn.row_factory = dict_factory
+                cur = conn.cursor()
+                data = cur.execute('SELECT category, max_price FROM pepper')
+        except Exception as ex:
+            await self.bot.get_channel(679029900299993113).send(f"connection failed {db_path}", ephemeral=True)
+            return
         listings = []
-        list_pepper = [ (x.get("category"), x.get("max_price")) for x in self.bot._db4 if x.get("api_point") == "pepper" ]
-        list_of_list_of_entries = await gather(*[self.pepperasync(f"""https://nl.pepper.com/rss/groep/{x[0]}""", x[1], 915) for x in list_pepper], return_exceptions=True)
+        list_of_list_of_entries = await gather(*[self.pepperasync(f"""https://nl.pepper.com/rss/groep/{x.get("category")}""", x.get("max_price"), 915) for x in data], return_exceptions=True)
         filtered_list_of_list_of_entries = list(filter(lambda x: not isinstance(x, Exception), list_of_list_of_entries))
         for list_of_entries in filtered_list_of_list_of_entries:
             listings.extend(list_of_entries)
@@ -315,6 +378,19 @@ class PeppernewsCog(commands.Cog):
         for listing in unique_listings:
             title_pep = f"""{listing.get("title")} - PRICE: {listing.get("pepper_merchant", {"price": "???"}).get("price", "???")}"""
             await self.bot.get_channel(679029900299993113).send(embed=disnake.Embed(title = title_pep, description = f"""{html.fromstring(listing.get("description")).text_content()[:1500]}...""", url = listing.get("link")))
+            
+
+        # listings = []
+        # list_pepper = [ (x.get("category"), x.get("max_price")) for x in self.bot._db4 if x.get("api_point") == "pepper" ]
+        # list_of_list_of_entries = await gather(*[self.pepperasync(f"""https://nl.pepper.com/rss/groep/{x[0]}""", x[1], 915) for x in list_pepper], return_exceptions=True)
+        # filtered_list_of_list_of_entries = list(filter(lambda x: not isinstance(x, Exception), list_of_list_of_entries))
+        # for list_of_entries in filtered_list_of_list_of_entries:
+        #     listings.extend(list_of_entries)
+        # unique_listings_id = set()
+        # unique_listings = [x for x in listings if not (x['guid'] in unique_listings_id or unique_listings_id.add(x['guid']))]
+        # for listing in unique_listings:
+        #     title_pep = f"""{listing.get("title")} - PRICE: {listing.get("pepper_merchant", {"price": "???"}).get("price", "???")}"""
+        #     await self.bot.get_channel(679029900299993113).send(embed=disnake.Embed(title = title_pep, description = f"""{html.fromstring(listing.get("description")).text_content()[:1500]}...""", url = listing.get("link")))
             
 
     @tasks.loop(time=[time(hour=12, tzinfo=timezone(datetime.now(pytz.timezone("Europe/Amsterdam")).utcoffset()))])
