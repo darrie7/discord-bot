@@ -348,8 +348,8 @@ class justwatchCog(commands.Cog):
             
         await inter.response.defer()
         files = []
-        files.extend(check_files("/mnt/main-drive/Movies"))
-        files.extend(check_files("/mnt/main-drive/Shows"))
+        files.extend(check_files("/mnt/main-drive/movies"))
+        files.extend(check_files("/mnt/main-drive/tv"))
         mystring = StringIO(str(files))
         my_file = disnake.File(mystring, filename="media.txt")
         await inter.send(file=my_file, ephemeral=False)
