@@ -16,6 +16,7 @@ import json
 import xml.etree.ElementTree as ET
 from guessit import guessit
 from fake_useragent import UserAgent
+from io import StringIO
 
 VIDEO_EXTENSIONS = [
     ".avi", ".mp4", ".mkv", ".mpg",
@@ -322,6 +323,37 @@ class justwatchCog(commands.Cog):
         await to_thread(requests.delete, f"{self.bot.global_var.url}/{main_entry.get('_id')}", headers={'content-type': "application/json",'x-apikey': self.bot.global_var.api_key,'cache-control': "no-cache"})
         self.bot._db3.remove(self.bot._query.title == title)
         return await inter.send(f"```{title} removed from databases```")
+
+
+    @commands.slash_command()
+    async def h265checker(self, inter: disnake.ApplicationCommandInteraction) -> None:
+        """
+        list all h265 files no 10bit
+
+        Parameters
+        ----------
+        
+        """
+        def check_files(folder_path):
+            all_files = []
+            for path in Path(folder_path).rglob('*'):
+                if path.is_file() and any(path.suffix.lower().endswith(ext) for ext in VIDEO_EXTENSIONS):
+                    try:
+                        info = guessit(str(path))
+                        if  info.get('video_codec') == 'H.265' and not info.get('color_depth') == '10-bit':
+                            all_files.append(str(path))
+                    except Exception as e:
+                        print(f"Error processing {path}: {e}")
+            return all_files
+            
+        await inter.response.defer()
+        files = []
+        files.extend(check_files("/mnt/main-drive/Movies"))
+        files.extend(check_files("/mnt/main-drive/Shows"))
+        mystring = StringIO(files)
+        my_file = disnake.File(mystring, filename="media.txt")
+        await inter.send(file=my_file, ephemeral=False)
+        
 
 
     @tasks.loop(seconds=60)
