@@ -120,6 +120,8 @@ class Torrent:
         found_torrent = None
         for tor_info in torrents:
             guessed_media = self.guess_media(tor_info.get("title"))
+            if "H.265" in guessed_media.get("codec"):
+                found_torrent = tor_info
             if "H.265" in guessed_media.get("codec") and "10-bit" in guessed_media.get("color_depth"):
                 found_torrent = tor_info
                 break
