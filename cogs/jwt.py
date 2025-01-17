@@ -68,8 +68,10 @@ class Torrent:
         guess_guess = guessit(item.find('title').text)
         title = guess_guess.get('title', '')
         source = guess_guess.get('source', '')
+        codec = guess_guess.get('video_codec', '')
+        color_depth = guess_guess.get('color_depth', '')
         filter_source = True if any(word in source for word in ['Camera', 'Telesync']) else False
-        return {"title": title.lower(), "source": filter_source }
+        return {"title": title.lower(), "source": filter_source, "codec": codec, "color_depth": color_depth }
         
 
     async def media_scraper(self):
@@ -117,15 +119,13 @@ class Torrent:
     async def magnet2deluge(self, torrents, medium):
         found_torrent = None
         for tor_info in torrents:
-            if "265" in tor_info.get("title"):
-                if not found_torrent:
-                    found_torrent = tor_info
-                if "10bit" in tor_info.get("title"):
-                    found_torrent = tor_info
-                    break
+            guessed_media = self.guess_media(tor_info.get("title"))
+            if "H.265" in guessed_media.get("codec") and "10-bit" in guessed_media.get("color_depth"):
+                found_torrent = tor_info
+                break
         if not found_torrent:
             found_torrent = torrents[0]
-        if "10bit" not in found_torrent.get("title") and self.db_entry.get('h26510_cycle') < 10:
+        if "10-bit" not in self.guess_media(found_torrent.get("title")).get("color_depth") and self.db_entry.get('h26510_cycle') < 8:
             await self.update_db({"_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": self.db_entry.get('h26510_cycle')+1}, restdb = False)
             return True
         with requests.Session() as s:
