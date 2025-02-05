@@ -127,7 +127,7 @@ class Torrent:
                 break
         if not found_torrent:
             found_torrent = torrents[0]
-        if "10-bit" not in self.guess_media(found_torrent.get("title")).get("color_depth") and self.db_entry.get('h26510_cycle') < 8:
+        if "10-bit" not in self.guess_media(found_torrent.get("title")).get("color_depth") and self.db_entry.get('h26510_cycle') < 12:
             await self.update_db({"_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": self.db_entry.get('h26510_cycle')+1}, restdb = False)
             return True
         with requests.Session() as s:
