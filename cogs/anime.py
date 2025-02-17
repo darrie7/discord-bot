@@ -106,7 +106,7 @@ class AnimeStuff:
                             self.anime["notes"] = f"""{{'lastdl': {self.anime.get("progress")}, 'syn': {syn}, 'epoffset': {episodes}, 'synoffset': ["{title}"] }}"""
                             break
                     break
-        if ( "ignore" in self.anime.get("notes").lower()) or (json.loads(self.anime.get("notes").replace("\'", "\"")).get("lastdl") > self.anime.get("progress") ):
+        if ( "ignore" in self.anime.get("notes").lower()) or (json.loads(self.anime.get("notes").replace("\'", "\"")).get("lastdl") > self.anime.get("progress") + 1):
             return None
         if self.anime.get("media").get("nextAiringEpisode") is None:
             return self.anime
