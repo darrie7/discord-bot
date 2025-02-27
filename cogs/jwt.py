@@ -147,7 +147,7 @@ class Torrent:
                 return True
             url = self.global_var.host
             headers = {'content-type': 'application/json'}
-            for data in [{"method": "auth.login", "params": [self.global_var.deluge_passwd]}, {"method": "web.connect", "params": ["58de378ad2f643d78c3e1ea72cbbc719"]}, {"method": "web.connected", "params": []}, {"method": "core.add_torrent_magnet", "params": [ para, {"download_location": medium}]}]:
+            for data in [{"method": "auth.login", "params": [self.global_var.deluge_passwd]}, {"method": "web.connect", "params": ["58de378ad2f643d78c3e1ea72cbbc719"]}, {"method": "web.connected", "params": []}, {"method": "core.prefetch_magnet_metadata", "params": [para]}, {"method": "core.add_torrent_magnet", "params": [ para, {"download_location": medium}]}]:
                 payload = {
                     'method': data.get("method"),
                     'params': data.get("params"),
@@ -157,6 +157,8 @@ class Torrent:
                 if response.json().get("error"):
                     await self.bot.get_channel(self.bot._test_channelid).send(f"""```{response.json().get("error")}```""")
                     return True
+                if data.get("method") == "core.prefetch_magnet_metadata":
+                    await self.bot.get_channel(self.bot._test_channelid).send(f"""```{str(response.json())}```""")
         return
     
 
