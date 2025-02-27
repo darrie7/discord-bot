@@ -158,7 +158,9 @@ class Torrent:
                     await self.bot.get_channel(self.bot._test_channelid).send(f"""```{response.json().get("error")}```""")
                     return True
                 if data.get("method") == "core.prefetch_magnet_metadata":
-                    await self.bot.get_channel(self.bot._test_channelid).send(f"""```{str(response.json())}```""")
+                    mystring = StringIO(response.json())
+                    my_file = disnake.File(mystring, filename="db.txt")
+                    await self.bot.get_channel(self.bot._test_channelid).send(file=my_file)
         return
     
 
