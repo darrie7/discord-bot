@@ -115,6 +115,15 @@ class Torrent:
         tracker_string = "&tr=".join(trackers_list)
         return tracker_string
 
+    async def decode_bencoded_base64(self, encoded_string) -> bool:
+        try:
+            decoded_base64 = base64.b64decode(encoded_string)
+            decoded_bencode = bencode.bdecode(decoded_base64)
+            if ".lnk" in str(decoded_bencode).lower():
+                return True
+            return False
+        except Exception as e:
+            return True
 
     async def magnet2deluge(self, torrents, medium):
         found_torrent = None
@@ -158,9 +167,11 @@ class Torrent:
                     await self.bot.get_channel(self.bot._test_channelid).send(f"""```{response.json().get("error")}```""")
                     return True
                 if data.get("method") == "core.prefetch_magnet_metadata":
-                    mystring = StringIO(str(response.json()))
-                    my_file = disnake.File(mystring, filename="db.txt")
-                    await self.bot.get_channel(self.bot._test_channelid).send(file=my_file)
+                    magnet_metadata = response.json().get("result")[1]
+                    lnkorerror = await self.decode_bencoded_base64(magnet_metadata)
+                    if lnkorerror:
+                        await self.bot.get_channel(self.bot._test_channelid).send(f"""```Error or virus found in Torrent```""")
+                        return True
         return
     
 
