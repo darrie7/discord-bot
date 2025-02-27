@@ -164,12 +164,14 @@ class Torrent:
                 }
                 response = await to_thread(s.post, url=url, data=json.dumps(payload), headers=headers)
                 if response.json().get("error"):
+                    await self.update_db({"_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": 0}, restdb = False)
                     await self.bot.get_channel(self.bot._test_channelid).send(f"""```{response.json().get("error")}```""")
                     return True
                 if data.get("method") == "core.prefetch_magnet_metadata":
                     magnet_metadata = response.json().get("result")[1]
                     lnkorerror = await self.decode_bencoded_base64(magnet_metadata)
                     if lnkorerror:
+                        await self.update_db({"_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": 0}, restdb = False)
                         await self.bot.get_channel(self.bot._test_channelid).send(f"""```Error or virus found in Torrent```""")
                         return True
         return
