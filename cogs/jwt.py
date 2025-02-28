@@ -17,6 +17,8 @@ import xml.etree.ElementTree as ET
 from guessit import guessit
 from fake_useragent import UserAgent
 from io import StringIO
+import base64
+import bencode
 
 VIDEO_EXTENSIONS = [
     ".avi", ".mp4", ".mkv", ".mpg",
