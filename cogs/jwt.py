@@ -174,7 +174,7 @@ class Torrent:
                     lnkorerror = await self.decode_bencoded_base64(magnet_metadata)
                     if lnkorerror:
                         await self.update_db({"_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": 0}, restdb = False)
-                        await self.bot.get_channel(self.bot._test_channelid).send(f"""```Error or virus found in Torrent```""")
+                        await self.bot.get_channel(self.bot._test_channelid).send(f"""```Error or virus found in Torrent in {found_torrent.get("title")}```""")
                         return True
         return
     
