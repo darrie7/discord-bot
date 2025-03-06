@@ -72,13 +72,16 @@ class Torrent:
         source = guess_guess.get('source', '')
         codec = guess_guess.get('video_codec', '')
         color_depth = guess_guess.get('color_depth', '')
+        season = guess_guess.get('season', '')
+        episode = guess_guess.get('episode', '')
         filter_source = True if any(word in source for word in ['Camera', 'Telesync']) else False
-        return {"title": title.lower(), "source": filter_source, "codec": codec, "color_depth": color_depth }
+        return {"title": title.lower(), "source": filter_source, "codec": codec, "color_depth": color_depth, "season": season, "episode": episode }
         
 
     async def media_scraper(self):
         n: int = 0
         uri = f"{self.global_var.jkt}{self.search_term}+1080p"
+        searchterm_guess = self.guess_media(self.search_term)
         ua = UserAgent()
         headers = {'User-Agent': ua.random}
         while n < 2:
@@ -89,7 +92,7 @@ class Torrent:
                 continue
             root = ET.fromstring(data.text)
             #title_magnet = [{'title': item.find('title').text, 'magnet': item.find(".//{http://torznab.com/schemas/2015/feed}attr[@name='magneturl']").attrib['value']} for item in root.findall('.//item') if (item.find(".//{http://torznab.com/schemas/2015/feed}attr[@name='magneturl']") and item.find(".//{http://torznab.com/schemas/2015/feed}attr[@name='seeders']") and not any(word in item.find('title').text.lower() for word in ['hdrip', 'camrip', 'hdcam', 'hdts']) and int(item.find(".//{http://torznab.com/schemas/2015/feed}attr[@name='seeders']").attrib['value']) > 2 and guessit(item.find('title').text).get('title').strip().lower() in self.db_entry.get('title').lower() )]
-            title_magnet = [{'title': item.find('title').text, 'magnet': item.find('link').text} for item in root.findall('.//item') if ( item.find('title').text and item.find('link').text and int(item.find(".//{http://torznab.com/schemas/2015/feed}attr[@name='seeders']").attrib['value']) > 2 and self.guess_media(item.find('title').text).get('title') in self.db_entry.get('title').lower() and not self.guess_media(item.find('title').text).get('source'))]
+            title_magnet = [{'title': item.find('title').text, 'magnet': item.find('link').text} for item in root.findall('.//item') if ( item.find('title').text and item.find('link').text and int(item.find(".//{http://torznab.com/schemas/2015/feed}attr[@name='seeders']").attrib['value']) > 2 and self.guess_media(item.find('title').text).get('title') in self.db_entry.get('title').lower() and not self.guess_media(item.find('title').text).get('source') and self.guess_media(item.find('title').text).get('season') == searchterm_guess.get('season') and self.guess_media(item.find('title').text).get('episode') == searchterm_guess.get('episode') )]
             # await self.bot.get_channel(793878235066400809).send(f"""```{title_magnet}```""")
             return title_magnet if title_magnet else []
         return []
