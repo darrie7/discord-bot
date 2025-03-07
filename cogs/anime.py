@@ -79,7 +79,7 @@ class AnimeStuff:
             i = 0
             while i < 5:
                 spanime = await send2graphql(query, self.token, True)
-                if not spanime.get("data", {"Media": {}}).get("Media", {"relations": {}}).get("relations", {"edges": []}).get("edges", []):
+                if not spanime or not spanime.get("data", {"Media": {}}).get("Media", {"relations": {}}).get("relations", {"edges": []}).get("edges", []):
                     i += 1
                     await sleep(2)
                     if i == 3:
