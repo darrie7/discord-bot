@@ -350,10 +350,11 @@ class PeppernewsCog(commands.Cog):
         unique_listings_id = set()
         unique_listings = [x for x in listings if not (x['itemId'] in unique_listings_id or unique_listings_id.add(x['itemId']))]
         for listing in unique_listings:
-            embedded = disnake.Embed(title = f"""{listing.get("title")} - PRICE: €{listing.get("priceInfo", {"priceCents": 0}).get("priceCents", 0)/100}""", description = f"""{listing.get("categorySpecificDescription")}\n\nLocation:{listing.get("location").get("cityName", "")}\nDistance: {listing.get("location").get("distanceMeters")} meter""", url = f"""https://marktplaats.nl{listing.get("vipUrl")}""")
-            if listing.get("pictures", [{'data': None}])[0].get("extraExtraLargeUrl", ""):
-                embedded.set_image(url=listing.get("pictures")[0].get("extraExtraLargeUrl"))
-            await self.bot.get_channel(679029900299993113).send(embed=embedded)
+            if int(listing.get("location").get("distanceMeters")) >= 0:
+                embedded = disnake.Embed(title = f"""{listing.get("title")} - PRICE: €{listing.get("priceInfo", {"priceCents": 0}).get("priceCents", 0)/100}""", description = f"""{listing.get("categorySpecificDescription")}\n\nLocation:{listing.get("location").get("cityName", "")}\nDistance: {listing.get("location").get("distanceMeters")} meter""", url = f"""https://marktplaats.nl{listing.get("vipUrl")}""")
+                if listing.get("pictures", [{'data': None}])[0].get("extraExtraLargeUrl", ""):
+                    embedded.set_image(url=listing.get("pictures")[0].get("extraExtraLargeUrl"))
+                await self.bot.get_channel(679029900299993113).send(embed=embedded)
             
         
     @tasks.loop(minutes=15.0)
