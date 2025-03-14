@@ -56,6 +56,7 @@ class Torrent:
 
 
     async def update_show(self) -> None:
+        media_year = re.sub(r'\D', '', self.db_entry.get('year'))
         url_id: str = self.db_entry.get('url')
         ua = UserAgent()
         headers = {
@@ -65,7 +66,7 @@ class Torrent:
         }
         
         if url.startswith("http"):
-            moviedb_url = f"https://api.themoviedb.org/3/search/tv?query={self.db_entry.get('title')}&first_air_date_year={re.sub(r'\D', '', self.db_entry.get('year'))}&include_adult=true&language=en-US&page=1"
+            moviedb_url = f"https://api.themoviedb.org/3/search/tv?query={self.db_entry.get('title')}&first_air_date_year={media_year}&include_adult=true&language=en-US&page=1"
             r = await to_thread(requests.get, url=moviedb_url, headers=headers)
             url_id = r.json().get("results")[0].get("id")
         # //headers = {'User-Agent': ua.random}
