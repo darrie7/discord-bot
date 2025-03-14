@@ -77,8 +77,8 @@ class Torrent:
         # season_episode = dom.cssselect('.episodes-item span')[0].text_content().split(" ") if dom.cssselect('.episodes-item span') else None
         # if not season_episode:
         #     return
-        if str(r.json().get("last_episode_to_air").get("episode_number")) != self.db_entry.get('newest_season').replace("E", "") or str(r.json().get("last_episode_to_air").get("season_number")) != self.db_entry.get('newest_season').replace("S", ""):
-            await self.update_db({ "newest_season": f"S{r.json().get('last_episode_to_air').get('episode_number')}", "newest_episode": f"E{r.json().get('last_episode_to_air').get('episode_number')}", "url": url_id, "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z' })
+        if str(r.json().get("last_episode_to_air").get("episode_number")) != self.db_entry.get('newest_episode').replace("E", "") or str(r.json().get("last_episode_to_air").get("season_number")) != self.db_entry.get('newest_season').replace("S", ""):
+            await self.update_db({ "newest_season": f"S{r.json().get('last_episode_to_air').get('episode_season')}", "newest_episode": f"E{r.json().get('last_episode_to_air').get('episode_number')}", "url": url_id, "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z' })
         # if season_episode[0] not in self.db_entry.get('newest_season') or season_episode[1] not in self.db_entry.get('newest_episode'):
         #     await self.update_db({ "newest_season": season_episode[0], "newest_episode": season_episode[1], "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z' })
 
