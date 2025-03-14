@@ -418,7 +418,11 @@ class justwatchCog(commands.Cog):
 
     @tasks.loop(hours=12)
     async def update_newestmedia(self) -> None:
-        [ await Torrent(self, x).update_show() for x in self.bot._db3 if x.get('ismovie') is False ]
+        for x in self.bot._db3:
+            if x.get('ismovie') is False:
+                await Torrent(self, x).update_show()
+                await sleep(1)
+        # [ await Torrent(self, x).update_show() for x in self.bot._db3 if x.get('ismovie') is False ]
 
 
     @tasks.loop(minutes=5)
