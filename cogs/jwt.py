@@ -65,9 +65,11 @@ class Torrent:
             "Authorization": f"Bearer {self.global_var.moviedb}"
         }
         
-        if url.startswith("http"):
+        if url_id.startswith("http"):
             moviedb_url = f"https://api.themoviedb.org/3/search/tv?query={self.db_entry.get('title')}&first_air_date_year={media_year}&include_adult=true&language=en-US&page=1"
             r = await to_thread(requests.get, url=moviedb_url, headers=headers)
+            if not r.json().get("results", ""):
+                return
             url_id = r.json().get("results")[0].get("id")
         # //headers = {'User-Agent': ua.random}
         r = await to_thread(requests.get, url=f"https://api.themoviedb.org/3/tv/{int(url_id)}?language=en-US", headers=headers)
