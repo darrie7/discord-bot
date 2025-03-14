@@ -45,6 +45,7 @@ class GlobalVars(commands.Cog):
         self.host = self.decoder.decrypt(b'gAAAAABmBvixHfgpAN-TBLb04DXf2E1J53zdxQsHevpacEShlPR7oLvwa4-EOAA11alY6Us3w0ZRYOpqt_psAZwepCekQ__WkWJExYHBG4OEebO4TP3Ah70=').decode()
         self.deluge_passwd = self.decoder.decrypt(b'gAAAAABmEvel4VRvjFbNkKvvqWrb3c5Jrngy6JOQZ83JjyDHPXuioI0-xwROYDG7EdQ8Gjpmy-JuCZLdjsIKrZ1V0YF0cBxkiQm10mMU0ScTWBW1EZVJrft5WTe4ZsHf9v6W4C57Kk_luG4BB4wy98mOe9ZxY1bKFDlMYAAy-IH77YUO4MBr2_QtWk7JwOhpF7-Bwctfp00s-3T2Q4QDE5fA-aaOp-dqqKAQUZw44rcMA_3-KdKWjdfkobof8QQoKBQ5cEdrA5JO').decode()
         self.jkt = self.decoder.decrypt(b'gAAAAABmRUBmnARecJEV7e02UAXCZhv9uIsuMtvcHw5KCeEl0-caj94VYCaueaQv7LeB_iFASbkA3abMasRRAbxj_5YOHCjQK_hy8Av7GPfgYFuEAaMWlwcP4prBuVMg7p7EL2oGvKJ-HBCfnS4ICwc7RTVjCsuYxR2cjtv9rlbP2upMnpj-wVACNzK7wZ4jWpgUh9zt-rjWE7fTzEIOTXoCbHsb1_MIwTtGdIuPuvyzgAGXojuEl1E=').decode()
+        self.moviedb = self.decoder.decrypt(b'gAAAAABn1Fh5eOYf2FuSkT2F3C0EXR2GXalVFjmDdH-hwDbvxUnXFHQexiLt1OkU7O1-J8q2lWL_PQ9USruREW8E8gXT2lPhLrrWzrYVB0Am2hRU46yZF_1vg-bSQ-Rq0fimv_1SinQmDO9xqSNYW2qoAYwyecOcMmIDXDWntAIn7worVE9Zs6LnxlBdFZ8qRMC6-RSxZsJ3LfcdFT_d0hJfnJdLZ866PCg6-6fTE5koqDYdhSzZPxmUrk0oPfTBvy30_M-IO6ebSk0FkRAMBUf9XI4XuROdqdSLy3qbR6l_62LyWvPCBnc_IX9HFIiI22YXlsjiItShd8scx524ua0ihfULmojVb4M6MRoYhImCfR3JLQX5u7eqjT_Y1SKRkEa-K2ucX7an').decode()
 
 
 class Torrent:
@@ -55,16 +56,28 @@ class Torrent:
 
 
     async def update_show(self) -> None:
-        url: str = self.db_entry.get('url')
+        url_id: str = self.db_entry.get('url')
         ua = UserAgent()
-        headers = {'User-Agent': ua.random}
-        r = await to_thread(requests.get, url=url, headers=headers)
-        dom = html.fromstring(r.text)
-        season_episode = dom.cssselect('.episodes-item span')[0].text_content().split(" ") if dom.cssselect('.episodes-item span') else None
-        if not season_episode:
-            return
-        if season_episode[0] not in self.db_entry.get('newest_season') or season_episode[1] not in self.db_entry.get('newest_episode'):
-            await self.update_db({ "newest_season": season_episode[0], "newest_episode": season_episode[1], "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z' })
+        headers = {
+            "User-Agent": ua.random, 
+            "accept": "application/json",
+            "Authorization": f"Bearer {self.global_var.moviedb}"
+        }
+        
+        if url.startswith("http"):
+            moviedb_url = f"https://api.themoviedb.org/3/search/tv?query={self.db_entry.get('title')}&first_air_date_year={re.sub(r'\D', '', self.db_entry.get('year'))}&include_adult=true&language=en-US&page=1"
+            r = await to_thread(requests.get, url=moviedb_url, headers=headers)
+            url_id = r.json().get("results")[0].get("id")
+        # //headers = {'User-Agent': ua.random}
+        r = await to_thread(requests.get, url=f"https://api.themoviedb.org/3/tv/{int(url_id)}?language=en-US", headers=headers)
+        # dom = html.fromstring(r.text)
+        # season_episode = dom.cssselect('.episodes-item span')[0].text_content().split(" ") if dom.cssselect('.episodes-item span') else None
+        # if not season_episode:
+        #     return
+        if str(r.json().get("last_episode_to_air").get("episode_number")) != self.db_entry.get('newest_season').replace("E", "") or str(r.json().get("last_episode_to_air").get("season_number")) != self.db_entry.get('newest_season').replace("S", ""):
+            await self.update_db({ "newest_season": "S" + str(r.json().get("last_episode_to_air").get("episode_number")), "newest_episode": "E" + str(r.json().get("last_episode_to_air").get("episode_number")),, "url": url_id, "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z' })
+        # if season_episode[0] not in self.db_entry.get('newest_season') or season_episode[1] not in self.db_entry.get('newest_episode'):
+        #     await self.update_db({ "newest_season": season_episode[0], "newest_episode": season_episode[1], "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z' })
 
     def guess_media(self, title):
         guess_guess = guessit(title)
@@ -99,7 +112,7 @@ class Torrent:
 
 
     async def delete_entry(self) -> None:
-        await to_thread(requests.delete, f"{self.global_var.url}/{self.db_entry.get('_id')}", headers={'content-type': "application/json",'x-apikey': self.global_var.api_key,'cache-control': "no-cache"})
+        await to_thread(requests.delete, f"{self.global_var.url}/{self.db_entry.get('_id')}", headers={'content-type': "application/",'x-apikey': self.global_var.api_key,'cache-control': "no-cache"})
         self.bot._db3.remove(self.bot._query["_id"] == self.db_entry.get('_id'))
         return
 
