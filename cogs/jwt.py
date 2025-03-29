@@ -42,7 +42,7 @@ class GlobalVars(commands.Cog):
         self.url = "https://mymovies-41c3.restdb.io/rest/movies"
         self.decoder = Fernet(bot._enckey)
         self.api_key = self.decoder.decrypt(b'gAAAAABlIxJoppaR4gM008w5-s-mzxwgBIKhOR1-tVV4BoLq93w7jgCvP-TBNvUd-Pmojh1eSYYDIhukFVx0YkbGD4HXRkz-h0_C0aMl4t2MfxDP2RoKvMk=').decode()
-        self.host = self.decoder.decrypt(b'gAAAAABmBvixHfgpAN-TBLb04DXf2E1J53zdxQsHevpacEShlPR7oLvwa4-EOAA11alY6Us3w0ZRYOpqt_psAZwepCekQ__WkWJExYHBG4OEebO4TP3Ah70=').decode()
+        self.host = self.decoder.decrypt(b'gAAAAABn5ILSrtasPx4dzhyYH2xjQjPs9Nn2kV2koU0q-d3do0jXRvjeEbyBS29663H579HgzOIu7dBLdsvtNyN3bT7hyFjpLZAtqFbdeaaWNAlm9PhOC7A=').decode()
         self.deluge_passwd = self.decoder.decrypt(b'gAAAAABmEvel4VRvjFbNkKvvqWrb3c5Jrngy6JOQZ83JjyDHPXuioI0-xwROYDG7EdQ8Gjpmy-JuCZLdjsIKrZ1V0YF0cBxkiQm10mMU0ScTWBW1EZVJrft5WTe4ZsHf9v6W4C57Kk_luG4BB4wy98mOe9ZxY1bKFDlMYAAy-IH77YUO4MBr2_QtWk7JwOhpF7-Bwctfp00s-3T2Q4QDE5fA-aaOp-dqqKAQUZw44rcMA_3-KdKWjdfkobof8QQoKBQ5cEdrA5JO').decode()
         self.jkt = self.decoder.decrypt(b'gAAAAABmRUBmnARecJEV7e02UAXCZhv9uIsuMtvcHw5KCeEl0-caj94VYCaueaQv7LeB_iFASbkA3abMasRRAbxj_5YOHCjQK_hy8Av7GPfgYFuEAaMWlwcP4prBuVMg7p7EL2oGvKJ-HBCfnS4ICwc7RTVjCsuYxR2cjtv9rlbP2upMnpj-wVACNzK7wZ4jWpgUh9zt-rjWE7fTzEIOTXoCbHsb1_MIwTtGdIuPuvyzgAGXojuEl1E=').decode()
         self.moviedb = self.decoder.decrypt(b'gAAAAABn1Fh5eOYf2FuSkT2F3C0EXR2GXalVFjmDdH-hwDbvxUnXFHQexiLt1OkU7O1-J8q2lWL_PQ9USruREW8E8gXT2lPhLrrWzrYVB0Am2hRU46yZF_1vg-bSQ-Rq0fimv_1SinQmDO9xqSNYW2qoAYwyecOcMmIDXDWntAIn7worVE9Zs6LnxlBdFZ8qRMC6-RSxZsJ3LfcdFT_d0hJfnJdLZ866PCg6-6fTE5koqDYdhSzZPxmUrk0oPfTBvy30_M-IO6ebSk0FkRAMBUf9XI4XuROdqdSLy3qbR6l_62LyWvPCBnc_IX9HFIiI22YXlsjiItShd8scx524ua0ihfULmojVb4M6MRoYhImCfR3JLQX5u7eqjT_Y1SKRkEa-K2ucX7an').decode()
