@@ -149,7 +149,7 @@ class Torrent:
     async def magnet2deluge(self, torrents, medium):
         found_torrents = torrents
         if self.db_entry.get('h26510_cycle') < 12:
-            found_torrents = [ torr for torr in torrents if ("H.265" in torr.get("codec") and "10-bit" in torr.get("color_depth") ]
+            found_torrents = [ torr for torr in torrents if ("H.265" in torr.get("codec") and "10-bit" in torr.get("color_depth") ) ]
         if not found_torrents:
             await self.update_db({"_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": self.db_entry.get('h26510_cycle')+1}, restdb = False)
             return True
