@@ -147,55 +147,50 @@ class Torrent:
             return True
 
     async def magnet2deluge(self, torrents, medium):
-        found_torrent = None
-        for tor_info in torrents:
-            guessed_media = self.guess_media(tor_info.get("title"))
-            if "H.264" in guessed_media.get("codec") and not found_torrent:
-                found_torrent = tor_info
-            if "H.265" in guessed_media.get("codec") and "10-bit" in guessed_media.get("color_depth"):
-                found_torrent = tor_info
-                break
-        if not found_torrent:
-            found_torrent = torrents[0]
-        if "10-bit" not in self.guess_media(found_torrent.get("title")).get("color_depth") and self.db_entry.get('h26510_cycle') < 12:
+        found_torrents = torrents
+        if self.db_entry.get('h26510_cycle') < 12:
+            found_torrents = [ torr for torr in torrents if ("H.265" in torr.get("codec") and "10-bit" in torr.get("color_depth") ]
+        if not found_torrents:
             await self.update_db({"_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": self.db_entry.get('h26510_cycle')+1}, restdb = False)
             return True
         with requests.Session() as s:
             para  = None
-            if "magnet" in found_torrent.get('magnet'):
-                para = f"{'&'.join([ part for part in found_torrent.get('magnet').split('&') if not part.startswith('tr=') ])}&tr={await self.get_trackers()}"
-            else:
-                try: 
-                    magneturi = await to_thread(s.get, url=found_torrent.get('magnet'))
-                except requests.exceptions.RequestException as e:# This is the correct syntax
-                    matches = re.findall(r"'(.*?)'", str(e))
-                    if not matches or not "magnet" in matches[0]:
-                        await self.bot.get_channel(self.bot._test_channelid).send(f"""```{e}```""")
-                        return True
-                    para = f"{'&'.join([ part for part in matches[0].split('&') if not part.startswith('tr=') ])}&tr={await self.get_trackers()}"
-            if not para:
-                return True
-            url = self.global_var.host
-            headers = {'content-type': 'application/json'}
-            for data in [{"method": "auth.login", "params": [self.global_var.deluge_passwd]}, {"method": "web.connect", "params": ["58de378ad2f643d78c3e1ea72cbbc719"]}, {"method": "web.connected", "params": []}, {"method": "core.prefetch_magnet_metadata", "params": [para]}, {"method": "core.add_torrent_magnet", "params": [ para, {"download_location": medium}]}]:
-                payload = {
-                    'method': data.get("method"),
-                    'params': data.get("params"),
-                    'id': 1
-                }
-                response = await to_thread(s.post, url=url, data=json.dumps(payload), headers=headers)
-                if response.json().get("error"):
-                    await self.update_db({"_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": self.db_entry.get('h26510_cycle')+1}, restdb = False)
-                    await self.bot.get_channel(self.bot._test_channelid).send(f"""```{response.json().get("error")}```""")
-                    return True
-                if data.get("method") == "core.prefetch_magnet_metadata":
-                    magnet_metadata = response.json().get("result")[1]
-                    lnkorerror = await self.decode_bencoded_base64(magnet_metadata)
-                    if lnkorerror:
+            for found_torrent in found_torrents:
+                if "magnet" in found_torrent.get('magnet'):
+                    para = f"{'&'.join([ part for part in found_torrent.get('magnet').split('&') if not part.startswith('tr=') ])}&tr={await self.get_trackers()}"
+                else:
+                    try: 
+                        magneturi = await to_thread(s.get, url=found_torrent.get('magnet'))
+                    except requests.exceptions.RequestException as e:# This is the correct syntax
+                        matches = re.findall(r"'(.*?)'", str(e))
+                        if not matches or not "magnet" in matches[0]:
+                            await self.bot.get_channel(self.bot._test_channelid).send(f"""```{e}```""")
+                            return True
+                        para = f"{'&'.join([ part for part in matches[0].split('&') if not part.startswith('tr=') ])}&tr={await self.get_trackers()}"
+                if not para:
+                    continue
+                url = self.global_var.host
+                headers = {'content-type': 'application/json'}
+                for data in [{"method": "auth.login", "params": [self.global_var.deluge_passwd]}, {"method": "web.connect", "params": ["58de378ad2f643d78c3e1ea72cbbc719"]}, {"method": "web.connected", "params": []}, {"method": "core.prefetch_magnet_metadata", "params": [para]}, {"method": "core.add_torrent_magnet", "params": [ para, {"download_location": medium}]}]:
+                    payload = {
+                        'method': data.get("method"),
+                        'params': data.get("params"),
+                        'id': 1
+                    }
+                    response = await to_thread(s.post, url=url, data=json.dumps(payload), headers=headers)
+                    if response.json().get("error"):
                         await self.update_db({"_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": self.db_entry.get('h26510_cycle')+1}, restdb = False)
-                        await self.bot.get_channel(self.bot._test_channelid).send(f"""```Error or virus found in Torrent in {found_torrent.get("title")}```""")
-                        return True
-        return
+                        await self.bot.get_channel(self.bot._test_channelid).send(f"""```{response.json().get("error")}```""")
+                        continue
+                    if data.get("method") == "core.prefetch_magnet_metadata":
+                        magnet_metadata = response.json().get("result")[1]
+                        lnkorerror = await self.decode_bencoded_base64(magnet_metadata)
+                        if lnkorerror:
+                            await self.update_db({"_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": self.db_entry.get('h26510_cycle')+1}, restdb = False)
+                            await self.bot.get_channel(self.bot._test_channelid).send(f"""```Error or virus found in Torrent in {found_torrent.get("title")}```""")
+                            continue
+                    return
+        return True
     
 
     async def download_torrent(self) -> None:
