@@ -268,6 +268,7 @@ class justwatchCog(commands.Cog):
         self.restart_failed.start()
         self.searchmedia.start()
         self.update_newestmedia.start()
+        self.requestsprocessor.start()
         self.bot.global_var = GlobalVars(self.bot)
         self.update_check_url = self.bot.global_var.decoder.decrypt(b'gAAAAABlsGsiqk91PE90JoM-n-bHly3uPL_RVwDdw1f2sZn3XoHkPy52dpXxLCn4Zf7z1LbNUA4YrFSoqnAEW30w0Jgr6kooef2BXP4-AkVa9tiuGBrA3kWtEs1V3DjCIx7f5JI21rTbGL1q9Sjf3aQP-0FgjRPU5A==').decode()
 
@@ -276,6 +277,7 @@ class justwatchCog(commands.Cog):
         self.restart_failed.cancel()
         self.searchmedia.cancel()
         self.update_newestmedia.cancel()
+        self.requestsprocessor.cancel()
 
 
     @commands.slash_command()
@@ -410,8 +412,41 @@ class justwatchCog(commands.Cog):
             [ self.bot._db3.insert(x) for x in data if not self.bot._db3.search(self.bot._query["_id"] == x.get("_id")) ]
             await to_thread(requests.put, url=update_check_url, headers=headers_new_update, json={"update": False})
         data = [ x for x in self.bot._db3 if not x.get('found') ]
+        #[ await Torrent(self, x).update_show() for x in data if x.get('ismovie') is False and x.get('url').startswith('http')] 
         await gather(*[ Torrent(self, x).download_torrent() for x in data if ( not (x.get('newest_season') == x.get('progress_season') and x.get('newest_episode') == x.get('progress_episode')) and ((datetime.datetime.utcnow() - datetime.timedelta(minutes=15)) > datetime.datetime.strptime(x.get('_changed').split('.')[0], '%Y-%m-%dT%H:%M:%S') or x.get('_changed') == x.get('_created')))])
         return
+
+    @tasks.loop(seconds=60)
+    async def requestsprocessor(self) -> None:
+        headers_new_update = {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+        }
+        url = 'http://192.168.178.198:5055/api/v1/request?take=20&skip=0&sort=added&sortDirection=desc&requestedBy=1'
+        response = await to_thread(requests.get, url=url, headers=headers)
+        data = response.json()
+        results = [ {"requestId" = x.get("id"), "type": x.get("type"), "id": x.get("media").get("tmdbId") "seasons": x.get("seasons")} for x in data.get('results') ]
+        for res in results:
+            if res.get("type") == "movie":
+                res_url = f'http://192.168.178.198:5055/api/v1/movie/{res.get("id")}?language=en'
+                res_response = await to_thread(requests.get, url=res_url, headers=headers)
+                res_data = res_response.json()
+                self.bot._db3.insert({ "title": res_data.get("title"), "year": f"({res_data.get("releaseDate")[:4]})", "found": False, "ismovie": True, "h26510_cycle": 0, "newest_season": "S0", "newest_episode": "E0", "progress_season": "S1", "progress_episode": "E0", "url": res.get("id"), "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z' })
+                await to_thread(requests.delete, url=f'http://192.168.178.198:5055/api/v1/request/{res.get("requestId")}', headers=headers)
+            if res.get("type") == "tv":
+                res_url = f'http://192.168.178.198:5055/api/v1/tv/{res.get("id")}?language=en'
+                res_response = await to_thread(requests.get, url=res_url, headers=headers)
+                res_data = res_response.json()
+                dl_season = 1000
+                for season in res.get("seasons"):
+                    if season.get("seasonNumber") < dl_season:
+                        dl_season = season.get("seasonNumber")
+                start_date = ""
+                for season in res_data.get("seasons"):
+                    if season.get("seasonNumber") == 1:
+                        start_date = season.get("airDate")[:4]
+                self.bot._db3.insert({ "title": res_data.get("name"), "year": f"({start_date})", "found": False, "ismovie": False, "h26510_cycle": 0, "newest_season": f'S{res_data.get("lastEpisodeToAir").get("seasonNumber")}', "newest_episode": f'E{res_data.get("lastEpisodeToAir").get("episodeNumber")}', "progress_season": f'S{dl_season}', "progress_episode": "E0", "url": res.get("id"), "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z' })
+                await to_thread(requests.delete, url=f'http://192.168.178.198:5055/api/v1/request/{res.get("requestId")}', headers=headers)
 
 
     @tasks.loop(hours=12)
@@ -429,6 +464,8 @@ class justwatchCog(commands.Cog):
             self.searchmedia.restart()
         if self.update_newestmedia.failed() or not self.update_newestmedia.is_running():
             self.update_newestmedia.restart()
+        if self.requestsprocessor.failed() or not self.requestsprocessor.is_running():
+            self.requestsprocessor.restart()
 
     @restart_failed.error
     async def restart_failed_error_handler(self, error) -> None:
@@ -447,6 +484,12 @@ class justwatchCog(commands.Cog):
     async def update_newestmedia_error_handler(self, error) -> None:
         await self.bot.get_channel(793878235066400809).send(f"""```{"".join(traceback.format_exception(type(error), error, error.__traceback__))[-1500:]}```""")
         self.update_newestmedia.restart()
+        pass
+
+    @requestsprocessor.error
+    async def requestsprocessor_error_handler(self, error) -> None:
+        await self.bot.get_channel(793878235066400809).send(f"""```{"".join(traceback.format_exception(type(error), error, error.__traceback__))[-1500:]}```""")
+        self.requestsprocessor.restart()
         pass
     
 def setup(bot):
