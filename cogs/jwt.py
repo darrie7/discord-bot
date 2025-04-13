@@ -116,16 +116,21 @@ class Torrent:
         ua = UserAgent()
         headers = {'User-Agent': ua.random}
         while n < 2:
-            data = await to_thread(requests.get, url=uri, headers=headers)
-            if not data.ok:
-                await sleep(random.randint(2, 15))
-                n += 1
-                continue
-            root = ET.fromstring(data.text)
+          data = await to_thread(requests.get, url=uri, headers=headers)
+          if not data.ok:
+            await sleep(random.randint(2, 15))
+            n += 1
+            continue
+          root = ET.fromstring(data.text)
+          items = []
+          for item in root.findall('.//item'):
+            item_guess = self.guess_media(item.find('title').text)
+            if ( item.find('title').text and item.find('link').text and int(item.find(".//{http://torznab.com/schemas/2015/feed}attr[@name='seeders']").attrib['value']) > 2 and item_guess.get('title') in self.db_entry.get('title').lower() and not item_guess.get('source') and item_guess.get('season') == searchterm_guess.get('season') and item_guess.get('episode') == searchterm_guess.get('episode') ):
+              items.append({'title': item.find('title').text, 'magnet': item.find('link').text, "codec": item_guess.get("codec"), "color_depth": item_guess.get("codec") })
             #title_magnet = [{'title': item.find('title').text, 'magnet': item.find(".//{http://torznab.com/schemas/2015/feed}attr[@name='magneturl']").attrib['value']} for item in root.findall('.//item') if (item.find(".//{http://torznab.com/schemas/2015/feed}attr[@name='magneturl']") and item.find(".//{http://torznab.com/schemas/2015/feed}attr[@name='seeders']") and not any(word in item.find('title').text.lower() for word in ['hdrip', 'camrip', 'hdcam', 'hdts']) and int(item.find(".//{http://torznab.com/schemas/2015/feed}attr[@name='seeders']").attrib['value']) > 2 and guessit(item.find('title').text).get('title').strip().lower() in self.db_entry.get('title').lower() )]
-            title_magnet = [{'title': item.find('title').text, 'magnet': item.find('link').text} for item in root.findall('.//item') if ( item.find('title').text and item.find('link').text and int(item.find(".//{http://torznab.com/schemas/2015/feed}attr[@name='seeders']").attrib['value']) > 2 and self.guess_media(item.find('title').text).get('title') in self.db_entry.get('title').lower() and not self.guess_media(item.find('title').text).get('source') and self.guess_media(item.find('title').text).get('season') == searchterm_guess.get('season') and self.guess_media(item.find('title').text).get('episode') == searchterm_guess.get('episode') )]
+            # title_magnet = [{'title': item.find('title').text, 'magnet': item.find('link').text, "codec": self.guess_media(item.find('title').text).get("codec"), "color_depth": self.guess_media(item.find('title').text).get("codec") } for item in root.findall('.//item') if ( item.find('title').text and item.find('link').text and int(item.find(".//{http://torznab.com/schemas/2015/feed}attr[@name='seeders']").attrib['value']) > 2 and self.guess_media(item.find('title').text).get('title') in self.db_entry.get('title').lower() and not self.guess_media(item.find('title').text).get('source') and self.guess_media(item.find('title').text).get('season') == searchterm_guess.get('season') and self.guess_media(item.find('title').text).get('episode') == searchterm_guess.get('episode') )]
             # await self.bot.get_channel(793878235066400809).send(f"""```{title_magnet}```""")
-            return title_magnet if title_magnet else []
+          return items if items else []
         return []
 
 
@@ -164,7 +169,7 @@ class Torrent:
     async def magnet2deluge(self, torrents, medium):
         found_torrents = torrents
         if self.db_entry.get('h26510_cycle') < 12:
-            found_torrents = [ torr for torr in torrents if ("H.265" in self.guess_media(torr.get('title')).get("codec") and "10-bit" in self.guess_media(torr.get('title')).get("color_depth") ) ]
+            found_torrents = [ torr for torr in torrents if ("H.265" in torr.get("codec") and "10-bit" in torr.get("color_depth") ) ]
         if not found_torrents:
             await self.update_db({"_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": self.db_entry.get('h26510_cycle')+1}, restdb = False)
             return True
