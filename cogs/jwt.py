@@ -98,6 +98,7 @@ class Torrent:
         # if season_episode[0] not in self.db_entry.get('newest_season') or season_episode[1] not in self.db_entry.get('newest_episode'):
         #     await self.update_db({ "newest_season": season_episode[0], "newest_episode": season_episode[1], "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z' })
 
+
     def guess_media(self, title):
         guess_guess = guessit(title)
         title = guess_guess.get('title', '')
@@ -338,9 +339,9 @@ class justwatchCog(commands.Cog):
                 cur = conn.cursor()
             except Exception as ex:
                 await inter.send(f"connection failed {db_path}", ephemeral=True)
-            cur.execute('CREATE TABLE IF NOT EXISTS media (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, year TEXT, found INTEGER, ismovie INTEGER, db_id TEXT, newest_season TEXT, newest_episode TEXT, progress_season TEXT, progress_episode TEXT, h26510_cycle INTEGER, _created TEXT, _changed TEXT)')
+            cur.execute('CREATE TABLE IF NOT EXISTS media (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, year TEXT, found INTEGER, ismovie INTEGER, db_id TEXT, newest_season TEXT, newest_episode TEXT, progress_season TEXT, progress_episode TEXT, h26510_cycle INTEGER, _created TEXT, _changed TEXT, request_id INTEGER)')
             for x in data:
-                cur.execute('INSERT INTO media (title, year, found, ismovie, db_id, newest_season, newest_episode, progress_season, progress_episode, h26510_cycle, _created, _changed) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', (str(x.title), str(x.year), 1 if x.found else 0, 1 if x.ismovie else 0, x.url, x.newest_season, x.newest_episode, x.progress_season, x.progress_episode, x.h26510_cycle, x._created, x._changed))
+                cur.execute('INSERT INTO media (title, year, found, ismovie, db_id, newest_season, newest_episode, progress_season, progress_episode, h26510_cycle, _created, _changed, request_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', (x.get("title"), x.get("year"), 1 if x.get("found") else 0, 1 if x.get("ismovie") else 0, str(x.get("url")), x.get("newest_season"), x.get("newest_episode"), x.get("progress_season"), x.get("progress_episode"), x.get("h26510_cycle"), x.get("_created"), x.get("_changed"), None))
             conn.commit()
         await inter.send(f"added has been added", ephemeral=True)
 
@@ -462,7 +463,7 @@ class justwatchCog(commands.Cog):
             [ self.bot._db3.insert(x) for x in data if not self.bot._db3.search(self.bot._query["_id"] == x.get("_id")) ]
             await to_thread(requests.put, url=update_check_url, headers=headers_new_update, json={"update": False})
         data = [ x for x in self.bot._db3 if not x.get('found') ]
-        #[ await Torrent(self, x).update_show() for x in data if x.get('ismovie') is False and x.get('url').startswith('http')] 
+        [ await Torrent(self, x).update_show() for x in data if x.get('ismovie') is False and x.get('url').startswith('http')] 
         await gather(*[ Torrent(self, x).download_torrent() for x in data if ( not (x.get('newest_season') == x.get('progress_season') and x.get('newest_episode') == x.get('progress_episode')) and ((datetime.datetime.utcnow() - datetime.timedelta(minutes=15)) > datetime.datetime.strptime(x.get('_changed').split('.')[0], '%Y-%m-%dT%H:%M:%S') or x.get('_changed') == x.get('_created')))])
         return
 
@@ -478,27 +479,51 @@ class justwatchCog(commands.Cog):
         response = await to_thread(requests.get, url=url, headers=headers)
         data = response.json()
         results = [ {"requestId": x.get("id"), "type": x.get("type"), "id": x.get("media").get("tmdbId"), "seasons": x.get("seasons")} for x in data.get('results') ]
-        for res in results:
-            if res.get("type") == "movie":
-                res_url = f'http://192.168.178.198:5055/api/v1/movie/{res.get("id")}?language=en'
-                res_response = await to_thread(requests.get, url=res_url, headers=headers)
-                res_data = res_response.json()
-                self.bot._db3.insert({"_id": generate_random_string(), "title": res_data.get("title"), "year": f"({res_data.get('releaseDate')[:4]})", "found": False, "newest_season": "S0", "newest_episode": "E0", "progress_season": "S1", "progress_episode": "E0", "ismovie": True, "url": res.get("id"), "h26510_cycle": 0, "_created": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "_changed": f'{(datetime.datetime.utcnow() - datetime.timedelta(minutes=30)).strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "_createdby": "api", "_changedby": "api", "_keywords": ["api"], "_tags": "", "_version": 0})
-                await to_thread(requests.delete, url=f'http://192.168.178.198:5055/api/v1/request/{res.get("requestId")}', headers=headers)
-            if res.get("type") == "tv":
-                res_url = f'http://192.168.178.198:5055/api/v1/tv/{res.get("id")}?language=en'
-                res_response = await to_thread(requests.get, url=res_url, headers=headers)
-                res_data = res_response.json()
-                dl_season = 1000
-                for season in res.get("seasons"):
-                    if season.get("seasonNumber") < dl_season:
-                        dl_season = season.get("seasonNumber")
-                start_date = ""
-                for season in res_data.get("seasons"):
-                    if season.get("seasonNumber") == 1:
-                        start_date = season.get("airDate")[:4]
-                self.bot._db3.insert({"_id": generate_random_string(), "title": res_data.get("name"), "year": f"({start_date})", "found": False, "newest_season": f'S{res_data.get("lastEpisodeToAir").get("seasonNumber")}', "newest_episode": f'E{res_data.get("lastEpisodeToAir").get("episodeNumber")}', "progress_season": f'S{dl_season}', "progress_episode": "E0", "ismovie": False, "url": res.get("id"), "h26510_cycle": 0, "_created": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "_changed": f'{(datetime.datetime.utcnow() - datetime.timedelta(minutes=30)).strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "_createdby": "api", "_changedby": "api", "_keywords": ["api"], "_tags": "", "_version": 0})
-                await to_thread(requests.delete, url=f'http://192.168.178.198:5055/api/v1/request/{res.get("requestId")}', headers=headers)
+
+        db_path = '/home/darrie7/Scripts/pythonvenvs/discordbot/discordbot_scripts/sqlite3.db'
+        with sqlite3.connect(db_path) as conn:
+            try:
+                cur = conn.cursor()
+            except Exception as ex:
+                # await inter.send(f"connection failed {db_path}", ephemeral=True)
+                pass
+            cur.execute('CREATE TABLE IF NOT EXISTS media (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, year TEXT, found INTEGER, ismovie INTEGER, db_id TEXT, newest_season TEXT, newest_episode TEXT, progress_season TEXT, progress_episode TEXT, h26510_cycle INTEGER, _created TEXT, _changed TEXT, request_id INTEGER)')
+            for res in results:
+                cur.execute("SELECT COUNT(*) FROM media WHERE request_id = ?", (res.get("requestId"),))
+                count = cur.fetchone()[0]
+                if count:
+                    continue
+                if res.get("type") == "movie":
+                    res_url = f'http://192.168.178.198:5055/api/v1/movie/{res.get("id")}?language=en'
+                    res_response = await to_thread(requests.get, url=res_url, headers=headers)
+                    res_data = res_response.json()
+                    cur.execute("SELECT COUNT(*) FROM media WHERE title = ?, year = ?", (res_data.get("title", "No Title Found"),f"({res_data.get('releaseDate', "9999")[:4]})"))
+                    count2 = cur.fetchone()[0]
+                    if count2:
+                        continue
+                    self.bot._db3.insert({"_id": generate_random_string(), "title": res_data.get("title"), "year": f"({res_data.get('releaseDate')[:4]})", "found": False, "newest_season": "S0", "newest_episode": "E0", "progress_season": "S1", "progress_episode": "E0", "ismovie": True, "url": res.get("id"), "h26510_cycle": 0, "_created": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "_changed": f'{(datetime.datetime.utcnow() - datetime.timedelta(minutes=30)).strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "_createdby": "api", "_changedby": "api", "_keywords": ["api"], "_tags": "", "_version": 0})
+                    # await to_thread(requests.delete, url=f'http://192.168.178.198:5055/api/v1/request/{res.get("requestId")}', headers=headers)
+                    cur.execute('INSERT INTO media (title, year, found, ismovie, db_id, newest_season, newest_episode, progress_season, progress_episode, h26510_cycle, _created, _changed, request_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', (res_data.get("title"), f"({res_data.get('releaseDate')[:4]})", 0, 1, str(res.get("id")), "S1", "E1", "S1", "E0", 0, f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', res.get("requestId")))
+                if res.get("type") == "tv":
+                    res_url = f'http://192.168.178.198:5055/api/v1/tv/{res.get("id")}?language=en'
+                    res_response = await to_thread(requests.get, url=res_url, headers=headers)
+                    res_data = res_response.json()
+                    dl_season = 1000
+                    for season in res.get("seasons"):
+                        if season.get("seasonNumber") < dl_season:
+                            dl_season = season.get("seasonNumber")
+                    start_date = ""
+                    for season in res_data.get("seasons"):
+                        if season.get("seasonNumber") == 1:
+                            start_date = season.get("airDate")[:4]
+                    cur.execute("SELECT COUNT(*) FROM media WHERE title = ?, year = ?", (res_data.get("name"),f"({start_date})"))
+                    count3 = cur.fetchone()[0]
+                    if count3:
+                        continue
+                    self.bot._db3.insert({"_id": generate_random_string(), "title": res_data.get("name"), "year": f"({start_date})", "found": False, "newest_season": f'S{res_data.get("lastEpisodeToAir").get("seasonNumber")}', "newest_episode": f'E{res_data.get("lastEpisodeToAir").get("episodeNumber")}', "progress_season": f'S{dl_season}', "progress_episode": "E0", "ismovie": False, "url": res.get("id"), "h26510_cycle": 0, "_created": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "_changed": f'{(datetime.datetime.utcnow() - datetime.timedelta(minutes=30)).strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "_createdby": "api", "_changedby": "api", "_keywords": ["api"], "_tags": "", "_version": 0})
+                    # await to_thread(requests.delete, url=f'http://192.168.178.198:5055/api/v1/request/{res.get("requestId")}', headers=headers)
+                    cur.execute('INSERT INTO media (title, year, found, ismovie, db_id, newest_season, newest_episode, progress_season, progress_episode, h26510_cycle, _created, _changed, request_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', (res_data.get("name"), f"({start_date})", 0, 0, str(res.get("id")), f'S{res_data.get("lastEpisodeToAir").get("seasonNumber")}', f'E{res_data.get("lastEpisodeToAir").get("episodeNumber")}', f'S{dl_season}', "E0", 0, f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', res.get("requestId")))
+            conn.commit()
 
 
     @tasks.loop(hours=12)
@@ -507,6 +532,30 @@ class justwatchCog(commands.Cog):
             if x.get('ismovie') is False:
                 await Torrent(self, x).update_show()
                 await sleep(1)
+
+        apikey = self.bot.global_var.jllsr
+        headers = {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            "X-Api-Key": apikey
+        }
+        db_path = '/home/darrie7/Scripts/pythonvenvs/discordbot/discordbot_scripts/sqlite3.db'
+        with sqlite3.connect(db_path) as conn:
+            try:
+                cur = conn.cursor()
+            except Exception as ex:
+                # await inter.send(f"connection failed {db_path}", ephemeral=True)
+                pass
+            cur.execute('CREATE TABLE IF NOT EXISTS media (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, year TEXT, found INTEGER, ismovie INTEGER, db_id TEXT, newest_season TEXT, newest_episode TEXT, progress_season TEXT, progress_episode TEXT, h26510_cycle INTEGER, _created TEXT, _changed TEXT, request_id INTEGER)')
+            cur.execute("SELECT db_id FROM media WHERE ismovie = ?", (0,))
+            rows = cur.fetchall()
+            for row in rows:
+                id = row[0]
+                res_url = f'http://192.168.178.198:5055/api/v1/tv/{id}?language=en'
+                res_response = await to_thread(requests.get, url=res_url, headers=headers)
+                res_data = res_response.json()
+                cur.execute("UPDATE media SET newest_season = ?, newest_episode = ? WHERE db_id = ?", (f'S{res_data.get("lastEpisodeToAir").get("seasonNumber")}', f'E{res_data.get("lastEpisodeToAir").get("episodeNumber")}', id,))
+            conn.commit()
         # [ await Torrent(self, x).update_show() for x in self.bot._db3 if x.get('ismovie') is False ]
 
 
