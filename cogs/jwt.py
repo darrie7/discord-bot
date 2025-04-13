@@ -322,6 +322,28 @@ class justwatchCog(commands.Cog):
         return
 
     @commands.slash_command()
+    async def movetosqlite(self) - > None:
+        """
+        move from tinydb to sqlite
+
+        Parameters
+        ----------
+        """
+        await inter.response.defer(with_message=True, ephemeral=False)
+        data = [ x for x in self.bot._db3 ]
+        db_path = '/home/darrie7/Scripts/pythonvenvs/discordbot/discordbot_scripts/sqlite3.db'
+        with sqlite3.connect(db_path) as conn:
+            try:
+                cur = conn.cursor()
+            except Exception as ex:
+                await inter.send(f"connection failed {db_path}", ephemeral=True)
+            cur.execute('CREATE TABLE IF NOT EXISTS media (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, year TEXT, found INTEGER, ismovie INTEGER, db_id TEXT, newest_season TEXT, newest_episode TEXT, progress_season TEXT, progress_episode TEXT, h26510_cycle INTEGER, _created TEXT, _changed TEXT)')
+            for x in data:
+                cur.execute('INSERT INTO media (title, year, found, ismovie, db_id, newest_season, newest_episode, progress_season, progress_episode, h26510_cycle, _created, _changed) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', (str(x.title), str(x.year), 1 if x.found else 0, 1 if x.ismovie else 0, x.url, x.newest_season, x.newest_episode, x.progress_season, x.progress_episode, x.h26510_cycle, x._created, x._changed))
+            conn.commit()
+        await inter.send(f"added has been added", ephemeral=True)
+
+    @commands.slash_command()
     async def delete_db3_entry(self, inter, title) -> None:
         """
         Remove entry from db
