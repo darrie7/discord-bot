@@ -322,7 +322,7 @@ class justwatchCog(commands.Cog):
         return
 
     @commands.slash_command()
-    async def movetosqlite(self) - > None:
+    async def movetosqlite(self, inter: disnake.ApplicationCommandInteraction) -> None:
         """
         move from tinydb to sqlite
 
