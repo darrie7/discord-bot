@@ -448,7 +448,7 @@ class justwatchCog(commands.Cog):
                 res_url = f'http://192.168.178.198:5055/api/v1/movie/{res.get("id")}?language=en'
                 res_response = await to_thread(requests.get, url=res_url, headers=headers)
                 res_data = res_response.json()
-                self.bot._db3.insert({"_id": generate_random_string(), "title": res_data.get("title"), "year": f"({res_data.get('releaseDate')[:4]})", "found": False, "newest_season": "S0", "newest_episode": "E0", "progress_season": "S1", "progress_episode": "E0", "ismovie": True, "url": res.get("id"), "h26510_cycle": 0, "_created": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "_createdby": "api", "_changedby": "api", "_keywords": ["api"], "_tags": "", "_version": 0})
+                self.bot._db3.insert({"_id": generate_random_string(), "title": res_data.get("title"), "year": f"({res_data.get('releaseDate')[:4]})", "found": False, "newest_season": "S0", "newest_episode": "E0", "progress_season": "S1", "progress_episode": "E0", "ismovie": True, "url": res.get("id"), "h26510_cycle": 0, "_created": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "_changed": f'{(datetime.datetime.utcnow() - datetime.timedelta(minutes=30)).strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "_createdby": "api", "_changedby": "api", "_keywords": ["api"], "_tags": "", "_version": 0})
                 await to_thread(requests.delete, url=f'http://192.168.178.198:5055/api/v1/request/{res.get("requestId")}', headers=headers)
             if res.get("type") == "tv":
                 res_url = f'http://192.168.178.198:5055/api/v1/tv/{res.get("id")}?language=en'
@@ -462,7 +462,7 @@ class justwatchCog(commands.Cog):
                 for season in res_data.get("seasons"):
                     if season.get("seasonNumber") == 1:
                         start_date = season.get("airDate")[:4]
-                self.bot._db3.insert({"_id": generate_random_string(), "title": res_data.get("name"), "year": f"({start_date})", "found": False, "newest_season": f'S{res_data.get("lastEpisodeToAir").get("seasonNumber")}', "newest_episode": f'E{res_data.get("lastEpisodeToAir").get("episodeNumber")}', "progress_season": f'S{dl_season}', "progress_episode": "E0", "ismovie": False, "url": res.get("id"), "h26510_cycle": 0, "_created": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "_createdby": "api", "_changedby": "api", "_keywords": ["api"], "_tags": "", "_version": 0})
+                self.bot._db3.insert({"_id": generate_random_string(), "title": res_data.get("name"), "year": f"({start_date})", "found": False, "newest_season": f'S{res_data.get("lastEpisodeToAir").get("seasonNumber")}', "newest_episode": f'E{res_data.get("lastEpisodeToAir").get("episodeNumber")}', "progress_season": f'S{dl_season}', "progress_episode": "E0", "ismovie": False, "url": res.get("id"), "h26510_cycle": 0, "_created": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "_changed": f'{(datetime.datetime.utcnow() - datetime.timedelta(minutes=30)).strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "_createdby": "api", "_changedby": "api", "_keywords": ["api"], "_tags": "", "_version": 0})
                 await to_thread(requests.delete, url=f'http://192.168.178.198:5055/api/v1/request/{res.get("requestId")}', headers=headers)
 
 
