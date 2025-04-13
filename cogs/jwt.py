@@ -46,6 +46,7 @@ class GlobalVars(commands.Cog):
         self.deluge_passwd = self.decoder.decrypt(b'gAAAAABmEvel4VRvjFbNkKvvqWrb3c5Jrngy6JOQZ83JjyDHPXuioI0-xwROYDG7EdQ8Gjpmy-JuCZLdjsIKrZ1V0YF0cBxkiQm10mMU0ScTWBW1EZVJrft5WTe4ZsHf9v6W4C57Kk_luG4BB4wy98mOe9ZxY1bKFDlMYAAy-IH77YUO4MBr2_QtWk7JwOhpF7-Bwctfp00s-3T2Q4QDE5fA-aaOp-dqqKAQUZw44rcMA_3-KdKWjdfkobof8QQoKBQ5cEdrA5JO').decode()
         self.jkt = self.decoder.decrypt(b'gAAAAABmRUBmnARecJEV7e02UAXCZhv9uIsuMtvcHw5KCeEl0-caj94VYCaueaQv7LeB_iFASbkA3abMasRRAbxj_5YOHCjQK_hy8Av7GPfgYFuEAaMWlwcP4prBuVMg7p7EL2oGvKJ-HBCfnS4ICwc7RTVjCsuYxR2cjtv9rlbP2upMnpj-wVACNzK7wZ4jWpgUh9zt-rjWE7fTzEIOTXoCbHsb1_MIwTtGdIuPuvyzgAGXojuEl1E=').decode()
         self.moviedb = self.decoder.decrypt(b'gAAAAABn1Fh5eOYf2FuSkT2F3C0EXR2GXalVFjmDdH-hwDbvxUnXFHQexiLt1OkU7O1-J8q2lWL_PQ9USruREW8E8gXT2lPhLrrWzrYVB0Am2hRU46yZF_1vg-bSQ-Rq0fimv_1SinQmDO9xqSNYW2qoAYwyecOcMmIDXDWntAIn7worVE9Zs6LnxlBdFZ8qRMC6-RSxZsJ3LfcdFT_d0hJfnJdLZ866PCg6-6fTE5koqDYdhSzZPxmUrk0oPfTBvy30_M-IO6ebSk0FkRAMBUf9XI4XuROdqdSLy3qbR6l_62LyWvPCBnc_IX9HFIiI22YXlsjiItShd8scx524ua0ihfULmojVb4M6MRoYhImCfR3JLQX5u7eqjT_Y1SKRkEa-K2ucX7an').decode()
+        self.jllsr = self.decoder.decrypt(b'gAAAAABn-wJf3HcV3lRyylV9-HxDz4Xdz35C3XSJE77gjaTJzo-nWUxczekXgIL6JiIWKSGWJzGfxRK5EQGedgYiN9cQpMXUvF95wfDjONmg5gr0wNhQNnVsBOntbN5Adg3qBpHGIq6S-AimRUKsqBx6__S2kBYqiVruTdAdDPhKOM07fl5X19c=').decode()
 
 
 class Torrent:
@@ -418,9 +419,11 @@ class justwatchCog(commands.Cog):
 
     @tasks.loop(seconds=60)
     async def requestsprocessor(self) -> None:
+        apikey = self.global_var.jllsr
         headers_new_update = {
             "Content-Type": "application/json",
-            "Accept": "application/json"
+            "Accept": "application/json",
+            "X-Api-Key": apikey
         }
         url = 'http://192.168.178.198:5055/api/v1/request?take=20&skip=0&sort=added&sortDirection=desc&requestedBy=1'
         response = await to_thread(requests.get, url=url, headers=headers)
