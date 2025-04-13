@@ -185,7 +185,7 @@ class Torrent:
                         matches = re.findall(r"'(.*?)'", str(e))
                         if not matches or not "magnet" in matches[0]:
                             await self.bot.get_channel(self.bot._test_channelid).send(f"""```{e}```""")
-                            return True
+                            continue
                         para = f"{'&'.join([ part for part in matches[0].split('&') if not part.startswith('tr=') ])}&tr={await self.get_trackers()}"
                 if not para:
                     continue
@@ -199,14 +199,14 @@ class Torrent:
                     }
                     response = await to_thread(s.post, url=url, data=json.dumps(payload), headers=headers)
                     if response.json().get("error"):
-                        await self.update_db({"_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": self.db_entry.get('h26510_cycle')+1}, restdb = False)
+                        # await self.update_db({"_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": self.db_entry.get('h26510_cycle')+1}, restdb = False)
                         await self.bot.get_channel(self.bot._test_channelid).send(f"""```{response.json().get("error")}```""")
                         break
                     if data.get("method") == "core.prefetch_magnet_metadata":
                         magnet_metadata = response.json().get("result")[1]
                         lnkorerror = await self.decode_bencoded_base64(magnet_metadata)
                         if lnkorerror:
-                            await self.update_db({"_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": self.db_entry.get('h26510_cycle')+1}, restdb = False)
+                            # await self.update_db({"_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', "h26510_cycle": self.db_entry.get('h26510_cycle')+1}, restdb = False)
                             await self.bot.get_channel(self.bot._test_channelid).send(f"""```Error or virus found in Torrent in {found_torrent.get("title")}```""")
                             break
                     if data.get("method") == "core.add_torrent_magnet":
