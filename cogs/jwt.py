@@ -425,7 +425,7 @@ class justwatchCog(commands.Cog):
         url = 'http://192.168.178.198:5055/api/v1/request?take=20&skip=0&sort=added&sortDirection=desc&requestedBy=1'
         response = await to_thread(requests.get, url=url, headers=headers)
         data = response.json()
-        results = [ {"requestId" = x.get("id"), "type": x.get("type"), "id": x.get("media").get("tmdbId") "seasons": x.get("seasons")} for x in data.get('results') ]
+        results = [ {"requestId": x.get("id"), "type": x.get("type"), "id": x.get("media").get("tmdbId"), "seasons": x.get("seasons")} for x in data.get('results') ]
         for res in results:
             if res.get("type") == "movie":
                 res_url = f'http://192.168.178.198:5055/api/v1/movie/{res.get("id")}?language=en'
