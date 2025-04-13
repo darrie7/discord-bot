@@ -434,7 +434,7 @@ class justwatchCog(commands.Cog):
                 res_url = f'http://192.168.178.198:5055/api/v1/movie/{res.get("id")}?language=en'
                 res_response = await to_thread(requests.get, url=res_url, headers=headers)
                 res_data = res_response.json()
-                self.bot._db3.insert({ "title": res_data.get("title"), "year": f"({res_data.get("releaseDate")[:4]})", "found": False, "ismovie": True, "h26510_cycle": 0, "newest_season": "S0", "newest_episode": "E0", "progress_season": "S1", "progress_episode": "E0", "url": res.get("id"), "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z' })
+                self.bot._db3.insert({ "title": res_data.get("title"), "year": f"({res_data.get('releaseDate')[:4]})", "found": False, "ismovie": True, "h26510_cycle": 0, "newest_season": "S0", "newest_episode": "E0", "progress_season": "S1", "progress_episode": "E0", "url": res.get("id"), "_changed": f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z' })
                 await to_thread(requests.delete, url=f'http://192.168.178.198:5055/api/v1/request/{res.get("requestId")}', headers=headers)
             if res.get("type") == "tv":
                 res_url = f'http://192.168.178.198:5055/api/v1/tv/{res.get("id")}?language=en'
