@@ -463,7 +463,7 @@ class justwatchCog(commands.Cog):
             [ self.bot._db3.insert(x) for x in data if not self.bot._db3.search(self.bot._query["_id"] == x.get("_id")) ]
             await to_thread(requests.put, url=update_check_url, headers=headers_new_update, json={"update": False})
         data = [ x for x in self.bot._db3 if not x.get('found') ]
-        [ await Torrent(self, x).update_show() for x in data if x.get('ismovie') is False and x.get('url').startswith('http')] 
+        [ await Torrent(self, x).update_show() for x in data if x.get('ismovie') is False and str(x.get('url')).startswith('http')] 
         await gather(*[ Torrent(self, x).download_torrent() for x in data if ( not (x.get('newest_season') == x.get('progress_season') and x.get('newest_episode') == x.get('progress_episode')) and ((datetime.datetime.utcnow() - datetime.timedelta(minutes=15)) > datetime.datetime.strptime(x.get('_changed').split('.')[0], '%Y-%m-%dT%H:%M:%S') or x.get('_changed') == x.get('_created')))])
         return
 
@@ -497,7 +497,7 @@ class justwatchCog(commands.Cog):
                     res_url = f'http://192.168.178.198:5055/api/v1/movie/{res.get("id")}?language=en'
                     res_response = await to_thread(requests.get, url=res_url, headers=headers)
                     res_data = res_response.json()
-                    cur.execute("SELECT COUNT(*) FROM media WHERE title = ?, year = ?", (res_data.get("title", "No Title Found"),f"({res_data.get('releaseDate', "9999")[:4]})"))
+                    cur.execute("SELECT COUNT(*) FROM media WHERE title = ?, year = ?", (res_data.get("title", "No Title Found"),f"({res_data.get('releaseDate', '9999')[:4]})"))
                     count2 = cur.fetchone()[0]
                     if count2:
                         continue
