@@ -20,6 +20,7 @@ from io import StringIO
 import base64
 import bencode
 import string
+import sqlite3
 
 def generate_random_string(length=24):
   """Generates a random string of specified length containing numbers and lowercase letters.
