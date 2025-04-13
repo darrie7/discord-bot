@@ -419,7 +419,7 @@ class justwatchCog(commands.Cog):
 
     @tasks.loop(seconds=60)
     async def requestsprocessor(self) -> None:
-        apikey = self.global_var.jllsr
+        apikey = self.bot.global_var.jllsr
         headers_new_update = {
             "Content-Type": "application/json",
             "Accept": "application/json",
