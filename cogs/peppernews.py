@@ -322,8 +322,8 @@ class PeppernewsCog(commands.Cog):
             # else:
             #     title_pep = f.get("title")
             # await self.bot.get_channel(679029900299993113).send(embed=disnake.Embed(title = title_pep, description = f"""{html.fromstring(f.get("description")).text_content()[:1500]}...""", url = f.get("link")))
-
-    @tasks.loop(time=[time(hour=1, minute=1, tzinfo=timezone(datetime.now(pytz.timezone("Europe/Amsterdam")).utcoffset()))])
+    #, minute=1, tzinfo=timezone(datetime.now(pytz.timezone("Europe/Amsterdam")).utcoffset())
+    @tasks.loop(time=[time(hour=1)])
     async def marktplaatssync(self) -> None:
         ua = UserAgent()
         db_path = '/home/darrie7/Scripts/pythonvenvs/discordbot/discordbot_scripts/sqlite3.db'
@@ -393,8 +393,8 @@ class PeppernewsCog(commands.Cog):
         #     title_pep = f"""{listing.get("title")} - PRICE: {listing.get("pepper_merchant", {"price": "???"}).get("price", "???")}"""
         #     await self.bot.get_channel(679029900299993113).send(embed=disnake.Embed(title = title_pep, description = f"""{html.fromstring(listing.get("description")).text_content()[:1500]}...""", url = listing.get("link")))
             
-
-    @tasks.loop(time=[time(hour=12, tzinfo=timezone(datetime.now(pytz.timezone("Europe/Amsterdam")).utcoffset()))])
+    #, tzinfo=timezone(datetime.now(pytz.timezone("Europe/Amsterdam")).utcoffset())
+    @tasks.loop(time=[time(hour=12)])
     async def task_two(self) -> None:
         r = await to_thread(requests.get, 
                             url = "https://nfs.faireconomy.media/ff_calendar_thisweek.json?version=3e6fc15a391103cb8eec35d93d70eab2",
