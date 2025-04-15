@@ -884,7 +884,7 @@ class justwatchCog(commands.Cog):
 
 
     #@tasks.loop(hours=8)
-    @tasks.loop(time=[datetime.time(hour=3), datetime.time(hour=9), datetime.time(hour=15), datetime.time(hour=21)])
+    @tasks.loop(time=[datetime.time(hour=4), datetime.time(hour=10), datetime.time(hour=16), datetime.time(hour=22)])
     async def update_newestmedia(self) -> None:
         await sleep(25)
         # for x in self.bot._db3:
@@ -896,7 +896,7 @@ class justwatchCog(commands.Cog):
             "Content-Type": "application/json",
             "Accept": "application/json",
             "X-Api-Key": apikey
-        }
+        }   
 
         db_path = '/home/darrie7/Scripts/pythonvenvs/discordbot/discordbot_scripts/sqlite3.db'
         async with database_lock:
