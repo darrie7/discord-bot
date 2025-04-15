@@ -27,7 +27,7 @@ database_lock = Lock()
 def normalize_title(title):
     """Normalizes a movie or series title for comparison."""
     # Remove non-alphanumeric characters (keeping spaces)
-    normalized_title = re.sub(r'[^a-z0-9\s]', '', title)
+    normalized_title = re.sub(r'[^a-zA-Z0-9\s]', '', title)
     # Remove extra whitespace
     normalized_title = ' '.join(normalized_title.split())
     return normalized_title
@@ -177,11 +177,11 @@ class Search_Media:
                             continue
                         found_show = await self.search_for_shows()
                         if found_show:
-                            foundshows.append((f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', found_show.get("progress_season"), found_show.get("progress_episode"), 0, show["id"]))
+                            foundshows.append((f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', found_show.get("progress_season"), found_show.get("progress_episode"), 0, show["db_id"]))
                             if show.get("request_id", ""):
                                 await to_thread(requests.delete, url=f'http://192.168.178.198:5055/api/v1/request/{show.get("request_id")}', headers=headers)
                         else:
-                            notfoundshows.append((f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', show.get("h26510_cycle") + 1, show["id"]))
+                            notfoundshows.append((f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', show.get("h26510_cycle") + 1, show["db_id"]))
                     if foundmovies:
                         await cur.executemany("UPDATE media SET _changed = ?, found = ?, h26510_cycle = ? WHERE title = ? AND year = ?", foundmovies)
                     if notfoundmovies:
@@ -883,7 +883,8 @@ class justwatchCog(commands.Cog):
         #     await conn.commit()
 
 
-    @tasks.loop(hours=8)
+    #@tasks.loop(hours=8)
+    @tasks.loop(time=[datetime.time(hour=3), datetime.time(hour=9), datetime.time(hour=15), datetime.time(hour=21)])
     async def update_newestmedia(self) -> None:
         await sleep(25)
         # for x in self.bot._db3:
