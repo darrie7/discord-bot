@@ -211,6 +211,7 @@ class Search_Media:
         progress_season = int(self.media.get('progress_season').replace('S', ''))
         progress_episode = int(self.media.get('progress_episode').replace('E', ''))
         dl_path = f"/tv/{normalize_title(self.media.get('title')).replace(' ', '_')}/"
+        check = False
         if progress_episode == 0:
             self.search_term = f"{self.media.get('title')} S{progress_season:02}"
             t_info = await self.media_scraper()
@@ -222,25 +223,34 @@ class Search_Media:
             self.search_term = f"{self.media.get('title')} S{progress_season:02}E{progress_episode+1:02}"
             t_info = await self.media_scraper()
             if not t_info == []:
-                mag2del = await self.magnet2deluge(t_info, dl_path)
+                if progress_season == newest_season and progress_episode+1 == newest_episode:
+                    check = True
+                mag2del = await self.magnet2deluge(t_info, dl_path, check)
                 if mag2del:
                     return False
                 return {"progress_season": f"S{progress_season}", "progress_episode": f"E{progress_episode+1}"}
             return False
+            
         self.search_term = f"{self.media.get('title')} S{progress_season:02}E{progress_episode+1:02}"
         t_info = await self.media_scraper()
         if not t_info == []:
-            mag2del = await self.magnet2deluge(t_info, dl_path)
+            if progress_season == newest_season and progress_episode+1 == newest_episode:
+                check = True
+            mag2del = await self.magnet2deluge(t_info, dl_path, check)
             if mag2del:
                 return False
             return {"progress_season": f"S{progress_season}", "progress_episode": f"E{progress_episode+1}"}
+            
         self.search_term = f"{self.media.get('title')} S{progress_season+1:02}"
         t_info = await self.media_scraper()
         if not t_info == []:
-            mag2del = await self.magnet2deluge(t_info, dl_path)
+            if progress_season+1 == newest_season and newest_episode == 1:
+                check = True
+            mag2del = await self.magnet2deluge(t_info, dl_path, check)
             if mag2del:
                 return False
             return {"progress_season": f"S{progress_season+1}","progress_episode": f"E0"} if (newest_season > progress_season+1) else {"progress_season": f"S{newest_season}","progress_episode": f"E{newest_episode}"}
+        
         self.search_term = f"{self.media.get('title')} S{progress_season+1:02}E01"
         t_info = await self.media_scraper()
         if not t_info == []:
@@ -250,10 +260,12 @@ class Search_Media:
             return {"progress_season": f"S{progress_season+1}","progress_episode": "E1"}
         return False
     
-    async def magnet2deluge(self, torrents, medium):
+    async def magnet2deluge(self, torrents, medium, check = False):
         found_torrents = torrents
         if self.media.get('h26510_cycle') < 9:
             found_torrents = [ torr for torr in torrents if ("H.265" in torr.get("codec") and "10-bit" in torr.get("color_depth") ) ]
+        if not check:
+            found_torrents.extend(torrents)
         if not found_torrents:
             return True
         with requests.Session() as s:
