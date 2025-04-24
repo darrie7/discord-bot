@@ -165,7 +165,7 @@ class Search_Media:
                             if movie.get("request_id", ""):
                                 await to_thread(requests.delete, url=f'http://192.168.178.198:5055/api/v1/request/{movie.get("request_id")}', headers=headers)
                         else:
-                            notfoundmovies.append((f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', movie.get("h26510_cycle") + 1, movie.get("title"), movie.get("year")))
+                            notfoundmovies.append((f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', movie.get("h26510_cycle") + 1 if movie.get("h26510_cycle") < 9 else 0, movie.get("title"), movie.get("year")))
                     
                     await cur.execute("SELECT * FROM media WHERE found = ? AND ismovie = ?", (0, 0))
                     foundshows = []
@@ -181,7 +181,7 @@ class Search_Media:
                             if show.get("request_id", ""):
                                 await to_thread(requests.delete, url=f'http://192.168.178.198:5055/api/v1/request/{show.get("request_id")}', headers=headers)
                         else:
-                            notfoundshows.append((f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', show.get("h26510_cycle") + 1, show["db_id"]))
+                            notfoundshows.append((f'{datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]}Z', show.get("h26510_cycle") + 1 if show.get("h26510_cycle") < 9 else 0, show["db_id"]))
                     if foundmovies:
                         await cur.executemany("UPDATE media SET _changed = ?, found = ?, h26510_cycle = ? WHERE title = ? AND year = ?", foundmovies)
                     if notfoundmovies:
