@@ -126,7 +126,7 @@ async def decode_bencoded_base64(encoded_string) -> bool:
     try:
         decoded_base64 = base64.b64decode(encoded_string)
         decoded_bencode = bencode.bdecode(decoded_base64)
-        if ".lnk" in str(decoded_bencode).lower():
+        if (".lnk" or ".arj") in str(decoded_bencode).lower():
             return True
         return False
     except Exception as e:
