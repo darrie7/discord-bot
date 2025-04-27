@@ -300,7 +300,7 @@ class Search_Media:
                         magnet_metadata = response.json().get("result")[1]
                         lnkorerror = await decode_bencoded_base64(magnet_metadata)
                         if lnkorerror:
-                            await self.bot.get_channel(self.bot._test_channelid).send(f"""```Error or virus found in Torrent in {found_torrent.get("title")}```""")
+                           # await self.bot.get_channel(self.bot._test_channelid).send(f"""```Error or virus found in Torrent in {found_torrent.get("title")}```""")
                             break
                     if data.get("method") == "core.add_torrent_magnet":
                         return
