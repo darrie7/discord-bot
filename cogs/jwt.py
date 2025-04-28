@@ -898,7 +898,6 @@ class justwatchCog(commands.Cog):
     #@tasks.loop(hours=8)
     @tasks.loop(time=[datetime.time(hour=4), datetime.time(hour=10), datetime.time(hour=16), datetime.time(hour=22)])
     async def update_newestmedia(self) -> None:
-        await sleep(25)
         # for x in self.bot._db3:
         #     if x.get('ismovie') is False:
         #         await Torrent(self, x).update_show()
@@ -918,13 +917,16 @@ class justwatchCog(commands.Cog):
                     await cur.execute('CREATE TABLE IF NOT EXISTS media (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, year TEXT, found INTEGER, ismovie INTEGER, db_id TEXT, newest_season TEXT, newest_episode TEXT, progress_season TEXT, progress_episode TEXT, h26510_cycle INTEGER, _created TEXT, _changed TEXT, request_id INTEGER)')
                     await cur.execute("SELECT db_id, newest_season, newest_episode FROM media WHERE ismovie = ?", (0,))
                     rows = await cur.fetchall()
+                    updates = []
                     for row in rows:
                         id = row[0]
                         res_url = f'http://192.168.178.198:5055/api/v1/tv/{id}?language=en'
                         res_response = await to_thread(requests.get, url=res_url, headers=headers)
                         res_data = res_response.json()
                         if f'S{res_data.get("lastEpisodeToAir").get("seasonNumber")}' != row[1] or f'E{res_data.get("lastEpisodeToAir").get("episodeNumber")}' != row[2]:
-                            await cur.execute("UPDATE media SET newest_season = ?, newest_episode = ? WHERE db_id = ?", (f'S{res_data.get("lastEpisodeToAir").get("seasonNumber")}', f'E{res_data.get("lastEpisodeToAir").get("episodeNumber")}', id,))
+                            updates.append((f'S{res_data.get("lastEpisodeToAir").get("seasonNumber")}', f'E{res_data.get("lastEpisodeToAir").get("episodeNumber")}', id))
+                            # await cur.execute("UPDATE media SET newest_season = ?, newest_episode = ? WHERE db_id = ?", (f'S{res_data.get("lastEpisodeToAir").get("seasonNumber")}', f'E{res_data.get("lastEpisodeToAir").get("episodeNumber")}', id,))
+                    await cur.executemany("UPDATE media SET newest_season = ?, newest_episode = ? WHERE db_id = ?", updates)
                     await conn.commit()
             except Exception as ex:
                 # await inter.send(f"connection failed {db_path}", ephemeral=True)
