@@ -923,7 +923,7 @@ class justwatchCog(commands.Cog):
                         res_url = f'http://192.168.178.198:5055/api/v1/tv/{id}?language=en'
                         res_response = await to_thread(requests.get, url=res_url, headers=headers)
                         res_data = res_response.json()
-                        if f'S{res_data.get("lastEpisodeToAir").get("seasonNumber")}' != row[1] or f'E{res_data.get("lastEpisodeToAir").get("episodeNumber")}' != row[2]:
+                        if not (f'S{res_data.get("lastEpisodeToAir").get("seasonNumber")}' == row[1] and f'E{res_data.get("lastEpisodeToAir").get("episodeNumber")}' == row[2]):
                             updates.append((f'S{res_data.get("lastEpisodeToAir").get("seasonNumber")}', f'E{res_data.get("lastEpisodeToAir").get("episodeNumber")}', id))
                             # await cur.execute("UPDATE media SET newest_season = ?, newest_episode = ? WHERE db_id = ?", (f'S{res_data.get("lastEpisodeToAir").get("seasonNumber")}', f'E{res_data.get("lastEpisodeToAir").get("episodeNumber")}', id,))
                     await cur.executemany("UPDATE media SET newest_season = ?, newest_episode = ? WHERE db_id = ?", updates)
