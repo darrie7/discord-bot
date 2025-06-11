@@ -216,7 +216,6 @@ class Search_Media:
             self.search_term = f"{self.media.get('title')} S{progress_season:02}"
             t_info = await self.media_scraper()
             if not t_info == []:
-                await self.bot.get_channel(793878235066400809).send(f"""```Found for: {self.search_term}```""")
                 mag2del = await self.magnet2deluge(t_info, dl_path)
                 if mag2del:
                     return False
@@ -310,7 +309,7 @@ class Search_Media:
     
     async def media_scraper(self):
         n: int = 0
-        uri = f"{self.global_var.jkt}{self.search_term}+1080p"
+        uri = f"{self.global_var.jkt}{self.search_term.replace('&', '%26')}+1080p"
         searchterm_guess = guess_media(self.search_term)
         ua = UserAgent()
         headers = {'User-Agent': ua.random}
