@@ -27,7 +27,7 @@ database_lock = Lock()
 def normalize_title(title):
     """Normalizes a movie or series title for comparison."""
     # Remove non-alphanumeric characters (keeping spaces)
-    normalized_title = re.sub(r'[^a-zA-Z0-9\s]', '', title)
+    normalized_title = re.sub(r'[^a-zA-Z0-9\s&]', '', title)
     # Remove extra whitespace
     normalized_title = ' '.join(normalized_title.split())
     return normalized_title
