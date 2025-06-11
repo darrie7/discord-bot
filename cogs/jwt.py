@@ -323,7 +323,7 @@ class Search_Media:
             items = []
             for item in root.findall('.//item'):
                 item_guess = guess_media(item.find('title').text)
-                if ( item.find('title').text and item.find('link').text and int(item.find(".//{http://torznab.com/schemas/2015/feed}attr[@name='seeders']").attrib['value']) > 2 and normalize_title(item_guess.get('title')) in normalize_title(self.media.get('title').lower()) and not item_guess.get('source') and item_guess.get('season') == searchterm_guess.get('season') and item_guess.get('episode') == searchterm_guess.get('episode') ):
+                if ( item.find('title').text and item.find('link').text and int(item.find(".//{http://torznab.com/schemas/2015/feed}attr[@name='seeders']").attrib['value']) > 2 and normalize_title(item_guess.get('title').lower()) in normalize_title(self.media.get('title').lower()) and not item_guess.get('source') and item_guess.get('season') == searchterm_guess.get('season') and item_guess.get('episode') == searchterm_guess.get('episode') ):
                     items.append({'title': item.find('title').text, 'magnet': item.find('link').text, 'codec': item_guess.get('codec'), 'color_depth': item_guess.get("color_depth") })
             return items if items else []
         return []
