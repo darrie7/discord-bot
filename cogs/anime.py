@@ -304,7 +304,8 @@ class MyCommandsCog(commands.Cog):
         # self.bot.host = self.decoder.decrypt(b'gAAAAABlpWObOSHPZsnwbjQWP9MwULDlDRuxFXKPYBFAZS_s6X_Lr620EKMtklKbFRvK1uFNdX6YYUWvrO2gXKLHEDkvERVE3w==').decode()
         # self.bot.deluge_user =  self.decoder.decrypt(b'gAAAAABlIxN9JUKSkB2Ncjq1Na0huIM53UJGIGEb621_We33mUKHkN4uaifSZYp_pfexSEpq6NKI4Iy97KFjthaVbeUm5gPSkA==').decode()
         # self.bot.deluge_passwd = self.decoder.decrypt(b'gAAAAABlIxOc7ZikmiK3gtZK5hvEDFZHAEp3dQurdZl4YoMzfHBZ3eveES_0WY-cqF10fIwPuIDVbawOiCsKFVHaiPs6GQ6s8g==').decode()
-        self.bot.host = self.decoder.decrypt(b'gAAAAABn5ILSrtasPx4dzhyYH2xjQjPs9Nn2kV2koU0q-d3do0jXRvjeEbyBS29663H579HgzOIu7dBLdsvtNyN3bT7hyFjpLZAtqFbdeaaWNAlm9PhOC7A=').decode()
+        # self.bot.host = self.decoder.decrypt(b'gAAAAABn5ILSrtasPx4dzhyYH2xjQjPs9Nn2kV2koU0q-d3do0jXRvjeEbyBS29663H579HgzOIu7dBLdsvtNyN3bT7hyFjpLZAtqFbdeaaWNAlm9PhOC7A=').decode()
+        self.bot.host = self.decoder.decrypt(b'gAAAAABofDgE-X7CVq6wasDssL_2ES_6ysD-r_UUKOLklxfcHYdcPR0czY7bYqaFwpCQnl0qLNx1AY97l3v6UJpopi-RkYqfmq0xP1owLWVx1obz-9aNwO6cYeghFDq-zzpj7Ck4fntu').decode()
         self.bot.deluge_passwd = self.decoder.decrypt(b'gAAAAABmEvel4VRvjFbNkKvvqWrb3c5Jrngy6JOQZ83JjyDHPXuioI0-xwROYDG7EdQ8Gjpmy-JuCZLdjsIKrZ1V0YF0cBxkiQm10mMU0ScTWBW1EZVJrft5WTe4ZsHf9v6W4C57Kk_luG4BB4wy98mOe9ZxY1bKFDlMYAAy-IH77YUO4MBr2_QtWk7JwOhpF7-Bwctfp00s-3T2Q4QDE5fA-aaOp-dqqKAQUZw44rcMA_3-KdKWjdfkobof8QQoKBQ5cEdrA5JO').decode()
         
         
